@@ -1,0 +1,15 @@
+**/rzero_storage/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+
+# Logs / artifacts
+wandb/
+**/wandb/
+*.log
+**/*.log
+*.txt
+**/*.txt
+*.json
+**/*.json

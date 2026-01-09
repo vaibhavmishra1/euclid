@@ -45,6 +45,10 @@ def main(args):
     )
     handler = datasets_loader.get_dataset_handler(args.dataset,args.name)
     questions, answers = handler.load_data()
+    if args.limit is not None:
+        # Deterministic: take the first N examples.
+        questions = questions[: args.limit]
+        answers = answers[: args.limit]
     chats=[[{"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{}."},{"role": "user", "content": question}] for question in questions]
     if tokenizer.chat_template:
         prompts = [tokenizer.apply_chat_template(chat, tokenize=False,add_generation_prompt=True, add_special_tokens=True) for chat in chats]
@@ -66,5 +70,11 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B")
     parser.add_argument("--dataset", type=str, default="math")
     parser.add_argument("--name", type=str, default=None)
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit to first N examples (e.g. 100 for quick eval).",
+    )
     args = parser.parse_args()
     main(args)

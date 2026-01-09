@@ -201,7 +201,9 @@ class FSDPWorker(Worker):
                 model_config.model_path,
                 config=self.model_config,
                 torch_dtype='bfloat16',
-                attn_implementation="flash_attention_2",
+                # 1-GPU / minimal installs: avoid requiring `flash_attn`.
+                # SDPA is available in PyTorch and works well for small models.
+                attn_implementation="sdpa",
                 device_map="cpu" if fsdp_config.enable_rank0_init else "cuda",
                 low_cpu_mem_usage=True,
                 trust_remote_code=model_config.trust_remote_code,
@@ -211,7 +213,7 @@ class FSDPWorker(Worker):
                 model = auto_class.from_config(
                     self.model_config,
                     torch_dtype='bfloat16',
-                    attn_implementation="flash_attention_2",
+                    attn_implementation="sdpa",
                     trust_remote_code=model_config.trust_remote_code,
                 )
 

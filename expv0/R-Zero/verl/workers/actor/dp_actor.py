@@ -24,7 +24,16 @@ from einops import rearrange
 from ray.experimental.tqdm_ray import tqdm
 from torch import nn
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from transformers.modeling_flash_attention_utils import index_first_axis, pad_input, unpad_input
+
+# These are only defined by Transformers when FlashAttention2 (or NPU integration)
+# is available. For 1-GPU / minimal installs we typically run with
+# `padding_free=false`, so make the import optional.
+try:
+    from transformers.modeling_flash_attention_utils import index_first_axis, pad_input, unpad_input
+except Exception:  # noqa: BLE001 - compatibility across transformers installs
+    index_first_axis = None
+    pad_input = None
+    unpad_input = None
 
 from ...protocol import DataProto
 from ...trainer import core_algos
@@ -79,6 +88,11 @@ class DataParallelPPOActor(BasePPOActor):
                 )
 
         if self.config.padding_free:
+            if unpad_input is None or pad_input is None or index_first_axis is None:
+                raise ImportError(
+                    "verl padding_free requires FlashAttention/NPU padding utilities, but they are not available. "
+                    "Set `worker.actor.padding_free=false` (recommended for 1 GPU) or install `flash-attn`."
+                )
             input_ids_rmpad, indices, *_ = unpad_input(
                 input_ids.unsqueeze(-1), attention_mask
             )  # input_ids_rmpad (total_nnz, ...)
