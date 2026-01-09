@@ -1,11 +1,30 @@
 import vllm
 import argparse
-import  evaluation.datasets_loader as datasets_loader
+try:
+    # Preferred when running as a module: `python -m evaluation.generate ...`
+    import evaluation.datasets_loader as datasets_loader
+except ModuleNotFoundError:
+    # Fallback when running as a script: `python evaluation/generate.py ...`
+    import datasets_loader as datasets_loader
 from transformers import AutoTokenizer
 import json
 import os
 
-STORAGE_PATH = os.getenv("STORAGE_PATH")
+def _get_storage_path() -> str:
+    """
+    Where to write evaluation artifacts.
+
+    - If STORAGE_PATH is set, use it (recommended; consistent with training scripts).
+    - Otherwise, default to `<repo_root>/storage` to avoid writing into `None/...`.
+    """
+    storage_path = os.getenv("STORAGE_PATH")
+    if storage_path:
+        return storage_path
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.join(repo_root, "storage")
+
+
+STORAGE_PATH = _get_storage_path()
 
 def main(args):
     print("STORAGE_PATH")
