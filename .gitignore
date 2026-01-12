@@ -1,8 +1,12 @@
 **/rzero_storage/
+
+# Python bytecode
 __pycache__/
 **/__pycache__/
+*.pyc
+*.pyo
+*.pyd
 *.py[cod]
-**/*.py[cod]
 
 # Logs / artifacts
 wandb/

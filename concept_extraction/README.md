@@ -1,6 +1,8 @@
 ## Math concept extraction scaffold
 
-This folder contains a minimal pipeline to extract and normalize math concepts, theorems, formulae, and axioms/definitions from the MATH dataset (`hendrycks/competition_math`) using a strong open-weight model.
+This folder contains a minimal pipeline to extract and normalize math concepts, theorems, formulae, and axioms/definitions from the MATH dataset (`EleutherAI/hendrycks_math`) using either:
+- a local open-weight model (Hugging Face `transformers`), or
+- a closed-source API model (OpenAI).
 
 ### Files
 - `ontology.py` — ontology seed (`Domain:Subdomain:Concept` labels).
@@ -8,9 +10,38 @@ This folder contains a minimal pipeline to extract and normalize math concepts, 
 - `pipeline.py` — CLI scaffold that loads MATH, runs extraction + normalization, writes JSONL.
 
 ### Usage
-Requires `datasets`, `transformers`, `torch` and access to strong open-weight models (e.g., Qwen2.5 72B, Mixtral 8x22B). Install:
+Install base deps:
 ```
-pip install datasets transformers torch --upgrade
+pip install datasets --upgrade
+```
+
+#### Option A: OpenAI backend (recommended for one-time 10k run)
+Install:
+```
+pip install openai --upgrade
+```
+
+Set your key:
+```
+export OPENAI_API_KEY="..."
+```
+
+Run:
+```
+python -m tree.euclid.concept_extraction.pipeline \
+  --backend openai \
+  --dataset EleutherAI/hendrycks_math \
+  --extractor gpt-4o-mini \
+  --normalizer gpt-4o-mini \
+  --split train \
+  --limit 100 \
+  --output math_concepts.jsonl
+```
+
+#### Option B: Hugging Face backend (local open-weight)
+Install:
+```
+pip install transformers torch --upgrade
 ```
 
 Run (same model for both passes shown; you can split if desired):

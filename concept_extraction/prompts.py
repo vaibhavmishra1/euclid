@@ -1,91 +1,119 @@
 """
 Prompt builders for extraction and normalization.
 
-Extraction outputs raw concepts, theorems, formulae, and axioms/definitions.
-Normalization maps raw items back to the controlled ontology, keeping NEW: labels
-when something is out of ontology.
+Extraction outputs invariant mathematical knowledge points.
+Normalization validates and deduplicates the extracted knowledge points.
 """
 
 from __future__ import annotations
 
 import json
-from typing import Iterable, Mapping, Sequence
-
-from .ontology import ONTOLOGY, ontology_as_text
+from typing import Mapping
 
 
 def build_extraction_prompt(
+    qid: str,
     question: str,
-    ontology: Sequence[str] | None = None,
-    max_concepts: int = 8,
+    solution: str = "",
+    max_concepts: int = 5,
 ) -> str:
     """
     Build a single-string prompt to feed to a text-generation model.
     """
-    ontology = ontology or ONTOLOGY
-    ontology_text = ontology_as_text(prefix="- ")
+    solution_section = ""
+    if solution:
+        solution_section = f"""
+Solution:
+{solution}
+"""
 
-    return f"""You are an expert math tagger. Given a math question, extract the minimal set of key concepts and supporting items needed to solve it.
+    return f"""You will be given a mathematics problem and its solution. Extract 1 to {max_concepts} mathematical knowledge points that are required to solve this problem.
 
-Rules:
-- Output JSON only, no prose.
-- concepts: choose from the ontology list below; if missing, use NEW:<short label>. Max {max_concepts}, deduped, most central first.
-- named_theorems: canonical names only (e.g., "Power of a Point", "Law of Cosines"). If unsure, UNKNOWN_THEOREM:<short description>. Do not invent names.
-- formulae: minimal symbolic forms (LaTeX-friendly). Examples: a^2+b^2=c^2, Vieta: x1+x2=-b/a, x1*x2=c/a, AreaSector = (θ/2π)πr^2. No long prose.
-- axioms_or_definitions: e.g., "definition of derivative", "triangle inequality". Prefer canonical names; otherwise NEW:<short label>.
-- Preserve the question text verbatim in question.
+WHAT ARE KNOWLEDGE POINTS?
+Knowledge points are INVARIANT mathematical facts—theorems, identities, properties, formulas, or definitions that:
+- Are universally true and not specific to this problem
+- Would be found in a mathematics textbook or reference
+- Could be applied to ANY problem involving the same concept
 
-Ontology list (choose concepts from here unless you must use NEW:):
-{ontology_text}
+KEY CRITERION: QUESTION GENERATION TEST
+The extracted knowledge points must be SUFFICIENT for someone to create a SIMILAR question.
+If a teacher is given ONLY your knowledge points list, they should be able to construct a new problem of the same type and difficulty level. Ask yourself: "Can I generate a similar problem using just these knowledge points?" If not, you are missing something.
 
-Return JSON with fields:
+STRICT REQUIREMENTS:
+
+1. PRECISE TERMINOLOGY: Use accurate, professional mathematical terms.
+   - Good: "Pythagorean theorem: a² + b² = c²", "difference of squares identity: a² - b² = (a+b)(a-b)"
+   - Bad: "geometry", "algebra", "basic math"
+
+2. INVARIANT KNOWLEDGE ONLY: Extract general mathematical truths, NOT problem-specific details.
+   - Good: "quadratic formula: x = (-b ± √(b²-4ac))/(2a)" (applies to any quadratic)
+   - Bad: "x = 3" or "f(2) = 5" (specific to this problem)
+
+3. COMPLETE FOR QUESTION GENERATION: Include ALL core concepts needed to create a similar problem.
+   - If the problem uses right triangles, include "Pythagorean theorem: a² + b² = c²"
+   - If it involves finding roots, include "quadratic formula" or "Vieta's formulas"
+   - If it uses circle properties, include the specific circle theorem used
+
+4. ATOMIC & UNIQUE: Each item must be a single mathematical fact. No duplicates or overlapping concepts.
+
+5. NO PROCEDURES: Exclude methods like "substitution", "simplification". Only mathematical facts.
+
+6. INCLUDE THE FORMULA/IDENTITY: When a theorem or property has a formula, always include it.
+   - Good: "sum of arithmetic sequence: S_n = n(a₁ + aₙ)/2"
+   - Good: "Vieta's formulas: for ax² + bx + c = 0, sum of roots = -b/a, product = c/a"
+   - Good: "Law of Cosines: c² = a² + b² - 2ab·cos(C)"
+
+OUTPUT FORMAT (JSON only):
+
 {{
-  "id": "<id-string>",
-  "question": "<question text>",
-  "concepts": ["<ontology or NEW:...>", ...],
-  "named_theorems": ["..."],
-  "formulae": ["..."],
-  "axioms_or_definitions": ["..."]
+  "id": "",
+  "question": "",
+  "knowledge_points": [
+    "<knowledge point 1 with formula if applicable>",
+    "<knowledge point 2>",
+    ...
+  ]
 }}
 
-Question:
+Problem:
 {question}
-"""
+{solution_section}"""
 
 
 def build_normalization_prompt(
     raw: Mapping[str, object],
-    ontology: Sequence[str] | None = None,
-    max_concepts: int = 8,
+    max_concepts: int = 5,
 ) -> str:
     """
-    Build a normalization prompt that maps raw extraction output to the ontology.
+    Build a normalization prompt to validate and deduplicate extracted knowledge points.
     """
-    ontology = ontology or ONTOLOGY
-    ontology_text = ontology_as_text(prefix="- ")
     raw_json = json.dumps(raw, ensure_ascii=False, indent=2)
 
-    return f"""You are a math concept normalizer. Map raw extracted items to the controlled ontology. If no good match, keep as NEW:<canonical label> (concise). Deduplicate and cap concepts at {max_concepts}.
+    return f"""Review and normalize the extracted mathematical knowledge points.
 
-Rules:
-- concepts: map each raw entry to the closest ontology label (list below). If none fits, keep as NEW:<canonical label>; make labels short and specific. Deduplicate, preserve importance order where possible, cap at {max_concepts}.
-- named_theorems: map to canonical theorem names when obvious; otherwise keep original or set UNKNOWN_THEOREM:<short description>. Deduplicate.
-- formulae: keep symbolic; normalize trivial reorderings; deduplicate.
-- axioms_or_definitions: map to canonical names where possible; else keep as NEW:<canonical label>. Deduplicate.
+KEY CRITERION: QUESTION GENERATION TEST
+The final knowledge points must be SUFFICIENT for a teacher to create a SIMILAR question.
+If something essential is missing, the list fails. If something is vague or procedural, remove it.
 
-Ontology list:
-{ontology_text}
+VALIDATION RULES:
 
-Input JSON:
+1. KEEP only INVARIANT mathematical facts (theorems, identities, properties, definitions with formulas)
+2. ENSURE COMPLETENESS: Are all core concepts needed to generate a similar question present?
+3. REMOVE vague terms: "basic algebra", "arithmetic", "calculation"
+4. REMOVE procedures: "substitution", "simplification", "cross multiplication"
+5. REMOVE problem-specific values: "x = 3", "the answer is 5"
+6. USE canonical names with formulas: "Pythagorean theorem: a² + b² = c²" not just "Pythagorean theorem"
+7. INCLUDE formulas with theorems: "Law of Sines: a/sin(A) = b/sin(B) = c/sin(C)"
+8. DEDUPLICATE semantically equivalent items
+9. MAX {max_concepts} knowledge points, ordered by importance
+
+Input:
 {raw_json}
 
-Return JSON (normalized):
+Return normalized JSON (set "question" to ""):
 {{
   "id": "...",
-  "question": "...",
-  "concepts": ["..."],
-  "named_theorems": ["..."],
-  "formulae": ["..."],
-  "axioms_or_definitions": ["..."]
+  "question": "",
+  "knowledge_points": ["..."]
 }}
 """
