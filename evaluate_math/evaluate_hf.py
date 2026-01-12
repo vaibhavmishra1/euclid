@@ -173,22 +173,19 @@ def evaluate(
     print(f"Loading model: {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     
-    # Set dtype based on device
-    if device == "cuda":
-        dtype = torch.float16
-    elif device == "mps":
-        dtype = torch.float16
-    else:
-        dtype = torch.float32
-    
+    # Load model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=dtype,
-        device_map=device if device != "mps" else None,
         trust_remote_code=True,
+        low_cpu_mem_usage=True,
     )
     
-    if device == "mps":
+    # Move to device
+    if device == "cuda":
+        model = model.half().to(device)
+    elif device == "mps":
+        model = model.half().to(device)
+    else:
         model = model.to(device)
     
     model.eval()
