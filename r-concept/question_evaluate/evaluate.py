@@ -77,6 +77,12 @@ if not correct_data:
 
 questions = [item["question"] for item in correct_data]
 answers = [item["answer"] for item in correct_data]
+# Preserve metadata for curriculum learning
+metadata = [{
+    "set_id": item.get("set_id"),
+    "knowledge_points": item.get("knowledge_points", []),
+    "difficulty": item.get("difficulty", 1),
+} for item in correct_data]
 print(f"[{args.suffix}] Found {len(questions)} questions to process.")
 
 # 2. Initialize Model and Tokenizer
@@ -112,7 +118,8 @@ print(f"[{args.suffix}] Generation complete.")
 # 4. Process and Grade Responses
 results_all = []
 print(f"[{args.suffix}] Grading responses...")
-for response, golden_answer, question in zip(responses, answers, questions):
+for idx, (response, golden_answer, question) in enumerate(zip(responses, answers, questions)):
+    meta = metadata[idx] if idx < len(metadata) else {}
     try:
         # Extract the boxed content from all generated samples
         results = [extract_boxed_content(output.text) for output in response.outputs]
@@ -173,7 +180,11 @@ for response, golden_answer, question in zip(responses, answers, questions):
             "question": question,
             "answer": majority_answer,
             "score": score,
-            'results': results
+            'results': results,
+            # Preserve metadata for curriculum learning
+            "set_id": meta.get("set_id"),
+            "knowledge_points": meta.get("knowledge_points", []),
+            "difficulty": meta.get("difficulty", 1),
         })
 
     except Exception as e:

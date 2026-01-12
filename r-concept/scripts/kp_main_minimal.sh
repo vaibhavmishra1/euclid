@@ -131,53 +131,31 @@ for i in $(seq 1 $Num_iterations); do
         --save_name "$question_save_name" \
         --num_samples 4 || echo "Warning: Evaluation failed"
     
-    # Combine results
+    # Combine results (metadata is now preserved by evaluate.py)
     python3 << EOF
 import json
 import os
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/tmp/rzero_storage")
 
-# Load original
-original_data = []
-try:
-    with open(f"{STORAGE_PATH}/generated_question/${question_save_name}_backup.json", 'r') as f:
-        original_data = json.load(f)
-except:
-    pass
-
-question_to_metadata = {}
-for item in original_data:
-    q = item.get('question', '').strip()
-    if q:
-        question_to_metadata[q] = {
-            'set_id': item.get('set_id'),
-            'knowledge_points': item.get('knowledge_points', []),
-            'difficulty': item.get('difficulty', 1),
-        }
-
-# Load evaluated results
+# Load evaluated results (metadata already preserved by evaluate.py)
 evaluated = []
 try:
     with open(f"{STORAGE_PATH}/generated_question/${question_save_name}_0_results.json", 'r') as f:
         evaluated = json.load(f)
-except:
-    pass
+except FileNotFoundError:
+    print("Warning: No evaluation results found")
+    evaluated = []
 
-# Merge
-combined = []
-for item in evaluated:
-    q = item.get('question', '').strip()
-    if q in question_to_metadata:
-        item['set_id'] = question_to_metadata[q]['set_id']
-        item['knowledge_points'] = question_to_metadata[q]['knowledge_points']
-        item['difficulty'] = question_to_metadata[q]['difficulty']
-    combined.append(item)
+# Verify metadata is present
+missing_metadata = sum(1 for item in evaluated if item.get('set_id') is None)
+if missing_metadata > 0:
+    print(f"Warning: {missing_metadata} items missing set_id")
 
 with open(f"{STORAGE_PATH}/generated_question/${question_save_name}_evaluated.json", 'w') as f:
-    json.dump(combined, f, indent=2, ensure_ascii=False)
+    json.dump(evaluated, f, indent=2, ensure_ascii=False)
 
-print(f"Saved {len(combined)} evaluated questions")
+print(f"Saved {len(evaluated)} evaluated questions with metadata")
 EOF
     
     evaluated_path="${STORAGE_PATH}/generated_question/${question_save_name}_evaluated.json"
