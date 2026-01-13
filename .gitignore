@@ -13,8 +13,6 @@ wandb/
 **/wandb/
 *.log
 **/*.log
-*.txt
-**/*.txt
 *.json
 **/*.json
 */.venv
