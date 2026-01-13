@@ -151,6 +151,7 @@ CUDA_VISIBLE_DEVICES=0 python3 -m verl.trainer.main \
     trainer.total_epochs=1000 \
     worker.reward.reward_function=./knowledge_curriculum/reward_function.py:compute_score \
     trainer.val_freq=-1 \
+    trainer.val_before_train=false \
     trainer.n_gpus_per_node=1 \
     data.format_prompt=./examples/format_prompt/knowledge_challenger.jinja \
     worker.rollout.n=2 \
