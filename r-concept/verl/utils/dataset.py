@@ -266,6 +266,12 @@ class RLHFDataset(Dataset):
                 # Extract knowledge_points and difficulty from example
                 knowledge_points = example.get('knowledge_points', [])
                 difficulty = example.get('difficulty', 3)
+                # DEBUG: Print what we're getting from example
+                if not hasattr(self, '_debug_printed') or not self._debug_printed:
+                    print(f"\n[DEBUG dataset.py] Example keys: {list(example.keys())}")
+                    print(f"[DEBUG dataset.py] knowledge_points type: {type(knowledge_points)}, value: {knowledge_points[:100] if isinstance(knowledge_points, str) else knowledge_points}")
+                    print(f"[DEBUG dataset.py] difficulty: {difficulty}")
+                    self._debug_printed = True
                 # Handle JSON string format
                 if isinstance(knowledge_points, str):
                     try:

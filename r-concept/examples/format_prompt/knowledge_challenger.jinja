@@ -1,4 +1,6 @@
-{% set kp_list = knowledge_points | from_json if knowledge_points is string else knowledge_points %}
+{# knowledge_challenger template - marker for detection #}
+{# knowledge_points should already be a list, pre-parsed by Python code #}
+{% set kp_list = knowledge_points if knowledge_points is iterable and knowledge_points is not string else [] %}
 {% set kp_formatted = kp_list | join("\n") %}
 {% set difficulty_desc = {
     1: "Basic - students just learning the concepts",
