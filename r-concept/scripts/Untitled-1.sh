@@ -8,6 +8,10 @@ rm -rf $STORAGE_PATH/models/kp_number_theory_* \
        $STORAGE_PATH/ks_state/kp_number_theory_* 2>/dev/null || true && \
 echo "Starting training..." && \
 export DUMP_DEBUG_DATA=1 && \
+pip install -r requirements.txt && \
+
+git config --global user.email "vaibhavm209625@gmail.com" && git config --global user.name "vaibhavmishra1" && \
+
 bash scripts/kp_main_minimal.sh \
     "Qwen/Qwen3-4B-Base" \
     "kp_number_theory" \
