@@ -10,12 +10,21 @@ knowledge_points_path=$4
 alpha=${5:-0.7}
 beta=${6:-0.3}
 
+# Debug dump toggle (inherited from parent script or can be set here)
+DUMP_DEBUG_DATA=${DUMP_DEBUG_DATA:-"0"}
+export DUMP_DEBUG_DATA
+
 echo "SCRIPT - =============================================="
 echo "SCRIPT - MINIMAL Challenger Training (Single GPU)"
 echo "SCRIPT - =============================================="
 echo "SCRIPT - Solver Model: $solver_model_path"
 echo "SCRIPT - Challenger Model: $challenger_model_path"
 echo "SCRIPT - Save Path: $save_path"
+if [ "$DUMP_DEBUG_DATA" = "1" ] || [ "$DUMP_DEBUG_DATA" = "true" ]; then
+    echo "SCRIPT - Debug dump: ENABLED"
+else
+    echo "SCRIPT - Debug dump: DISABLED (set DUMP_DEBUG_DATA=1 to enable)"
+fi
 echo "SCRIPT - =============================================="
 
 # Generate unique RUN_ID
@@ -117,6 +126,18 @@ echo "SCRIPT - Start training challenger (MINIMAL): $challenger_model_path -> $s
 unset RAY_ADDRESS
 ray stop --force 2>/dev/null || true
 
+# Clean up old Ray sessions to free disk space
+if [ -d "/tmp/ray" ]; then
+    # Keep only the most recent session
+    current_session=$(ls -td /tmp/ray/session_* 2>/dev/null | head -n 1)
+    for session_dir in /tmp/ray/session_*; do
+        if [ "$session_dir" != "$current_session" ] && [ -d "$session_dir" ]; then
+            echo "SCRIPT - Removing old Ray session: $(basename $session_dir)"
+            rm -rf "$session_dir" 2>/dev/null || true
+        fi
+    done
+fi
+
 # MINIMAL: Single GPU, fewer steps, smaller batch
 # Use knowledge points dataset instead of default
 CUDA_VISIBLE_DEVICES=0 python3 -m verl.trainer.main \
@@ -156,6 +177,19 @@ sleep 5
 
 # Cleanup
 pkill python 2>/dev/null || true
+
+# Clean up Ray sessions after training
+if [ -d "/tmp/ray" ]; then
+    # Keep only the most recent session
+    current_session=$(ls -td /tmp/ray/session_* 2>/dev/null | head -n 1)
+    for session_dir in /tmp/ray/session_*; do
+        if [ "$session_dir" != "$current_session" ] && [ -d "$session_dir" ]; then
+            echo "SCRIPT - Removing old Ray session: $(basename $session_dir)"
+            rm -rf "$session_dir" 2>/dev/null || true
+        fi
+    done
+    echo "SCRIPT - Ray session cleanup complete"
+fi
 
 echo "SCRIPT - MINIMAL Challenger training finished"
 echo "SCRIPT - Model saved to: ${STORAGE_PATH}/models/$save_path/global_step_2/actor/huggingface"

@@ -271,6 +271,20 @@ def compute_score(
     """
     results = []
     
+    # Debug dump: Save challenger outputs
+    try:
+        from knowledge_curriculum.debug_dump import get_dumper
+        dumper = get_dumper()
+        if dumper.is_enabled():
+            for i, output in enumerate(predicts):
+                metadata = {
+                    "index": i,
+                    "raw_output": output,
+                }
+                dumper.dump_challenger_output(output, metadata)
+    except Exception:
+        pass
+    
     # Debug output
     with open('challenger_debug.json', 'w', encoding='utf-8') as f:
         json.dump(predicts, f, indent=4, ensure_ascii=False)
@@ -303,6 +317,25 @@ def compute_score(
     
     # Get uncertainty scores from solver
     final_results = generate_results(results)
+    
+    # Debug dump: Save solver responses
+    try:
+        from knowledge_curriculum.debug_dump import get_dumper
+        dumper = get_dumper()
+        if dumper.is_enabled():
+            for result in final_results:
+                if result.get('question'):
+                    dumper.dump_solver_response(
+                        question=result.get('question', ''),
+                        response={
+                            "solver_answer": result.get('answer', ''),
+                            "uncertainty_score": result.get('score', 0.5),
+                            "all_attempts": result.get('results', []),
+                            "num_attempts": len(result.get('results', [])),
+                        }
+                    )
+    except Exception:
+        pass
     
     # DEBUG: Print first solver response
     solver_debug_printed = False

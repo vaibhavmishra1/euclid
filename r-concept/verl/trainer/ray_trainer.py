@@ -477,11 +477,41 @@ class RayPPOTrainer:
             if self.config.trainer.val_only:
                 return
 
+        # Debug dump: Set step tracking
+        try:
+            from knowledge_curriculum.debug_dump import get_dumper
+            import os
+            dumper = get_dumper()
+            if dumper.is_enabled():
+                # Try to get iteration from environment variable first
+                iter_env = os.getenv("DUMP_DEBUG_ITERATION")
+                if iter_env:
+                    dumper.set_iteration(int(iter_env))
+                else:
+                    # Try to extract iteration from experiment name if available
+                    exp_name = self.config.trainer.experiment_name or ""
+                    # Look for iteration number in name (e.g., "kp_number_theory_challenger_v1")
+                    import re
+                    iter_match = re.search(r'v(\d+)', exp_name)
+                    if iter_match:
+                        dumper.set_iteration(int(iter_match.group(1)))
+        except Exception:
+            pass
+        
         for _ in tqdm(range(self.config.trainer.total_epochs), desc="Epoch", position=0):
             for batch_dict in tqdm(self.train_dataloader, desc="Running step", position=1):
                 self.global_step += 1
                 if self.global_step > self.training_steps:
                     break
+
+                # Debug dump: Update step
+                try:
+                    from knowledge_curriculum.debug_dump import get_dumper
+                    dumper = get_dumper()
+                    if dumper.is_enabled():
+                        dumper.set_step(self.global_step)
+                except Exception:
+                    pass
 
                 metrics, timing_raw = {}, {}
                 batch: DataProto = DataProto.from_single_dict(batch_dict)

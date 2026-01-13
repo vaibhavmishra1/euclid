@@ -24,8 +24,63 @@ QUESTIONS_PER_SET=1  # Just 1 question per set (minimal!)
 # Set STORAGE_PATH if not set
 STORAGE_PATH=${STORAGE_PATH:-"/workspace/rzero_storage"}
 
+# Debug dump toggle (set DUMP_DEBUG_DATA=1 to enable)
+# This will dump all prompts, challenger outputs, and solver responses to ${STORAGE_PATH}/debug_dumps/
+DUMP_DEBUG_DATA=${DUMP_DEBUG_DATA:-"0"}
+export DUMP_DEBUG_DATA
+
+if [ "$DUMP_DEBUG_DATA" = "1" ] || [ "$DUMP_DEBUG_DATA" = "true" ]; then
+    echo "SCRIPT - Debug dump ENABLED. Data will be saved to ${STORAGE_PATH}/debug_dumps/"
+    mkdir -p "${STORAGE_PATH}/debug_dumps"
+else
+    echo "SCRIPT - Debug dump DISABLED. Set DUMP_DEBUG_DATA=1 to enable."
+fi
+
 # Create storage directories
 mkdir -p "${STORAGE_PATH}"/{models,generated_question,ks_state,datasets,temp_results}
+
+# Function to clean up old Ray sessions (keep only current one)
+cleanup_ray_sessions() {
+    if [ ! -d "/tmp/ray" ]; then
+        return
+    fi
+    
+    # Get current Ray session (most recently modified)
+    current_session=$(ls -td /tmp/ray/session_* 2>/dev/null | head -n 1)
+    
+    if [ -z "$current_session" ]; then
+        return
+    fi
+    
+    # Remove all other sessions
+    for session_dir in /tmp/ray/session_*; do
+        if [ "$session_dir" != "$current_session" ] && [ -d "$session_dir" ]; then
+            echo "SCRIPT - Removing old Ray session: $(basename $session_dir)"
+            rm -rf "$session_dir" 2>/dev/null || true
+        fi
+    done
+    
+    # Also clean up Ray object store if it's getting too large
+    if [ -d "$current_session" ]; then
+        # Check size of current session
+        session_size_mb=$(du -sm "$current_session" 2>/dev/null | cut -f1)
+        if [ -n "$session_size_mb" ] && [ "$session_size_mb" -gt 1000 ]; then
+            echo "SCRIPT - Ray session is large (${session_size_mb}MB), cleaning object store..."
+            # Clean up old objects (older than 1 hour)
+            if [ -d "$current_session/objects" ]; then
+                find "$current_session/objects" -type f -mmin +60 -delete 2>/dev/null || true
+            fi
+            # Clean up old logs
+            if [ -d "$current_session/logs" ]; then
+                find "$current_session/logs" -type f -mmin +60 -delete 2>/dev/null || true
+            fi
+            # Clean up old plasma store files
+            if [ -d "$current_session" ]; then
+                find "$current_session" -name "*.plasma" -mmin +60 -delete 2>/dev/null || true
+            fi
+        fi
+    fi
+}
 
 # Function to check and free disk space
 free_disk_space() {
@@ -33,7 +88,10 @@ free_disk_space() {
     local available_gb=$(df -BG / | awk 'NR==2 {print int($4)}')
     
     if [ "$available_gb" -lt "$min_free_gb" ]; then
-        echo "SCRIPT - Low disk space: ${available_gb}GB available, cleaning old checkpoints..."
+        echo "SCRIPT - Low disk space: ${available_gb}GB available, cleaning..."
+        
+        # Clean up old Ray sessions first (this is usually the biggest issue)
+        cleanup_ray_sessions
         
         # Find and remove old checkpoints (keep only latest 1)
         if [ -d "${STORAGE_PATH}/models" ]; then
@@ -50,7 +108,6 @@ free_disk_space() {
         fi
         
         # Clean up temp files
-        rm -rf /tmp/ray/* 2>/dev/null || true
         rm -rf "${STORAGE_PATH}"/temp_results/* 2>/dev/null || true
         
         available_gb=$(df -BG / | awk 'NR==2 {print int($4)}')
@@ -142,6 +199,12 @@ for i in $(seq 1 $Num_iterations); do
     echo "SCRIPT - [Iteration $i] Step 1: Training Challenger (MINIMAL)..."
     challenger_save_name="${Model_abbr}_challenger_v${i}_minimal"
     
+    # Set iteration for debug dump
+    export DUMP_DEBUG_ITERATION=$i
+    
+    # Clean up Ray sessions before training to prevent disk space issues
+    cleanup_ray_sessions
+    
     # Use minimal challenger training
     bash scripts/kp_challenger_train_minimal.sh \
         "$solver_model" \
@@ -151,9 +214,10 @@ for i in $(seq 1 $Num_iterations); do
         "$ALPHA" \
         "$BETA" || echo "SCRIPT - Warning: Challenger training failed, continuing..."
     
-    # Clean up old checkpoints after training to free space
+    # Clean up Ray sessions and old checkpoints after training to free space
+    cleanup_ray_sessions
     free_disk_space 10
-    
+    echo "SCRIPT - MINIMAL Training Complete!"
     # Update challenger model path
     new_challenger="${STORAGE_PATH}/models/${challenger_save_name}/global_step_2/actor/huggingface"
     if [ -d "$new_challenger" ]; then

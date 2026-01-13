@@ -261,7 +261,29 @@ class RLHFDataset(Dataset):
             return [{"role": "system", "content": r"Please reason step by step, and put your final answer within \boxed{}."},{"role": "user", "content": prompt_str}]
         if self.format_prompt:
             format_prompt = Template(self.format_prompt.strip())
-            prompt_str = format_prompt.render(content=prompt_str)
+            # Check if this is the knowledge_challenger template - it needs special variables
+            if "knowledge_challenger" in self.format_prompt:
+                # Extract knowledge_points and difficulty from example
+                knowledge_points = example.get('knowledge_points', [])
+                difficulty = example.get('difficulty', 3)
+                # Handle JSON string format
+                if isinstance(knowledge_points, str):
+                    try:
+                        knowledge_points = json.loads(knowledge_points)
+                    except:
+                        knowledge_points = [knowledge_points]
+                # Ensure difficulty is an integer
+                try:
+                    difficulty = int(difficulty)
+                except:
+                    difficulty = 3
+                prompt_str = format_prompt.render(
+                    knowledge_points=knowledge_points,
+                    difficulty=difficulty,
+                    problem=prompt_str
+                )
+            else:
+                prompt_str = format_prompt.render(content=prompt_str)
         
         if self.image_key in example:
             # https://huggingface.co/docs/transformers/en/tasks/image_text_to_text
@@ -357,5 +379,28 @@ class RLHFDataset(Dataset):
             example["knowledge_point"] = ""
         if "difficulty" not in example:
             example["difficulty"] = 1
+        
+        # Debug dump: Save prompt sent to challenger
+        try:
+            from knowledge_curriculum.debug_dump import get_dumper
+            dumper = get_dumper()
+            if dumper.is_enabled():
+                metadata = {
+                    "index": index,
+                    "knowledge_points": example.get("knowledge_points", ""),
+                    "difficulty": example.get("difficulty", 1),
+                    "set_id": example.get("set_id", -1),
+                }
+                # Handle JSON string format
+                if isinstance(metadata["knowledge_points"], str):
+                    import json
+                    try:
+                        metadata["knowledge_points"] = json.loads(metadata["knowledge_points"])
+                    except:
+                        pass
+                dumper.dump_prompt(prompt, metadata)
+        except Exception as e:
+            # Silently fail if debug dump is not available
+            pass
             
         return example
