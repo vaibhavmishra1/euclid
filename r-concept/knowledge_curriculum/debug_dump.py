@@ -29,19 +29,25 @@ class DebugDumper:
         """
         self.enabled = os.getenv("DUMP_DEBUG_DATA", "0").lower() in ("1", "true", "yes")
         
+        # Initialize attributes that might be needed even if disabled
+        self.lock = threading.Lock()
+        self.current_iteration = None
+        self.current_step = None
+        self.max_string_length = 10000  # 10k chars per field
+        
         if not self.enabled:
+            self.base_path = None
+            self.prompts_file = None
+            self.challenger_outputs_file = None
+            self.solver_responses_file = None
             return
         
         if base_path is None:
-            storage_path = os.getenv("STORAGE_PATH", "/tmp/rzero_storage")
+            storage_path = os.getenv("STORAGE_PATH", "/workspace/rzero_storage")
             base_path = os.path.join(storage_path, "debug_dumps")
         
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)
-        
-        self.lock = threading.Lock()
-        self.current_iteration = None
-        self.current_step = None
         
         # File handles (opened on first write)
         self.prompts_file = None
@@ -49,6 +55,39 @@ class DebugDumper:
         self.solver_responses_file = None
         
         print(f"DEBUG DUMP: Enabled. Dumping to {self.base_path}")
+    
+    def is_enabled(self) -> bool:
+        """Check if debug dumping is enabled."""
+        return self.enabled
+    
+    def _truncate_string(self, s: str, max_length: Optional[int] = None) -> str:
+        """Truncate a string if it exceeds max_length."""
+        if max_length is None:
+            max_length = self.max_string_length
+        if len(s) > max_length:
+            return s[:max_length] + f"... [TRUNCATED: {len(s)} chars total]"
+        return s
+    
+    def _truncate_dict_values(self, d: Dict[str, Any], max_length: Optional[int] = None) -> Dict[str, Any]:
+        """Recursively truncate string values in a dictionary."""
+        if max_length is None:
+            max_length = self.max_string_length
+        result = {}
+        for key, value in d.items():
+            if isinstance(value, str):
+                result[key] = self._truncate_string(value, max_length)
+            elif isinstance(value, dict):
+                result[key] = self._truncate_dict_values(value, max_length)
+            elif isinstance(value, list):
+                result[key] = [
+                    self._truncate_string(item, max_length) if isinstance(item, str)
+                    else self._truncate_dict_values(item, max_length) if isinstance(item, dict)
+                    else item
+                    for item in value[:10]  # Limit list to first 10 items
+                ] + (["... [TRUNCATED: more items]"] if len(value) > 10 else [])
+            else:
+                result[key] = value
+        return result
     
     def set_iteration(self, iteration: int):
         """Set current iteration number."""
@@ -115,10 +154,14 @@ class DebugDumper:
                 file_path = self._get_file_path("prompts")
                 self.prompts_file = open(file_path, 'a', encoding='utf-8')
             
+            # Truncate large strings
+            truncated_prompt = self._truncate_string(prompt)
+            truncated_metadata = self._truncate_dict_values(metadata)
+            
             entry = {
                 "timestamp": datetime.now().isoformat(),
-                "prompt": prompt,
-                **metadata
+                "prompt": truncated_prompt,
+                **truncated_metadata
             }
             self.prompts_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
             self.prompts_file.flush()
@@ -139,10 +182,14 @@ class DebugDumper:
                 file_path = self._get_file_path("challenger_outputs")
                 self.challenger_outputs_file = open(file_path, 'a', encoding='utf-8')
             
+            # Truncate large strings
+            truncated_output = self._truncate_string(output)
+            truncated_metadata = self._truncate_dict_values(metadata)
+            
             entry = {
                 "timestamp": datetime.now().isoformat(),
-                "raw_output": output,
-                **metadata
+                "raw_output": truncated_output,
+                **truncated_metadata
             }
             self.challenger_outputs_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
             self.challenger_outputs_file.flush()
@@ -163,10 +210,14 @@ class DebugDumper:
                 file_path = self._get_file_path("solver_responses")
                 self.solver_responses_file = open(file_path, 'a', encoding='utf-8')
             
+            # Truncate large strings
+            truncated_question = self._truncate_string(question)
+            truncated_response = self._truncate_dict_values(response)
+            
             entry = {
                 "timestamp": datetime.now().isoformat(),
-                "question": question,
-                **response
+                "question": truncated_question,
+                **truncated_response
             }
             self.solver_responses_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
             self.solver_responses_file.flush()
