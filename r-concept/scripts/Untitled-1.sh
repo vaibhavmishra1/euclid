@@ -18,3 +18,5 @@ bash scripts/kp_main_minimal.sh \
     "/workspace/math_concepts_openai_all_number_theory.jsonl" \
     1 \
     50
+
+cd /workspace/euclid/R-Zero && export STORAGE_PATH=/workspace/rzero_storage && python minimal_test.py --model Qwen/Qwen3-4B-Base --samples 50 --max-tokens 1024 
