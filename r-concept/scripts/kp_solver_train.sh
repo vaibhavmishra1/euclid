@@ -9,20 +9,20 @@ experiment_name=$3
 min_score=${4:-0.3}
 max_score=${5:-0.7}
 
-echo "=============================================="
-echo "Knowledge-Point-Based Solver Training"
-echo "=============================================="
-echo "Solver Model: $solver_model_path"
-echo "Questions Path: $questions_path"
-echo "Experiment Name: $experiment_name"
-echo "Min Score (beta): $min_score"
-echo "Max Score (alpha): $max_score"
-echo "=============================================="
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Knowledge-Point-Based Solver Training"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Solver Model: $solver_model_path"
+echo "SCRIPT - Questions Path: $questions_path"
+echo "SCRIPT - Experiment Name: $experiment_name"
+echo "SCRIPT - Min Score (beta): $min_score"
+echo "SCRIPT - Max Score (alpha): $max_score"
+echo "SCRIPT - =============================================="
 
 export VLLM_DISABLE_COMPILE_CACHE=1
 
 # Prepare training data by filtering questions
-echo "Preparing training data..."
+echo "SCRIPT - Preparing training data..."
 python3 << EOF
 import json
 import os
@@ -88,7 +88,7 @@ except Exception as e:
 EOF
 
 # Train solver
-echo "Training solver..."
+echo "SCRIPT - Training solver..."
 python3 -m verl.trainer.main \
     config=examples/config.yaml \
     data.max_response_length=4096 \
@@ -104,13 +104,13 @@ python3 -m verl.trainer.main \
     worker.actor.micro_batch_size_per_device_for_experience=1
 
 # Merge model
-echo "Merging model..."
+echo "SCRIPT - Merging model..."
 python scripts/model_merger.py --local_dir ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor
 
 sleep 10
 
 echo "Solver training finished"
-echo "Model saved to: ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor/huggingface"
+echo "SCRIPT - Model saved to: ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor/huggingface"
 
 # Optional: Run evaluation
 # bash evaluation/evaluate.bash ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor/huggingface

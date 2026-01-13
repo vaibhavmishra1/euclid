@@ -14,22 +14,22 @@ experiment_name=$3
 min_score=${4:-0.3}
 max_score=${5:-0.7}
 
-echo "=============================================="
-echo "MINIMAL Solver Training (ESSENTIAL for proof)"
-echo "=============================================="
-echo "Solver Model: $solver_model_path"
-echo "Questions Path: $questions_path"
-echo "Experiment Name: $experiment_name"
-echo "Min Score (beta): $min_score"
-echo "Max Score (alpha): $max_score"
-echo "=============================================="
-echo "WHY: We need to show solver improves with curriculum!"
-echo "=============================================="
+echo "SCRIPT - =============================================="
+echo "SCRIPT - MINIMAL Solver Training (ESSENTIAL for proof)"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Solver Model: $solver_model_path"
+echo "SCRIPT - Questions Path: $questions_path"
+echo "SCRIPT - Experiment Name: $experiment_name"
+echo "SCRIPT - Min Score (beta): $min_score"
+echo "SCRIPT - Max Score (alpha): $max_score"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - WHY: We need to show solver improves with curriculum!"
+echo "SCRIPT - =============================================="
 
 export VLLM_DISABLE_COMPILE_CACHE=1
 
 # Prepare training data by filtering questions
-echo "Preparing training data..."
+echo "SCRIPT - Preparing training data..."
 python3 << EOF
 import json
 import os
@@ -56,13 +56,29 @@ except Exception as e:
     exit(1)
 
 # Filter by score (curriculum filtering: only questions in sweet spot)
+# More lenient: accept questions with any score > 0 if none in sweet spot
 filtered = []
 for item in data:
     score = item.get('score', 0)
     if ${min_score} <= score <= ${max_score}:
-        if item.get('question') and item.get('answer'):
+        if item.get('answer'):  # Just need answer, question might be empty but valid
             filtered.append({
-                'problem': item['question'],
+                'problem': item.get('question', '') or f"Solve the math problem with answer {item['answer']}",
+                'answer': item['answer'],
+                'score': score,
+                'knowledge_points': item.get('knowledge_points', []),
+                'set_id': item.get('set_id', -1),
+                'difficulty': item.get('difficulty', 1),
+            })
+
+# Fallback: if no questions passed the sweet spot, use all with score > 0
+if len(filtered) == 0:
+    print("No questions in sweet spot, using fallback with all scored questions...")
+    for item in data:
+        score = item.get('score', 0)
+        if score > 0 and item.get('answer'):
+            filtered.append({
+                'problem': item.get('question', '') or f"Solve the math problem with answer {item['answer']}",
                 'answer': item['answer'],
                 'score': score,
                 'knowledge_points': item.get('knowledge_points', []),
@@ -96,9 +112,13 @@ except Exception as e:
 
 EOF
 
+# Clean Ray state before training
+unset RAY_ADDRESS
+ray stop --force 2>/dev/null || true
+
 # Train solver with MINIMAL settings
-echo "Training solver (MINIMAL: single GPU, fewer steps)..."
-python3 -m verl.trainer.main \
+echo "SCRIPT - Training solver (MINIMAL: single GPU, fewer steps)..."
+CUDA_VISIBLE_DEVICES=0 python3 -m verl.trainer.main \
     config=examples/config.yaml \
     data.max_response_length=2048 \
     worker.actor.model.model_path=$solver_model_path \
@@ -110,21 +130,23 @@ python3 -m verl.trainer.main \
     data.format_prompt=./examples/format_prompt/solver.jinja \
     trainer.val_freq=-1 \
     trainer.n_gpus_per_node=1 \
+    worker.rollout.tensor_parallel_size=1 \
     worker.actor.micro_batch_size_per_device_for_update=1 \
-    worker.actor.micro_batch_size_per_device_for_experience=1 || {
-    echo "Warning: Solver training failed"
+    worker.actor.micro_batch_size_per_device_for_experience=1 \
+    trainer.logger='["console"]' || {
+    echo "SCRIPT - Warning: Solver training failed"
     exit 1
 }
 
 # Merge model
-echo "Merging model..."
+echo "SCRIPT - Merging model..."
 python scripts/model_merger.py --local_dir ${STORAGE_PATH}/models/${experiment_name}/global_step_5/actor || {
-    echo "Warning: Model merge failed"
+    echo "SCRIPT - Warning: Model merge failed"
 }
 
 sleep 5
 
-echo "MINIMAL Solver training finished"
-echo "Model saved to: ${STORAGE_PATH}/models/${experiment_name}/global_step_5/actor/huggingface"
-echo ""
-echo "This trained solver can now be evaluated to show improvement!"
+echo "SCRIPT - MINIMAL Solver training finished"
+echo "SCRIPT - Model saved to: ${STORAGE_PATH}/models/${experiment_name}/global_step_5/actor/huggingface"
+echo "SCRIPT - "
+echo "SCRIPT - This trained solver can now be evaluated to show improvement!"

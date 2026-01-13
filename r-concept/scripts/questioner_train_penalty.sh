@@ -3,19 +3,19 @@
 solver_model_path=$1
 questioner_model_path=$2
 save_path=$3
-echo "save_path: $save_path"
+echo "SCRIPT - save_path: $save_path"
 # 生成唯一 RUN_ID
 RUN_ID=$(date +%s%N)
 export RUN_ID
 
-echo "RUN_ID=$RUN_ID"
+echo "SCRIPT - RUN_ID=$RUN_ID"
 
 # 启动 vllm 服务（记录 PID）
 bash vllm_service_init/start.sh $solver_model_path $RUN_ID
-echo "vLLM services started with RUN_ID=$RUN_ID"
+echo "SCRIPT - vLLM services started with RUN_ID=$RUN_ID"
 
 # 开始训练 Questioner
-echo "Start training questioner: $questioner_model_path -> $save_path"
+echo "SCRIPT - Start training questioner: $questioner_model_path -> $save_path"
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
     config=examples/config.yaml \
@@ -36,11 +36,11 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
 sleep 5
 
 # 合并模型
-echo "merging model"
+echo "SCRIPT - merging model"
 python scripts/model_merger.py --local_dir ${STORAGE_PATH}/models/$save_path/global_step_5/actor
 
 sleep 10
 
 pkill python
 
-echo "questioner training finished"
+echo "SCRIPT - questioner training finished"

@@ -89,7 +89,9 @@ class SequentialFunctionRewardManager(FunctionRewardManager):
             score = self.reward_fn(response_str, ground_truth)
             reward_tensor[i, response_length[i] - 1] = score["overall"]
             for key, value in score.items():
-                reward_metrics[key].append(value)
+                # Only include numeric values in reward_metrics (skip strings, etc.)
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    reward_metrics[key].append(value)
 
         return reward_tensor, reward_metrics
 
@@ -114,6 +116,8 @@ class BatchFunctionRewardManager(FunctionRewardManager):
         for i, score in enumerate(scores):
             reward_tensor[i, response_length[i] - 1] = score["overall"]
             for key, value in score.items():
-                reward_metrics[key].append(value)
+                # Only include numeric values in reward_metrics (skip strings, etc.)
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    reward_metrics[key].append(value)
 
         return reward_tensor, reward_metrics

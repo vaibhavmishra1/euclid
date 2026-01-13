@@ -99,10 +99,15 @@ class Runner:
 def main():
     cli_args = OmegaConf.from_cli()
     default_config = OmegaConf.structured(PPOConfig())
-    with open('tokens.json', 'r') as f:
-        tokens = json.load(f)
-    os.environ['HF_TOKEN'] = tokens['huggingface']
-    os.environ['WANDB_API_KEY'] = tokens['wandb']
+    try:
+        with open('tokens.json', 'r') as f:
+            tokens = json.load(f)
+        if tokens.get('huggingface'):
+            os.environ['HF_TOKEN'] = tokens['huggingface']
+        if tokens.get('wandb'):
+            os.environ['WANDB_API_KEY'] = tokens['wandb']
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("Warning: tokens.json not found or invalid, continuing without HF/WandB tokens")
     if hasattr(cli_args, "config"):
         config_path = cli_args.pop("config", None)
         file_config = OmegaConf.load(config_path)
@@ -112,18 +117,21 @@ def main():
     ppo_config: PPOConfig = OmegaConf.to_object(ppo_config)
     ppo_config.deep_post_init()
 
-    if not ray.is_initialized():
-        runtime_env = {
-            "env_vars": {
-                "TOKENIZERS_PARALLELISM": "true",
-                "NCCL_DEBUG": "WARN",
-                "VLLM_LOGGING_LEVEL": "WARN",
-                "TORCH_NCCL_AVOID_RECORD_STREAMS": "1",
-                "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False",
-                "PYTHONUNBUFFERED": "1",
-            }
+    # Clean up any existing Ray cluster first
+    if ray.is_initialized():
+        ray.shutdown()
+    
+    runtime_env = {
+        "env_vars": {
+            "TOKENIZERS_PARALLELISM": "true",
+            "NCCL_DEBUG": "WARN",
+            "VLLM_LOGGING_LEVEL": "WARN",
+            "TORCH_NCCL_AVOID_RECORD_STREAMS": "1",
+            "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False",
+            "PYTHONUNBUFFERED": "1",
         }
-        ray.init(runtime_env=runtime_env,num_cpus=16)
+    }
+    ray.init(runtime_env=runtime_env, num_cpus=16, ignore_reinit_error=True)
 
     runner = Runner.remote()
     ray.get(runner.run.remote(ppo_config))

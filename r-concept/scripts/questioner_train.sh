@@ -4,7 +4,7 @@ save_path=$3
 
 echo $STORAGE_PATH
 
-echo "start train questioner $questioner_model_path $save_path" 
+echo "SCRIPT - start train questioner $questioner_model_path $save_path" 
 
 bash vllm_service_init/start.sh $solver_model_path &
 

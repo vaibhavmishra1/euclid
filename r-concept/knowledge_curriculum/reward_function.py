@@ -139,16 +139,48 @@ os.environ["NO_PROXY"] = "0.0.0.0,127.0.0.1"
 
 
 def fetch(index: int, filepath: str) -> bool:
-    """Fetch results from vLLM server."""
-    try:
-        response = requests.get(f"http://0.0.0.0:{5000+index}/hello?name={filepath}", timeout=600)
-        return True
-    except Exception as e:
-        print(f"Error fetching from server {index}: {e}")
-        return False
+    """Fetch results from vLLM server with retry and extended timeout."""
+    max_retries = 3
+    base_timeout = 1800  # 30 minutes for large batches
+    
+    for attempt in range(max_retries):
+        try:
+            # Calculate timeout based on file size (estimate processing time)
+            try:
+                file_size = os.path.getsize(filepath)
+                # Estimate: ~1 second per question, add buffer
+                # File size in bytes, roughly estimate questions (each question ~500 bytes)
+                num_questions = max(1, file_size / 500)
+                estimated_time = max(base_timeout, num_questions * 2)  # 2 seconds per question
+                timeout = min(estimated_time, 3600)  # Cap at 1 hour
+            except:
+                timeout = base_timeout
+            
+            response = requests.get(f"http://0.0.0.0:{5000+index}/hello?name={filepath}", timeout=timeout)
+            if response.status_code == 200:
+                return True
+            else:
+                print(f"Server {index} returned status {response.status_code}, retrying...")
+        except requests.exceptions.Timeout as e:
+            print(f"Timeout on server {index} (attempt {attempt+1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                # Wait and check if result file exists (server might still be processing)
+                result_file = filepath.replace('.json', '_results.json')
+                for wait_attempt in range(10):  # Wait up to 5 more minutes
+                    time.sleep(30)
+                    if os.path.exists(result_file):
+                        print(f"Result file found after timeout, server completed processing")
+                        return True
+                print(f"Retrying after timeout...")
+        except Exception as e:
+            print(f"Error fetching from server {index} (attempt {attempt+1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(10)  # Wait before retry
+    
+    return False
 
 
-def generate_results(data: List[Dict], num_servers: int = 4) -> List[Dict]:
+def generate_results(data: List[Dict], num_servers: int = 1) -> List[Dict]:
     """
     Generate results by distributing work across vLLM servers.
     
@@ -177,15 +209,28 @@ def generate_results(data: List[Dict], num_servers: int = 4) -> List[Dict]:
         for future in as_completed(futures):
             print(f"Server completed: {future.result()}")
     
-    # Collect results
+    # Collect results with polling (in case HTTP request timed out but server is still processing)
     for i in range(num_servers):
         result_file = random_names[i].replace('.json', '_results.json')
+        max_wait = 1800  # Wait up to 30 minutes
+        wait_interval = 10  # Check every 10 seconds
+        waited = 0
+        
+        while not os.path.exists(result_file) and waited < max_wait:
+            time.sleep(wait_interval)
+            waited += wait_interval
+            if waited % 60 == 0:  # Print every minute
+                print(f"Waiting for result file {result_file}... ({waited}s)")
+        
         try:
-            with open(result_file, 'r', encoding='utf-8') as f:
-                final_results.extend(json.load(f))
-            os.remove(result_file)
-        except FileNotFoundError:
-            print(f"Warning: Result file {result_file} not found")
+            if os.path.exists(result_file):
+                with open(result_file, 'r', encoding='utf-8') as f:
+                    final_results.extend(json.load(f))
+                os.remove(result_file)
+            else:
+                print(f"Warning: Result file {result_file} not found after {waited}s wait")
+        except Exception as e:
+            print(f"Error reading result file {result_file}: {e}")
     
     # Cleanup temp files
     for name in random_names:
@@ -231,6 +276,7 @@ def compute_score(
         json.dump(predicts, f, indent=4, ensure_ascii=False)
     
     # Parse questions and answers from predictions
+    debug_printed = False
     for i in range(len(predicts)):
         questions = re.findall(r"<question>(.*?)</question>", predicts[i], re.DOTALL)
         answers = extract_boxed_content(predicts[i])
@@ -240,6 +286,16 @@ def compute_score(
                 question = questions[-1].strip()
                 answer = answers if isinstance(answers, str) else answers[-1].strip()
                 results.append({"question": question, "answer": answer})
+                
+                # DEBUG: Print first valid question that challenger generated
+                if not debug_printed and question:
+                    print("\n" + "="*80)
+                    print("DEBUG - Question Generated by Challenger (sent to solver):")
+                    print("="*80)
+                    print(f"Question: {question}")
+                    print(f"Challenger's Answer: {answer}")
+                    print("="*80 + "\n")
+                    debug_printed = True
             except:
                 results.append({"question": "", "answer": ""})
         else:
@@ -247,6 +303,27 @@ def compute_score(
     
     # Get uncertainty scores from solver
     final_results = generate_results(results)
+    
+    # DEBUG: Print first solver response
+    solver_debug_printed = False
+    for result in final_results:
+        if result.get('question') and not solver_debug_printed:
+            print("\n" + "="*80)
+            print("DEBUG - Solver's Response:")
+            print("="*80)
+            print(f"Question: {result.get('question', 'N/A')}")
+            print(f"Solver's Majority Answer: {result.get('answer', 'N/A')}")
+            print(f"Uncertainty Score: {result.get('score', 'N/A')} (0.0=always wrong, 1.0=always right, 0.5=uncertain)")
+            if result.get('results'):
+                print(f"All Solver Attempts ({len(result.get('results', []))}): {result.get('results', [])[:5]}")  # Show first 5
+            print("="*80 + "\n")
+            solver_debug_printed = True
+            break
+    
+    # Fallback if no results (server failed or timed out)
+    if not final_results:
+        print("Warning: No results from solver server, using default scores")
+        final_results = [{"question": "", "answer": "", "score": 0.5} for _ in results]
     
     # Calculate repetition penalty
     valid_questions = [r['question'] for r in final_results if r.get('question')]
@@ -290,8 +367,8 @@ def compute_score(
             "overall": final_score,
             "format": 1 if final_results[i].get('question') else 0,
             "accuracy": full_penalty[i],  # Store penalty in accuracy field
-            "knowledge_point": final_results[i].get("knowledge_point", ""),
-            "difficulty": final_results[i].get("difficulty", 1),
+            # Note: knowledge_point and difficulty are NOT available during GRPO training
+            # They only exist during question evaluation phase, not during challenger training
         })
     
     return scores

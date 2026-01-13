@@ -16,35 +16,35 @@ ALPHA=0.7           # Increase difficulty if avg_reward > alpha
 BETA=0.3            # Decrease difficulty if avg_reward < beta
 QUESTIONS_PER_SET=5 # Questions to generate per knowledge set
 
-echo "=============================================="
-echo "Knowledge-Set-Based Curriculum Training"
-echo "=============================================="
-echo "Base Model: $Base_model"
-echo "Model Abbreviation: $Model_abbr"
-echo "Knowledge Points File: $Knowledge_points_path"
-echo "Iterations: $Num_iterations"
-echo "Alpha threshold: $ALPHA"
-echo "Beta threshold: $BETA"
-echo "Questions per Set: $QUESTIONS_PER_SET"
-echo "Difficulty Scale: 1-5 (from MATH dataset levels)"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Knowledge-Set-Based Curriculum Training"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Base Model: $Base_model"
+echo "SCRIPT - Model Abbreviation: $Model_abbr"
+echo "SCRIPT - Knowledge Points File: $Knowledge_points_path"
+echo "SCRIPT - Iterations: $Num_iterations"
+echo "SCRIPT - Alpha threshold: $ALPHA"
+echo "SCRIPT - Beta threshold: $BETA"
+echo "SCRIPT - Questions per Set: $QUESTIONS_PER_SET"
+echo "SCRIPT - Difficulty Scale: 1-5 (from MATH dataset levels)"
 echo "Storage Path: $STORAGE_PATH"
-echo "=============================================="
+echo "SCRIPT - =============================================="
 
 # Verify knowledge points file exists
 if [ ! -f "$Knowledge_points_path" ]; then
-    echo "Error: Knowledge points file not found: $Knowledge_points_path"
+    echo "SCRIPT - Error: Knowledge points file not found: $Knowledge_points_path"
     exit 1
 fi
 
 # Count knowledge sets (= number of lines in JSONL)
 NUM_SETS=$(wc -l < "$Knowledge_points_path" | tr -d ' ')
 TOTAL_QUESTIONS=$((NUM_SETS * QUESTIONS_PER_SET))
-echo "Knowledge Sets: $NUM_SETS"
-echo "Total questions per iteration: $TOTAL_QUESTIONS"
-echo "=============================================="
+echo "SCRIPT - Knowledge Sets: $NUM_SETS"
+echo "SCRIPT - Total questions per iteration: $TOTAL_QUESTIONS"
+echo "SCRIPT - =============================================="
 
 # Initialize knowledge set state
-echo "Initializing knowledge set state..."
+echo "SCRIPT - Initializing knowledge set state..."
 python3 << EOF
 from knowledge_curriculum.knowledge_manager import KnowledgeSetManager
 import os
@@ -77,13 +77,13 @@ state_path="${STORAGE_PATH}/ks_state/${Model_abbr}_state.json"
 
 for i in $(seq 1 $Num_iterations); do
     echo ""
-    echo "######################################################"
-    echo "# ITERATION $i / $Num_iterations"
-    echo "######################################################"
+    echo "SCRIPT - ######################################################"
+    echo "SCRIPT - # ITERATION $i / $Num_iterations"
+    echo "SCRIPT - ######################################################"
     echo ""
     
     # Step 1: Train Challenger
-    echo "[Iteration $i] Step 1: Training Challenger..."
+    echo "SCRIPT - [Iteration $i] Step 1: Training Challenger..."
     challenger_save_name="${Model_abbr}_challenger_v${i}"
     
     bash scripts/kp_challenger_train.sh \
@@ -98,13 +98,13 @@ for i in $(seq 1 $Num_iterations); do
     new_challenger="${STORAGE_PATH}/models/${challenger_save_name}/global_step_5/actor/huggingface"
     if [ -d "$new_challenger" ]; then
         challenger_model=$new_challenger
-        echo "Challenger updated: $challenger_model"
+        echo "SCRIPT - Challenger updated: $challenger_model"
     else
-        echo "Warning: New challenger model not found, using previous"
+        echo "SCRIPT - Warning: New challenger model not found, using previous"
     fi
     
     # Step 2: Generate Questions (5 per knowledge set)
-    echo "[Iteration $i] Step 2: Generating $TOTAL_QUESTIONS questions..."
+    echo "SCRIPT - [Iteration $i] Step 2: Generating $TOTAL_QUESTIONS questions..."
     question_save_name="${Model_abbr}_iter${i}"
     
     python3 -m knowledge_curriculum.question_generate \
@@ -118,7 +118,7 @@ for i in $(seq 1 $Num_iterations); do
         --questions_per_set "$QUESTIONS_PER_SET"
     
     # Step 3: Evaluate Questions with Solver (uses R-Zero's reward)
-    echo "[Iteration $i] Step 3: Evaluating questions..."
+    echo "SCRIPT - [Iteration $i] Step 3: Evaluating questions..."
     
     bash question_evaluate/evaluate.sh "$solver_model" "$question_save_name"
     
@@ -155,7 +155,7 @@ EOF
     evaluated_path="${STORAGE_PATH}/generated_question/${question_save_name}_evaluated.json"
     
     # Step 4: Update Difficulties based on average reward per set
-    echo "[Iteration $i] Step 4: Updating difficulties (scale 1-5)..."
+    echo "SCRIPT - [Iteration $i] Step 4: Updating difficulties (scale 1-5)..."
     python3 << EOF
 from knowledge_curriculum.knowledge_manager import KnowledgeSetManager
 import json
@@ -208,7 +208,7 @@ manager.save_state()
 EOF
     
     # Step 5: Train Solver
-    echo "[Iteration $i] Step 5: Training Solver..."
+    echo "SCRIPT - [Iteration $i] Step 5: Training Solver..."
     solver_save_name="${Model_abbr}_solver_v${i}"
     
     bash scripts/kp_solver_train.sh \
@@ -224,22 +224,22 @@ EOF
         solver_model=$new_solver
         echo "Solver updated: $solver_model"
     else
-        echo "Warning: New solver model not found, using previous"
+        echo "SCRIPT - Warning: New solver model not found, using previous"
     fi
     
-    echo "[Iteration $i] Complete!"
-    echo "  Challenger: $challenger_model"
-    echo "  Solver: $solver_model"
+    echo "SCRIPT - [Iteration $i] Complete!"
+    echo "SCRIPT -   Challenger: $challenger_model"
+    echo "SCRIPT -   Solver: $solver_model"
 done
 
-echo ""
-echo "=============================================="
-echo "Training Complete!"
-echo "=============================================="
-echo "Final Solver: $solver_model"
-echo "Final Challenger: $challenger_model"
-echo ""
+echo "SCRIPT - "
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Training Complete!"
+echo "SCRIPT - =============================================="
+echo "SCRIPT - Final Solver: $solver_model"
+echo "SCRIPT - Final Challenger: $challenger_model"
+echo "SCRIPT - "
 
 # Run final evaluation
-echo "Running final evaluation..."
+echo "SCRIPT - Running final evaluation..."
 bash evaluation/evaluate.bash "$solver_model"

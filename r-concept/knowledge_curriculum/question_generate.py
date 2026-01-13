@@ -24,6 +24,7 @@ from .prompts import build_knowledge_challenger_messages, extract_boxed_answer
 def extract_question(text: str) -> str:
     """
     Extract question from <question>...</question> tags.
+    Falls back to extracting content before \\boxed{} if no tags found.
     
     Args:
         text: Generated text
@@ -31,9 +32,37 @@ def extract_question(text: str) -> str:
     Returns:
         Extracted question or empty string
     """
+    # First try explicit tags
     match = re.search(r'<question>(.*?)</question>', text, re.DOTALL)
     if match:
         return match.group(1).strip()
+    
+    # Fallback: Look for problem statement patterns
+    # Try to find the question before \boxed
+    boxed_match = re.search(r'\\boxed\{', text)
+    if boxed_match:
+        before_boxed = text[:boxed_match.start()].strip()
+        # Look for common problem indicators
+        problem_patterns = [
+            r'(?:find|determine|calculate|compute|what is|how many|prove that|show that|solve)[^.]*\?',
+            r'(?:find|determine|calculate|compute|what is|how many)[^.]*\.',
+        ]
+        for pattern in problem_patterns:
+            match = re.search(pattern, before_boxed, re.IGNORECASE | re.DOTALL)
+            if match:
+                # Get some context before the match
+                start = max(0, before_boxed.rfind('\n\n', 0, match.start()))
+                return before_boxed[start:match.end()].strip()
+        
+        # Last resort: take the last paragraph before boxed (likely the question)
+        paragraphs = before_boxed.split('\n\n')
+        if paragraphs:
+            # Return the last meaningful paragraph
+            for p in reversed(paragraphs):
+                p = p.strip()
+                if len(p) > 20:  # Minimum length for a question
+                    return p
+    
     return ""
 
 
@@ -44,6 +73,8 @@ def extract_question_and_answer(text: str) -> Tuple[str, str]:
     Expected format:
     <question>...</question>
     \\boxed{answer}
+    
+    Falls back to extracting content before \\boxed{} if no tags found.
     
     Returns:
         Tuple of (question, answer)
