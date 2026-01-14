@@ -1,0 +1,77 @@
+# =============================================================================
+# exp0_0: Zero-Shot Baseline Experiment - Requirements
+# =============================================================================
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# For GPU support (CUDA 12.1):
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+#   pip install vllm
+#
+# Note: vllm requires specific CUDA versions. See: https://docs.vllm.ai/
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core ML Framework
+# -----------------------------------------------------------------------------
+torch>=2.1.0
+transformers>=4.40.0
+accelerate>=0.27.0
+safetensors>=0.4.0
+
+# -----------------------------------------------------------------------------
+# vLLM for Fast Inference
+# -----------------------------------------------------------------------------
+# vLLM requires specific installation based on CUDA version
+# Install separately if needed: pip install vllm
+vllm>=0.4.0
+
+# -----------------------------------------------------------------------------
+# Math Evaluation Libraries
+# -----------------------------------------------------------------------------
+# mathruler: Mathematical answer grading
+# Install from: pip install mathruler
+mathruler>=0.1.0
+
+# math-verify: Mathematical expression verification  
+# Install from: pip install math-verify
+math-verify>=0.1.0
+
+# sympy for symbolic math (used by math-verify)
+sympy>=1.12
+
+# -----------------------------------------------------------------------------
+# Data Handling
+# -----------------------------------------------------------------------------
+datasets>=2.18.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# -----------------------------------------------------------------------------
+# Configuration & Utilities
+# -----------------------------------------------------------------------------
+pyyaml>=6.0
+tqdm>=4.65.0
+stopit>=1.1.2
+regex>=2023.0.0
+requests>=2.31.0
+
+# -----------------------------------------------------------------------------
+# Tokenization
+# -----------------------------------------------------------------------------
+tokenizers>=0.15.0
+sentencepiece>=0.1.99
+
+# -----------------------------------------------------------------------------
+# Analysis & Visualization (Optional)
+# -----------------------------------------------------------------------------
+matplotlib>=3.7.0
+seaborn>=0.12.0
+scipy>=1.11.0
+
+# -----------------------------------------------------------------------------
+# Development (Optional)
+# -----------------------------------------------------------------------------
+# ipython>=8.0.0
+# jupyter>=1.0.0

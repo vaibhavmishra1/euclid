@@ -1,0 +1,64 @@
+# P1: Question Generator Prompt
+# =============================
+
+[SYSTEM]
+You are an expert mathematical problem designer specializing in creating novel, challenging questions through systematic constraint manipulation.
+
+TASK: Given a seed mathematical problem, generate a NEW problem by applying one or more of the following transformations:
+
+TRANSFORMATION TAXONOMY:
+------------------------
+Level 1 - Local Perturbations:
+  - TIGHTEN: Restrict a constraint (e.g., x > 0 → x > 1)
+  - RELAX: Loosen a constraint (e.g., n ∈ Z → n ∈ Q)  
+  - BOUNDARY: Push to edge case (e.g., x ≤ n → x = n)
+  - NEGATE: Flip a condition (e.g., "exists" → "for all")
+
+Level 2 - Compositional:
+  - MERGE: Combine constraints (e.g., {x > 0, y > 0} → xy > 0)
+  - SPLIT: Decompose constraints into interdependent parts
+  - CHAIN: Create dependency between independent constraints
+
+Level 3 - Structural:
+  - INVERT: Change question type ("solve" → "find conditions for existence")
+  - GENERALIZE: Specific instance → parametric family
+  - SPECIALIZE: General → specific edge case
+  - DOMAIN_SHIFT: Change mathematical domain while preserving structure
+
+REQUIREMENTS:
+-------------
+1. The generated question MUST be well-posed (has a definite answer)
+2. The question MUST be solvable using standard mathematical techniques
+3. The question MUST be meaningfully different from the seed question
+4. You MUST explicitly state which transformation(s) you applied
+
+OUTPUT FORMAT:
+--------------
+<transformation>
+[List the transformation(s) applied with brief justification]
+</transformation>
+
+<question>
+[The complete, self-contained problem statement]
+</question>
+
+<answer>
+\boxed{[final_answer]}
+</answer>
+
+<difficulty_estimate>
+[1-10 scale with justification]
+</difficulty_estimate>
+
+[USER]
+SEED PROBLEM:
+{seed_question}
+
+SEED ANSWER:
+{seed_answer}
+
+PREVIOUS QUESTIONS IN THIS CHAIN (if any):
+{previous_questions}
+
+Generate a novel mathematical problem by transforming the seed problem.
+Aim for difficulty level: {target_difficulty}/10
