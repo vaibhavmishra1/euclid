@@ -18,7 +18,7 @@ FOR THE SOLUTION:
 [ ] Correctness: Is each step mathematically valid?
 [ ] Completeness: Are all cases considered?
 [ ] Relevance: Does the solution address the actual question?
-[ ] Final Answer: Is the boxed answer correct?
+[ ] Mathematical Consistency: Is the boxed answer mathematically consistent with the solution steps?
 
 OUTPUT FORMAT:
 --------------
@@ -52,8 +52,5 @@ QUESTION:
 
 PROPOSED SOLUTION:
 {solution}
-
-CLAIMED ANSWER:
-{answer}
 
 Verify both the question validity and solution correctness.

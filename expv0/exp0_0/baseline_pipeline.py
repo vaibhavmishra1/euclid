@@ -27,17 +27,38 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 from tqdm import tqdm
 
+# Timeout protection for grade_answer (can hang on certain inputs)
+
+import stopit
+ 
 # Add parent path for R-Zero utilities
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'R-Zero'))
 
-try:
-    from evaluation.datasets_loader import get_dataset_handler
-    from mathruler.grader import extract_boxed_content, grade_answer
-except ImportError:
-    print("Warning: Could not import R-Zero utilities. Using fallback implementations.")
-    get_dataset_handler = None
-    extract_boxed_content = None
-    grade_answer = None
+
+from evaluation.datasets_loader import get_dataset_handler
+from mathruler.grader import extract_boxed_content, grade_answer
+
+
+
+# =============================================================================
+# Timeout-Protected Grading Function
+# =============================================================================
+
+def grade_answer_with_timeout(res1: str, res2: str, timeout: int = 10) -> Optional[bool]:
+    """
+    Wrapper for grade_answer with timeout protection.
+    Returns None on timeout, True/False otherwise.
+    
+    Note: mathruler's grade_answer can hang on certain complex inputs,
+    so we use stopit for thread-safe timeout control.
+    """
+
+    @stopit.threading_timeoutable(default=None)
+    def _grade_with_timeout(r1, r2):
+        return grade_answer(r1, r2)
+    
+    result = _grade_with_timeout(res1, res2, timeout=timeout)
+    return result
 
 
 # =============================================================================
@@ -48,7 +69,6 @@ except ImportError:
 class QuestionData:
     """Data for a single generated question."""
     question: str
-    claimed_answer: str
     transformation: str
     difficulty_estimate: int
     raw_output: str
@@ -91,6 +111,7 @@ class QuestionResult:
     verification_results: List[VerificationResult]
     novelty_result: Optional[NoveltyResult]
     r_m: float  # Majority voting score
+    majority_answer: str  # The majority-voted answer from solutions
     avg_solution_length: float
 
 
@@ -142,18 +163,38 @@ def load_prompt(prompt_path: str) -> Tuple[str, str]:
     return system_prompt, user_template
 
 
-def extract_boxed_fallback(text: str) -> Optional[str]:
-    """Fallback boxed content extractor."""
-    pattern = r'\\boxed\{([^}]*)\}'
+def extract_boxed_answer(text: str) -> Optional[str]:
+    """
+    Extract boxed content from text, using mathruler when available.
+    
+    Uses mathruler's extract_boxed_content for robust extraction,
+    falling back to regex-based extraction if mathruler is not available.
+    """
+    # Try mathruler first (more robust, handles edge cases)
+    if extract_boxed_content is not None:
+        try:
+            result = extract_boxed_content(text)
+            if result:
+                return result
+        except Exception:
+            pass  # Fall through to fallback
+    
+    # Fallback: regex-based extraction
+    # First try simple pattern for non-nested braces
+    pattern = r'\\boxed\{([^{}]*)\}'
     matches = re.findall(pattern, text)
     if matches:
         return matches[-1]
     
-    # Handle nested braces
+    # Handle nested braces manually
     prefix = r'\boxed{'
     start = text.find(prefix)
     if start == -1:
-        return None
+        # Also try without backslash (sometimes formatted differently)
+        prefix = '\\boxed{'
+        start = text.find(prefix)
+        if start == -1:
+            return None
     
     j = start + len(prefix)
     depth = 1
@@ -170,10 +211,44 @@ def extract_boxed_fallback(text: str) -> Optional[str]:
 
 
 def extract_tag_content(text: str, tag: str) -> Optional[str]:
-    """Extract content between XML-style tags."""
+    """
+    Extract content between XML-style tags with robust handling.
+    
+    Handles various edge cases:
+    - Properly closed tags: <tag>content</tag>
+    - Missing closing tag: extracts until end of text or next tag
+    - Nested tags: uses non-greedy matching for inner content
+    - Leaked tags: strips any remaining tags from extracted content
+    """
+    # Primary pattern: proper tags
     pattern = rf'<{tag}>(.*?)</{tag}>'
     match = re.search(pattern, text, re.DOTALL)
-    return match.group(1).strip() if match else None
+    
+    if match:
+        content = match.group(1).strip()
+    else:
+        # Fallback: tag without proper closing (extract until next tag or end)
+        open_pattern = rf'<{tag}>\s*(.*?)(?=<[a-zA-Z_]+>|$)'
+        match = re.search(open_pattern, text, re.DOTALL)
+        if match:
+            content = match.group(1).strip()
+        else:
+            return None
+    
+    # Validate: ensure content doesn't contain leaked tags (indicates format error)
+    if content and re.match(r'^<[a-zA-Z_]+>', content):
+        # Content starts with a tag - this is likely a format error
+        # Try to extract just the text before the leaked tag
+        clean_match = re.match(r'^([^<]+)', content)
+        if clean_match:
+            content = clean_match.group(1).strip()
+        else:
+            return None  # Content is all tags, invalid
+    
+    # Remove any trailing tag artifacts
+    content = re.sub(r'</?[a-zA-Z_]+>\s*$', '', content).strip()
+    
+    return content if content else None
 
 
 def extract_score(text: str, score_name: str) -> float:
@@ -193,27 +268,121 @@ def extract_score(text: str, score_name: str) -> float:
     return 0.0
 
 
+def _validate_question_format(question_text: Optional[str], claimed_answer: str, raw_output: str) -> bool:
+    """
+    Validate that a generated question has proper format and content.
+
+    Note: Question generator no longer provides answers - that's done by the solver.
+
+    Checks for:
+    - Presence of question text
+    - No leaked XML/HTML tags in question text
+    - Minimum length requirements
+    - No obvious format errors
+    """
+    # Basic presence check - question must exist
+    if not question_text:
+        return False
+
+    # Check for leaked tags (indicates format error)
+    if re.search(r'^<[a-zA-Z_]+>', question_text):
+        return False
+    if '<transformation>' in question_text.lower():
+        return False
+    if '<answer>' in question_text.lower():
+        return False
+
+    # Minimum length check (at least 20 chars for a real question)
+    if len(question_text.strip()) < 20:
+        return False
+
+    # Check that question actually looks like a question (has some math or asks something)
+    has_math = any(c in question_text for c in ['$', '\\', '=', '+', '-', '*', '/', '^', 'find', 'calculate', 'solve', 'simplify', 'evaluate', 'determine', 'prove', 'show'])
+    has_question_indicator = any(word in question_text.lower() for word in ['?', 'what', 'find', 'calculate', 'determine', 'solve', 'how', 'prove', 'show', 'given'])
+
+    if not (has_math or has_question_indicator):
+        return False
+
+    return True
+
+
 def compute_majority_vote(answers: List[str]) -> Tuple[str, float]:
-    """Compute majority vote from list of answers."""
+    """
+    Compute majority vote from list of answers using symbolic equivalence.
+    
+    Uses mathruler's grade_answer for proper mathematical comparison,
+    which handles equivalent representations like "2" vs "2.0" vs "\\frac{2}{1}".
+    
+    Following R-Zero's approach:
+    1. First try cheap string comparison
+    2. If that fails, use expensive symbolic grading (with timeout)
+    3. Check both directions (A vs B and B vs A) for robustness
+    """
     if not answers:
         return "", 0.0
     
-    # Count occurrences (with simple string matching)
-    counts = defaultdict(int)
-    for ans in answers:
-        if ans:
-            # Normalize answer
-            normalized = ans.strip().lower()
-            counts[normalized] += 1
-    
-    if not counts:
+    # Filter out empty answers
+    valid_answers = [ans.strip() for ans in answers if ans and ans.strip()]
+    if not valid_answers:
         return "", 0.0
     
-    # Find majority
-    majority_ans = max(counts.keys(), key=lambda x: counts[x])
-    majority_count = counts[majority_ans]
+    # Group answers by equivalence using symbolic comparison
+    answer_counts: Dict[str, int] = {}
     
-    return majority_ans, majority_count / len(answers)
+    for ans in valid_answers:
+        matched = False
+        
+        for existing_answer in answer_counts:
+            # OPTIMIZATION: Perform cheap string comparisons first
+            if ans == existing_answer:
+                answer_counts[existing_answer] += 1
+                matched = True
+                break
+            
+            # Normalized string comparison
+            if ans.lower() == existing_answer.lower():
+                answer_counts[existing_answer] += 1
+                matched = True
+                break
+            
+            # Check for common patterns (e.g., "no solution" variants)
+            if 'no ' in ans.lower() and 'no ' in existing_answer.lower():
+                answer_counts[existing_answer] += 1
+                matched = True
+                break
+            
+            # If cheap checks fail, use expensive symbolic grading
+            # Check both directions for robustness (A vs B and B vs A)
+            match_1 = grade_answer_with_timeout(ans, existing_answer, timeout=10)
+            if match_1 is None:
+                # Timeout - skip this comparison
+                continue
+            if match_1:
+                answer_counts[existing_answer] += 1
+                matched = True
+                break
+            
+            # Try reverse direction
+            match_2 = grade_answer_with_timeout(existing_answer, ans, timeout=10)
+            if match_2 is None:
+                continue
+            if match_2:
+                answer_counts[existing_answer] += 1
+                matched = True
+                break
+        
+        if not matched:
+            # This is a new unique answer
+            answer_counts[ans] = 1
+    
+    if not answer_counts:
+        return "", 0.0
+    
+    # Find majority answer
+    majority_ans = max(answer_counts, key=answer_counts.get)
+    majority_count = answer_counts[majority_ans]
+    
+    return majority_ans, majority_count / len(valid_answers)
 
 
 # =============================================================================
@@ -277,18 +446,34 @@ class BaselinePipeline:
         self, 
         seed_question: str, 
         seed_answer: str,
-        previous_questions: List[str],
+        current_question: str,
+        current_answer: str,
+        transforms_used: List[str],
         target_difficulty: int = 5
     ) -> List[QuestionData]:
-        """Generate K new questions from seed."""
+        """
+        Generate K new questions by transforming the current question.
+        
+        Args:
+            seed_question: Original seed question (for context)
+            seed_answer: Original seed answer (for context)
+            current_question: The question to transform from
+            current_answer: The answer to the current question
+            transforms_used: List of transformations already applied in this chain
+            target_difficulty: Target difficulty level (1-10)
+        """
         system_prompt, user_template = self.prompts['generator']
         
-        # Format user prompt
-        prev_str = "\n".join(previous_questions) if previous_questions else "None"
+        # Format transforms list
+        transforms_str = ", ".join(transforms_used) if transforms_used else "None (this is the first iteration)"
+        
+        # Format user prompt with compressed context
         user_prompt = user_template.format(
             seed_question=seed_question,
             seed_answer=seed_answer,
-            previous_questions=prev_str,
+            transforms_used=transforms_str,
+            current_question=current_question,
+            current_answer=current_answer,
             target_difficulty=target_difficulty
         )
         
@@ -315,15 +500,10 @@ class BaselinePipeline:
             # Parse output
             question_text = extract_tag_content(raw_text, 'question')
             transformation = extract_tag_content(raw_text, 'transformation')
-            answer_text = extract_tag_content(raw_text, 'answer')
             difficulty_text = extract_tag_content(raw_text, 'difficulty_estimate')
-            
-            # Extract boxed answer if present
-            if answer_text:
-                boxed = extract_boxed_fallback(answer_text)
-                claimed_answer = boxed if boxed else answer_text
-            else:
-                claimed_answer = extract_boxed_fallback(raw_text) or ""
+
+            # Question generator does not provide answers - solver will generate them
+            claimed_answer = ""
             
             # Parse difficulty
             try:
@@ -331,11 +511,11 @@ class BaselinePipeline:
             except:
                 difficulty = 5
             
-            valid_format = bool(question_text and claimed_answer)
-            
+            # Validate question format and content
+            valid_format = _validate_question_format(question_text, "", raw_text)
+
             questions.append(QuestionData(
                 question=question_text or raw_text[:500],
-                claimed_answer=claimed_answer,
                 transformation=transformation or "unknown",
                 difficulty_estimate=difficulty,
                 raw_output=raw_text,
@@ -366,7 +546,7 @@ class BaselinePipeline:
             raw_text = out.text
             
             # Extract answer
-            extracted = extract_boxed_fallback(raw_text)
+            extracted = extract_boxed_answer(raw_text)
             
             solutions.append(SolutionData(
                 solution=raw_text,
@@ -378,17 +558,15 @@ class BaselinePipeline:
         return solutions
     
     def verify_solution(
-        self, 
-        question: str, 
-        solution: str, 
-        claimed_answer: str
+        self,
+        question: str,
+        solution: str
     ) -> VerificationResult:
         """Verify a solution using V1."""
         system_prompt, user_template = self.prompts['verifier']
         user_prompt = user_template.format(
             question=question,
-            solution=solution,
-            answer=claimed_answer
+            solution=solution
         )
         prompt = self._create_chat_prompt(system_prompt, user_prompt)
         
@@ -468,21 +646,23 @@ class BaselinePipeline:
     ) -> SeedTrace:
         """Process a single seed through all iterations."""
         iterations = []
-        context_questions = []
-        current_seed_q = seed_question
-        current_seed_a = seed_answer
+        transforms_used = []  # Track transformations applied in this chain
+        current_q = seed_question
+        current_a = seed_answer
         termination_reason = "max_iterations"
         
         for iter_idx in range(self.config['generation']['max_iterations']):
             if verbose:
                 print(f"  [Iteration {iter_idx + 1}]")
             
-            # Step 1: Generate K questions
+            # Step 1: Generate K questions with compressed context
             questions_data = self.generate_questions(
-                current_seed_q, 
-                current_seed_a,
-                context_questions,
-                target_difficulty=5 + iter_idx  # Increase difficulty each iteration
+                seed_question=seed_question,      # Original seed (for context)
+                seed_answer=seed_answer,          # Original seed answer
+                current_question=current_q,       # Current question to transform
+                current_answer=current_a,         # Current answer
+                transforms_used=transforms_used,  # What's been tried
+                target_difficulty=5 + iter_idx    # Increase difficulty each iteration
             )
             
             question_results = []
@@ -499,6 +679,7 @@ class BaselinePipeline:
                         verification_results=[],
                         novelty_result=None,
                         r_m=0.0,
+                        majority_answer="",
                         avg_solution_length=0.0
                     ))
                     continue
@@ -508,17 +689,16 @@ class BaselinePipeline:
                 
                 # Step 3: Verify each solution
                 verification_results = []
-                for sol in solutions[:3]:  # Verify first 3 for efficiency
+                for sol in solutions:  # Verify first 3 for efficiency
                     ver_result = self.verify_solution(
                         q_data.question,
-                        sol.solution,
-                        q_data.claimed_answer
+                        sol.solution
                     )
                     verification_results.append(ver_result)
                 
                 # Compute majority vote
                 answers = [s.extracted_answer for s in solutions if s.extracted_answer]
-                _, r_m = compute_majority_vote(answers)
+                majority_answer, r_m = compute_majority_vote(answers)
                 
                 # Compute solution stats
                 lengths = [s.token_length for s in solutions]
@@ -541,6 +721,7 @@ class BaselinePipeline:
                     verification_results=verification_results,
                     novelty_result=novelty_result,
                     r_m=r_m,
+                    majority_answer=majority_answer,
                     avg_solution_length=avg_length
                 ))
             
@@ -628,11 +809,19 @@ class BaselinePipeline:
             ))
             
             # Update context for next iteration
-            context_questions = [q.question_data.question for q in valid_questions[:2]]
             if valid_questions:
+                # Select best question based on novelty
                 best_q = max(valid_questions, key=lambda x: x.novelty_result.r3_novelty if x.novelty_result else 0)
-                current_seed_q = best_q.question_data.question
-                current_seed_a = best_q.question_data.claimed_answer
+                current_q = best_q.question_data.question
+                current_a = best_q.majority_answer
+                
+                # Track the transformation used (for avoiding repetition)
+                transform = best_q.question_data.transformation
+                if transform and transform != "unknown":
+                    # Extract transformation type (e.g., "TIGHTEN" from "TIGHTEN: Restrict...")
+                    transform_type = transform.split(":")[0].split(",")[0].strip().upper()
+                    if transform_type and transform_type not in transforms_used:
+                        transforms_used.append(transform_type)
             
             if verbose:
                 print(f"    -> valid={num_valid}, solvable={num_solvable}, avg_r_m={avg_r_m:.3f}, avg_novelty={avg_novelty:.3f}")

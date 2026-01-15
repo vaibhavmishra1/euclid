@@ -42,23 +42,23 @@ OUTPUT FORMAT:
 [The complete, self-contained problem statement]
 </question>
 
-<answer>
-\boxed{[final_answer]}
-</answer>
-
 <difficulty_estimate>
 [1-10 scale with justification]
 </difficulty_estimate>
 
 [USER]
-SEED PROBLEM:
-{seed_question}
+ORIGINAL SEED:
+Question: {seed_question}
+Answer: {seed_answer}
 
-SEED ANSWER:
-{seed_answer}
+TRANSFORMATIONS ALREADY USED IN THIS CHAIN:
+{transforms_used}
 
-PREVIOUS QUESTIONS IN THIS CHAIN (if any):
-{previous_questions}
+CURRENT PROBLEM (transform from this):
+Question: {current_question}
+Answer: {current_answer}
 
-Generate a novel mathematical problem by transforming the seed problem.
-Aim for difficulty level: {target_difficulty}/10
+Generate a novel mathematical problem by transforming the CURRENT problem.
+- Try to use a DIFFERENT transformation than those already used (if possible)
+- The new problem should build on the complexity of the current problem
+- Aim for difficulty level: {target_difficulty}/10
