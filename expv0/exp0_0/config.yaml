@@ -28,10 +28,16 @@ generation:
   max_tokens: 4096       # Max tokens per generation
 
 thresholds:
+  # Termination thresholds (chain stops if below these)
   solvability_t: 0.5      # r_m threshold for "solvable"
   validity_t: 0.5         # r2 threshold for "valid question"
   novelty_t: 0.4          # r3 threshold for "novel"
   valid_ratio_t: 0.5      # Fraction of K that must be valid to continue
+  
+  # Selection thresholds (stricter - for picking next best question)
+  # Questions must meet these to be candidates for selection
+  selection_solvability_t: 0.6   # Prefer questions with higher r_m
+  selection_validity_t: 0.7      # Prefer well-posed questions
 
 output:
   save_dir: "results"

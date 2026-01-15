@@ -813,10 +813,33 @@ class BaselinePipeline:
             
             # Update context for next iteration
             if valid_questions:
-                # Select best question based on novelty
-                best_q = max(valid_questions, key=lambda x: x.novelty_result.r3_novelty if x.novelty_result else 0)
+                # Constrained Novelty Selection:
+                # 1. Filter to questions meeting stricter selection thresholds
+                # 2. From those, pick highest novelty
+                # 3. If no questions meet strict thresholds, fall back to all valid questions
+                
+                selection_solv_t = self.config['thresholds'].get('selection_solvability_t', 0.6)
+                selection_valid_t = self.config['thresholds'].get('selection_validity_t', 0.7)
+                
+                # Filter candidates that meet stricter selection criteria
+                premium_candidates = [
+                    q for q in valid_questions
+                    if q.r_m >= selection_solv_t and 
+                       q.verification_result and q.verification_result.r2_question_correct >= selection_valid_t
+                ]
+                
+                # Select from premium candidates if available, else fall back to all valid
+                selection_pool = premium_candidates if premium_candidates else valid_questions
+                
+                # Pick highest novelty from the selection pool
+                best_q = max(selection_pool, key=lambda x: x.novelty_result.r3_novelty if x.novelty_result else 0)
                 current_q = best_q.question_data.question
                 current_a = best_q.majority_answer
+                
+                if verbose and premium_candidates:
+                    print(f"    -> Selected from {len(premium_candidates)} premium candidates (r_m>={selection_solv_t}, r2>={selection_valid_t})")
+                elif verbose:
+                    print(f"    -> No premium candidates, selected from {len(valid_questions)} valid questions")
                 
                 # Track the transformation used (for avoiding repetition)
                 transform = best_q.question_data.transformation
