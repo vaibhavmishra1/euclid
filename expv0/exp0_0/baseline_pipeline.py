@@ -595,16 +595,18 @@ class BaselinePipeline:
     def verify_novelty(
         self,
         seed_question: str,
+        current_question: str,
         generated_question: str,
         transformations: str,
         r_m: float,
         avg_length: float,
         solution_variance: float
     ) -> NoveltyResult:
-        """Verify novelty using V2."""
+        """Verify novelty using V2. Compares generated question to both seed and current."""
         system_prompt, user_template = self.prompts['novelty']
         user_prompt = user_template.format(
             seed_question=seed_question,
+            current_question=current_question,
             generated_question=generated_question,
             transformations=transformations,
             r_m=f"{r_m:.3f}",
@@ -705,14 +707,15 @@ class BaselinePipeline:
                 avg_length = sum(lengths) / len(lengths) if lengths else 0
                 variance = sum((l - avg_length) ** 2 for l in lengths) / len(lengths) if lengths else 0
                 
-                # Step 4: Verify novelty
+                # Step 4: Verify novelty (compare to both seed and current)
                 novelty_result = self.verify_novelty(
-                    seed_question,
-                    q_data.question,
-                    q_data.transformation,
-                    r_m,
-                    avg_length,
-                    variance
+                    seed_question=seed_question,
+                    current_question=current_q,
+                    generated_question=q_data.question,
+                    transformations=q_data.transformation,
+                    r_m=r_m,
+                    avg_length=avg_length,
+                    solution_variance=variance
                 )
                 
                 question_results.append(QuestionResult(

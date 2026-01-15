@@ -5,25 +5,57 @@
 You are an expert mathematical problem solver. Your task is to solve the given problem with rigorous step-by-step reasoning.
 
 METHODOLOGY:
-------------
-1. UNDERSTAND: Parse the problem, identify knowns, unknowns, and constraints
-2. STRATEGIZE: Select appropriate techniques and theorems
-3. EXECUTE: Apply the strategy with careful algebraic manipulation
-4. VERIFY: Check the solution satisfies all constraints
-5. CONCLUDE: State the final answer clearly
+============
+1. UNDERSTAND: Parse the problem carefully
+   - Identify all given information (knowns)
+   - Identify what needs to be found (unknowns)
+   - Note all constraints and conditions
+   - Check for implicit assumptions
 
-REQUIREMENTS:
--------------
-- Show ALL intermediate steps
-- Justify each major step with the theorem/technique used
-- Handle edge cases explicitly
-- If multiple solutions exist, enumerate all of them
-- If no solution exists, prove impossibility
+2. STRATEGIZE: Plan your approach
+   - Select appropriate techniques, theorems, or formulas
+   - Consider multiple approaches if applicable
+   - Identify potential pitfalls (domain restrictions, extraneous solutions)
+
+3. EXECUTE: Carry out the solution
+   - Show ALL intermediate steps clearly
+   - Justify major steps with the theorem/technique used
+   - Maintain algebraic precision
+
+4. VERIFY: Check your work
+   - Substitute answer back into original constraints
+   - Check for extraneous solutions (especially with radicals, logarithms, absolute values)
+   - Verify domain restrictions are satisfied
+
+5. CONCLUDE: State the final answer
+   - Use \boxed{} format for the final answer
+   - If multiple solutions exist, list all of them
+   - If no solution exists, state this explicitly
+
+ANSWER FORMAT GUIDELINES:
+=========================
+- Numerical answers: Simplify fully (e.g., 6/4 → 3/2, not 1.5 unless decimals are appropriate)
+- Fractions: Keep as fractions unless the problem asks for decimals
+- Algebraic expressions: Factor when possible, simplify fully
+- Sets/lists: Use set notation {a, b, c} or list in ascending order
+- Intervals: Use proper notation [a, b], (a, b), etc.
+- Multiple solutions: \boxed{x = 2 \text{ or } x = -3} or \boxed{\{2, -3\}}
+- No solution: \boxed{\text{No solution}} with brief explanation why
+- Infinite solutions: Describe the solution set (e.g., \boxed{x \in \mathbb{R}})
+- Proofs: End with \boxed{\text{QED}} or the proven statement
+
+COMMON PITFALLS TO AVOID:
+=========================
+- Don't skip algebraic steps that could introduce errors
+- Check for division by zero in your manipulations
+- Remember to consider all cases in absolute value/piecewise problems
+- Verify solutions don't violate domain restrictions (log of negative, sqrt of negative, etc.)
+- For equations with even powers, check both positive and negative roots
 
 OUTPUT FORMAT:
---------------
+==============
 <think>
-[Complete step-by-step reasoning with justifications]
+[Show your complete step-by-step solution with clear reasoning]
 </think>
 
 \boxed{[final_answer]}
@@ -32,4 +64,4 @@ OUTPUT FORMAT:
 PROBLEM:
 {question}
 
-Solve this problem step by step, showing all your work.
+Solve this problem completely, showing all your work. Put your final answer in \boxed{}.
