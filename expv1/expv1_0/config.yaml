@@ -14,22 +14,20 @@ seed_data:
   dataset_config: "number_theory"  # initial exp: number_theory only
   split: "train"
   # Start with a small seed set for iteration; scale up later (GRIP used 7.5K).
-  max_seeds: 20
+  max_seeds: -1
 
 concept_extraction:
   backend: "llm"         # heuristic | llm
   # If backend=llm, configure an LLM client below and a prompt template.
   prompt_path: "euclid/expv1/expv1_0/prompts/concept_extract.md"
-  backend: "llm"   # Only LLM backend supported
   concept_extractor_backend: "vllm"   # mock | hf | vllm | api
-  concept_extractor_model: "Qwen/Qwen2.5-Math-72B-Instruct"  # GRIP uses this model
+  concept_extractor_model: "Qwen/Qwen2.5-32B-Instruct"  # GRIP uses this model
   vllm:
     gpu_memory_utilization: 0.90
     tensor_parallel_size: 1
   max_tokens: 4096
   temperature: 0.0
   top_p: 1.0
-  prompt_path: "euclid/expv1/expv1_0/prompts/concept_extract.md"
 
 concept_graph:
   # implicit edges are derived from explicit graph neighborhoods (2-hop/3-hop)
@@ -80,8 +78,6 @@ zpd:
   vllm:
     gpu_memory_utilization: 0.20
     tensor_parallel_size: 1
-  prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
-  rollouts: 5
   prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
   rollouts: 8  # Increased for better verification + ZPD
   temperature: 0.7
