@@ -5,39 +5,31 @@ experiment:
   seed: 42
 
 io:
-  output_dir: "/root/euclid/expv1/expv1_0/output"
-  output_dir: "tree/euclid/expv1/expv1_0/output"
+  output_dir: "euclid/expv1/expv1_0/output"
   # Pipeline A artifacts (concepts + KCRG). Pipeline B reads from here.
-  concepts_dir: "tree/euclid/expv1/expv1_0/output/concepts"
+  concepts_dir: "euclid/expv1/expv1_0/output/concepts"
 
 seed_data:
-  # For smoke tests, we ship a tiny toy set. Replace with your real seed source.
-  toy_jsonl: "/root/euclid/expv1/expv1_0/data/seeds_toy.jsonl"
-  max_seeds: 50
-  # Source of seed problems used to build the KCRG.
-  # "hf" pulls directly from EleutherAI/hendrycks_math.
   source: "hf"  # hf | jsonl
   dataset_config: "number_theory"  # initial exp: number_theory only
   split: "train"
   # Start with a small seed set for iteration; scale up later (GRIP used 7.5K).
-  max_seeds: 200
-  # Only used when source=jsonl
-  toy_jsonl: "tree/euclid/expv1/expv1_0/data/seeds_toy.jsonl"
+  max_seeds: 20
 
 concept_extraction:
   backend: "llm"         # heuristic | llm
   # If backend=llm, configure an LLM client below and a prompt template.
-  prompt_path: "/root/euclid/expv1/expv1_0/prompts/concept_extract.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/concept_extract.md"
   backend: "llm"   # Only LLM backend supported
   concept_extractor_backend: "vllm"   # mock | hf | vllm | api
-  concept_extractor_model: "Qwen/Qwen2.5-Math-32B-Instruct"  # GRIP uses this model
+  concept_extractor_model: "Qwen/Qwen2.5-Math-72B-Instruct"  # GRIP uses this model
   vllm:
     gpu_memory_utilization: 0.90
     tensor_parallel_size: 1
   max_tokens: 4096
   temperature: 0.0
   top_p: 1.0
-  prompt_path: "tree/euclid/expv1/expv1_0/prompts/concept_extract.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/concept_extract.md"
 
 concept_graph:
   # implicit edges are derived from explicit graph neighborhoods (2-hop/3-hop)
@@ -59,7 +51,7 @@ generation:
   temperature: 0.8
   top_p: 0.95
   num_candidates: 200
-  prompt_path: "/root/euclid/expv1/expv1_0/prompts/problem_generate.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/problem_generate.md"
 
 teacher:
   teacher_backend: "vllm"     # mock | hf | vllm | api
@@ -69,8 +61,8 @@ teacher:
     tensor_parallel_size: 1
   max_tokens: 1024
   temperature: 0.0
-  prompt_path: "/root/euclid/expv1/expv1_0/prompts/teacher_verify.md"
-  equivalence_prompt_path: "/root/euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/teacher_verify.md"
+  equivalence_prompt_path: "euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
 
 dedup:
   lexical: true
@@ -88,9 +80,9 @@ zpd:
   vllm:
     gpu_memory_utilization: 0.20
     tensor_parallel_size: 1
-  prompt_path: "/root/euclid/expv1/expv1_0/prompts/solver_prompt.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
   rollouts: 5
-  prompt_path: "tree/euclid/expv1/expv1_0/prompts/solver_prompt.md"
+  prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
   rollouts: 8  # Increased for better verification + ZPD
   temperature: 0.7
   top_p: 0.95
@@ -101,7 +93,7 @@ zpd:
 sft:
   enabled: false
   base_model: ""
-  output_dir: "/root/euclid/expv1/expv1_0/output/sft_model"
+  output_dir: "euclid/expv1/expv1_0/output/sft_model"
   max_steps: 100
 
 eval:
