@@ -16,3 +16,5 @@ wandb/
 *.json
 **/*.json
 */.venv
+*.png
+*.DS_STORE

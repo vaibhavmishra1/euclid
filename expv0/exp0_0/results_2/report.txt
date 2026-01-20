@@ -1,0 +1,64 @@
+============================================================
+exp0_0: BASELINE EXPERIMENT RESULTS
+============================================================
+
+## SUMMARY STATISTICS
+----------------------------------------
+Total Seeds Processed:    100
+Total Iterations:         339
+Total Questions Generated:339
+
+## QUALITY METRICS
+----------------------------------------
+Format Success Rate:      100.0%
+Question Validity Rate:   95.4%
+Solvability Rate:         60.8%
+
+## SCORE STATISTICS
+----------------------------------------
+Mean r_m (Solvability):   0.724 (+/- 0.267)
+Mean Novelty Score:       0.602 (+/- 0.177)
+
+## ITERATION DEPTH
+----------------------------------------
+Mean Iteration Depth:     3.39 (+/- 3.07)
+Max Iteration Depth:      10
+
+## TERMINATION REASONS
+----------------------------------------
+  not_novel                 43.0%
+  too_difficult             38.0%
+  invalid_questions         15.0%
+  max_iterations            4.0%
+
+## PER-ITERATION BREAKDOWN
+----------------------------------------
+  Iteration 1: r_m=0.690, novelty=0.316
+  Iteration 2: r_m=0.774, novelty=0.540
+  Iteration 3: r_m=0.811, novelty=0.561
+  Iteration 4: r_m=0.801, novelty=0.612
+  Iteration 5: r_m=0.683, novelty=0.627
+  Iteration 6: r_m=0.731, novelty=0.569
+  Iteration 7: r_m=0.663, novelty=0.604
+  Iteration 8: r_m=0.639, novelty=0.528
+  Iteration 9: r_m=0.625, novelty=0.700
+  Iteration 10: r_m=0.650, novelty=0.600
+
+## FAILURE ANALYSIS
+----------------------------------------
+  too_difficult:
+    Count: 38
+    Avg Depth: 3.66
+  not_novel:
+    Count: 43
+    Avg Depth: 2.28
+  invalid_questions:
+    Count: 15
+    Avg Depth: 4.13
+  max_iterations:
+    Count: 4
+    Avg Depth: 10.00
+
+============================================================
+END OF REPORT
+============================================================

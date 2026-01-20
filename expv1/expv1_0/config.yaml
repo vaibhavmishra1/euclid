@@ -1,0 +1,87 @@
+# expv1_0: Method 1 (offline) experiment config
+
+experiment:
+  name: "expv1_0"
+  seed: 42
+
+io:
+  output_dir: "tree/euclid/expv1/expv1_0/output"
+
+seed_data:
+  # For smoke tests, we ship a tiny toy set. Replace with your real seed source.
+  toy_jsonl: "tree/euclid/expv1/expv1_0/data/seeds_toy.jsonl"
+  max_seeds: 50
+
+concept_extraction:
+  backend: "llm"         # heuristic | llm
+  # If backend=llm, configure an LLM client below and a prompt template.
+  prompt_path: "tree/euclid/expv1/expv1_0/prompts/concept_extract.md"
+
+concept_graph:
+  # implicit edges are derived from explicit graph neighborhoods (2-hop/3-hop)
+  min_cooccurrence: 1
+
+explorator:
+  policy: "grip_stage0"  # grip_stage0 | grip_stage1
+  bundle_size: 4
+  allow_swap_one_neighbor: true
+  hop_mode: "explicit"   # explicit | implicit_2hop | implicit_3hop
+
+generation:
+  generator_backend: "hf"   # mock | hf | vllm | api
+  generator_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+  vllm:
+    gpu_memory_utilization: 0.90
+    tensor_parallel_size: 1
+  max_tokens: 2048
+  temperature: 0.8
+  top_p: 0.95
+  num_candidates: 200
+  prompt_path: "tree/euclid/expv1/expv1_0/prompts/problem_generate.md"
+
+teacher:
+  teacher_backend: "hf"     # mock | hf | vllm | api
+  teacher_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+  vllm:
+    gpu_memory_utilization: 0.90
+    tensor_parallel_size: 1
+  max_tokens: 1024
+  temperature: 0.0
+  prompt_path: "tree/euclid/expv1/expv1_0/prompts/teacher_verify.md"
+  equivalence_prompt_path: "tree/euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
+
+dedup:
+  lexical: true
+  embedding: false
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  max_nn: 10
+  cosine_threshold: 0.92
+
+zpd:
+  enabled: true
+  solver_backend: "hf"      # mock | hf | vllm | api
+  solver_model: "Qwen/Qwen2.5-Math-1.5B-Instruct"
+  vllm:
+    gpu_memory_utilization: 0.90
+    tensor_parallel_size: 1
+  prompt_path: "tree/euclid/expv1/expv1_0/prompts/solver_prompt.md"
+  rollouts: 5
+  temperature: 0.7
+  top_p: 0.95
+  max_tokens: 1024
+  p_min: 0.3
+  p_max: 0.7
+
+sft:
+  enabled: false
+  base_model: ""
+  output_dir: "tree/euclid/expv1/expv1_0/output/sft_model"
+  max_steps: 100
+
+eval:
+  enabled: false
+  # See tree/euclid/evaluate_math/evaluate_hf.py for available MATH subsets
+  dataset_config: "number_theory"
+  split: "test"
+  limit: 50
+
