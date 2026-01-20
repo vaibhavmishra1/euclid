@@ -15,7 +15,7 @@ from .teacher import LLMTeacherVerifier
 from .types import AcceptedSample, CandidateSample, Concept, SeedExample, Spec
 from .utils import ensure_dir, load_yaml, write_json, write_jsonl
 from .zpd import ZPDScorer
-
+from tqdm import tqdm
 
 def build_dataset(config_path: str) -> str:
     cfg = load_yaml(config_path)
@@ -157,7 +157,8 @@ def build_dataset(config_path: str) -> str:
     candidate_logs: List[Dict[str, Any]] = []
     accepted: List[AcceptedSample] = []
 
-    for i in range(num_candidates):
+    
+    for i in tqdm(range(num_candidates), desc="Generating candidates"):
         spec = explorator.sample_spec()
         cand = generator.generate_one(spec)
 
