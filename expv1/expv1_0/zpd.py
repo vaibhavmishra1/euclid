@@ -31,14 +31,25 @@ class ZPDScorer:
         for out in outs:
             pred = extract_boxed_answer(out) or ""
             preds.append(pred)
-            if is_correct(pred, gold_answer):
+            if gold_answer and is_correct(pred, gold_answer):
                 correct += 1
 
-        p_succ = correct / max(1, self.rollouts)
+        if gold_answer:
+            p_succ = correct / max(1, self.rollouts)
+            modal_answer = ""
+        else:
+            # Self-consistency mode: use agreement on the modal non-empty answer
+            non_empty = [p for p in preds if p]
+            if non_empty:
+                modal_answer = max(set(non_empty), key=non_empty.count)
+                p_succ = non_empty.count(modal_answer) / max(1, len(preds))
+            else:
+                modal_answer = ""
+                p_succ = 0.0
         return ZPDResult(
             p_succ=p_succ,
             rollouts=self.rollouts,
             num_correct=correct,
-            details={"preds": preds},
+            details={"preds": preds, "modal_answer": modal_answer},
         )
 

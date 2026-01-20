@@ -5,28 +5,41 @@ This folder contains the **first runnable implementation** of the Method‑1 exp
 - `tree/euclid/expv1/expv1_formal_planner/research_proposal_v0.md`
 
 Goal (ExpV1_0):
-- Build a **teacher-verified** synthetic dataset using **GRIP-style concept graph exploration**
-- Add **semantic/embedding dedup** and **student-aware ZPD filtering**
-- Fine-tune a base solver (offline SFT) and evaluate learning efficiency.
+- Build a synthetic dataset using **GRIP-style concept graph exploration**
+- Keep **concept extraction + graph building** separate from **question generation + solver filtering**
+- Add **dedup** and **solver-aware ZPD/self-consistency filtering**
 
 This implementation is intentionally modular:
 - Concept extraction, generator, teacher, solver inference, and dedup can be swapped between backends (local HF, vLLM, API).
 
 #### Quickstart (high level)
 1) Configure models and budgets in `config.yaml`
-2) Run dataset build:
+
+2) Run **Pipeline A** (concept extraction + KCRG artifacts):
+
+```bash
+python -m tree.euclid.expv1.expv1_0.run_build_concepts --config tree/euclid/expv1/expv1_0/config.yaml
+```
+
+3) Run **Pipeline B** (generation + solver filtering):
+
+```bash
+python -m tree.euclid.expv1.expv1_0.run_generate_dataset --config tree/euclid/expv1/expv1_0/config.yaml
+```
+
+4) Or run **end-to-end** (A then B):
 
 ```bash
 python -m tree.euclid.expv1.expv1_0.run_build_dataset --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-3) Run SFT training (optional; heavy):
+5) Run SFT training (optional; heavy):
 
 ```bash
 python -m tree.euclid.expv1.expv1_0.run_sft --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-4) Run evaluation:
+6) Run evaluation:
 
 ```bash
 python -m tree.euclid.expv1.expv1_0.run_eval --config tree/euclid/expv1/expv1_0/config.yaml

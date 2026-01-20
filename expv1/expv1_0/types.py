@@ -18,6 +18,7 @@ class Concept:
 class SeedExample:
     problem_id: str
     problem: str
+    solution: str
     answer: str
     domain: Optional[str] = None
 
@@ -61,7 +62,7 @@ class ZPDResult:
 @dataclass
 class AcceptedSample:
     candidate: CandidateSample
-    teacher: TeacherVerdict
+    verification: Dict[str, Any]  # Solver-based verification result
     zpd: Optional[ZPDResult] = None
     dedup_reason: Optional[str] = None
 

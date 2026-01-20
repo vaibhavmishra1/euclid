@@ -36,6 +36,6 @@ class LLMQuestionGenerator:
         )
         raw = self.llm.generate(prompt, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p, n=1)[0]
         q = extract_tag_content(raw, "question") or raw.strip()
-        ans = extract_boxed_answer(raw) or ""
-        return CandidateSample(spec=spec, problem=q, answer=ans, raw_output=raw, metadata={})
+        # Only generate questions - answers will be verified by solvers
+        return CandidateSample(spec=spec, problem=q, answer="", raw_output=raw, metadata={})
 

@@ -1,76 +1,61 @@
 from __future__ import annotations
 
+import json
 import random
 from dataclasses import asdict
 from typing import Any, Dict, List, Tuple
 
-from .concept_extractor import LLMConceptExtractor
 from .concept_graph import ConceptGraph
 from .dedup import Deduper
 from .explorator import GRIPStage0Explorator
 from .generator import LLMQuestionGenerator
 from .llm import build_llm_client
-from .seeds import load_seed_examples_from_hendrycks_math, load_seed_examples_from_jsonl
-from .types import AcceptedSample, CandidateSample, Concept, SeedExample, Spec
-from .utils import ensure_dir, load_yaml, write_json, write_jsonl
+from .types import AcceptedSample, CandidateSample, Concept
+from .utils import ensure_dir, load_yaml, read_jsonl, write_json, write_jsonl
 from .zpd import ZPDScorer
-from tqdm import tqdm
 
-def build_dataset(config_path: str) -> str:
+
+def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], ConceptGraph]:
+    seed_concepts_rows = read_jsonl(f"{concepts_dir}/seed_concepts.jsonl")
+    seed_concept_sets: List[List[Concept]] = []
+    for row in seed_concepts_rows:
+        concepts: List[Concept] = []
+        for c in row.get("concepts", []) or []:
+            concepts.append(Concept(type=str(c.get("type", "")).strip(), name=str(c.get("name", "")).strip()))
+        seed_concept_sets.append([c for c in concepts if c.type and c.name])
+
+    with open(f"{concepts_dir}/concept_graph.json", "r", encoding="utf-8") as f:
+        graph_data = json.load(f)
+
+    concepts_by_key = {
+        k: Concept(type=str(v.get("type", "")).strip(), name=str(v.get("name", "")).strip())
+        for k, v in (graph_data.get("concepts_by_key", {}) or {}).items()
+    }
+    adjacency = graph_data.get("adjacency", {}) or {}
+    graph = ConceptGraph(adjacency=adjacency, concepts_by_key=concepts_by_key)
+    return seed_concept_sets, graph
+
+
+def generate_dataset_from_graph(config_path: str) -> str:
+    """
+    Pipeline B (GRIP Step 3+4):
+    - Load prebuilt concept artifacts (seed concepts + KCRG)
+    - Sample concept bundles (explorator)
+    - Generate problems (generator)
+    - Filter via dedup + solver-based ZPD/self-consistency
+    - Save dataset outputs
+    """
+
     cfg = load_yaml(config_path)
     random.seed(int(cfg["experiment"]["seed"]))
 
     out_dir = ensure_dir(cfg["io"]["output_dir"])
+    concepts_dir = str(cfg.get("io", {}).get("concepts_dir", f"{out_dir}/concepts"))
+
+    seed_concept_sets, graph = _load_concepts_and_graph(concepts_dir)
 
     # ------------------------------------------------------------------ #
-    # 1) Load seeds
-    # ------------------------------------------------------------------ #
-    seed_source = str(cfg["seed_data"].get("source", "hf")).lower()
-    if seed_source == "hf":
-        seeds = load_seed_examples_from_hendrycks_math(
-            dataset_config=str(cfg["seed_data"]["dataset_config"]),
-            split=str(cfg["seed_data"]["split"]),
-            max_seeds=int(cfg["seed_data"]["max_seeds"]),
-            seed=int(cfg["experiment"]["seed"]),
-        )
-    elif seed_source == "jsonl":
-        seeds = load_seed_examples_from_jsonl(
-            cfg["seed_data"]["toy_jsonl"],
-            max_seeds=int(cfg["seed_data"]["max_seeds"]),
-        )
-    else:
-        raise ValueError(f"Unknown seed_data.source: {seed_source}")
-
-    # ------------------------------------------------------------------ #
-    # 2) Concept extraction on seeds → concept sets (LLM-based)
-    # ------------------------------------------------------------------ #
-    concept_extractor_vllm = cfg["concept_extraction"].get("vllm", {}) or {}
-    seed_extractor_client = build_llm_client(
-        cfg["concept_extraction"]["concept_extractor_backend"],
-        cfg["concept_extraction"]["concept_extractor_model"],
-        seed=int(cfg["experiment"]["seed"]),
-        vllm_gpu_memory_utilization=float(concept_extractor_vllm.get("gpu_memory_utilization", 0.9)),
-        vllm_tensor_parallel_size=int(concept_extractor_vllm.get("tensor_parallel_size", 1)),
-    )
-    seed_extractor = LLMConceptExtractor(
-        llm=seed_extractor_client,
-        prompt_path=cfg["concept_extraction"]["prompt_path"],
-        max_tokens=int(cfg["concept_extraction"].get("max_tokens", 512)),
-        temperature=float(cfg["concept_extraction"].get("temperature", 0.0)),
-        top_p=float(cfg["concept_extraction"].get("top_p", 1.0)),
-    )
-
-    seed_concept_sets: List[List[Concept]] = []
-    for s in seeds:
-        seed_concept_sets.append(seed_extractor.extract(s.problem, s.solution))
-
-    # ------------------------------------------------------------------ #
-    # 3) Build concept graph (explicit co-occurrence)
-    # ------------------------------------------------------------------ #
-    graph = ConceptGraph.build_from_concept_sets(seed_concept_sets, min_cooccurrence=int(cfg["concept_graph"]["min_cooccurrence"]))
-
-    # ------------------------------------------------------------------ #
-    # 4) Explorator policy (cold-start stage)
+    # B1) Explorator policy
     # ------------------------------------------------------------------ #
     explorator = GRIPStage0Explorator(
         seed_concept_sets=seed_concept_sets,
@@ -83,7 +68,7 @@ def build_dataset(config_path: str) -> str:
     )
 
     # ------------------------------------------------------------------ #
-    # 5) Generator + Concept Extractor
+    # B2) Generator
     # ------------------------------------------------------------------ #
     gen_vllm = cfg["generation"].get("vllm", {}) or {}
     gen_client = build_llm_client(
@@ -102,7 +87,7 @@ def build_dataset(config_path: str) -> str:
     )
 
     # ------------------------------------------------------------------ #
-    # 6) Dedup + ZPD
+    # B3) Dedup + ZPD
     # ------------------------------------------------------------------ #
     deduper = Deduper(
         lexical=bool(cfg["dedup"]["lexical"]),
@@ -143,29 +128,20 @@ def build_dataset(config_path: str) -> str:
     p_max = float(cfg["zpd"]["p_max"])
 
     # ------------------------------------------------------------------ #
-    # 7) Main generation loop
+    # B4) Main generation loop
     # ------------------------------------------------------------------ #
     num_candidates = int(cfg["generation"]["num_candidates"])
     candidate_logs: List[Dict[str, Any]] = []
     accepted: List[AcceptedSample] = []
 
-    
-    for i in tqdm(range(num_candidates), desc="Generating candidates"):
+    for i in range(num_candidates):
         spec = explorator.sample_spec()
-        cand = generator.generate_one(spec)
+        cand: CandidateSample = generator.generate_one(spec)
 
         # Gate 1: dedup
         dup_reason = deduper.check_duplicate(cand.problem)
         if dup_reason:
-            candidate_logs.append(
-                {
-                    "idx": i,
-                    "accepted": False,
-                    "reject_reason": dup_reason,
-                    "candidate": asdict(cand),
-                    "verification": None,
-                }
-            )
+            candidate_logs.append({"idx": i, "accepted": False, "reject_reason": dup_reason, "candidate": asdict(cand)})
             continue
 
         # Gate 2: ZPD (self-consistency used as verification + difficulty)
@@ -201,12 +177,13 @@ def build_dataset(config_path: str) -> str:
 
         # Accept
         deduper.add(cand.problem)
-        acc = AcceptedSample(
-            candidate=cand,
-            verification={"modal_answer": cand.answer, "p_succ": zpd_result.p_succ if zpd_result else None},
-            zpd=zpd_result,
+        accepted.append(
+            AcceptedSample(
+                candidate=cand,
+                verification={"modal_answer": cand.answer, "p_succ": zpd_result.p_succ if zpd_result else None},
+                zpd=zpd_result,
+            )
         )
-        accepted.append(acc)
         candidate_logs.append(
             {
                 "idx": i,
@@ -218,23 +195,22 @@ def build_dataset(config_path: str) -> str:
         )
 
     # ------------------------------------------------------------------ #
-    # 8) Save outputs
+    # B5) Save outputs
     # ------------------------------------------------------------------ #
-    candidates_path = f"{out_dir}/candidates.jsonl"
-    accepted_path = f"{out_dir}/accepted.jsonl"
-    metrics_path = f"{out_dir}/metrics.json"
+    write_jsonl(f"{out_dir}/candidates.jsonl", candidate_logs)
+    write_jsonl(f"{out_dir}/accepted.jsonl", accepted)
 
-    write_jsonl(candidates_path, candidate_logs)
-    write_jsonl(accepted_path, accepted)
-
-    metrics = {
-        "num_candidates": num_candidates,
-        "num_accepted": len(accepted),
-        "accept_rate": (len(accepted) / num_candidates) if num_candidates else 0.0,
-        "zpd_enabled": zpd_enabled,
-        "dedup": cfg["dedup"],
-    }
-    write_json(metrics_path, metrics)
+    write_json(
+        f"{out_dir}/metrics.json",
+        {
+            "num_candidates": num_candidates,
+            "num_accepted": len(accepted),
+            "accept_rate": (len(accepted) / num_candidates) if num_candidates else 0.0,
+            "zpd_enabled": zpd_enabled,
+            "dedup": cfg["dedup"],
+            "concepts_dir": concepts_dir,
+        },
+    )
 
     return out_dir
 
