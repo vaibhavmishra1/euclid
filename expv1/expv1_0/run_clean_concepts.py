@@ -15,7 +15,7 @@ Usage:
     # Pass 1 + Pass 2 + Pass 3 (requires LLM):
     python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
         --config tree/euclid/expv1/expv1_0/config.yaml \
-        --run-pass3
+        --run-pass3 --rebuild-graph
 """
 
 from __future__ import annotations

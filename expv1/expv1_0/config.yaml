@@ -7,7 +7,8 @@ experiment:
 io:
   output_dir: "euclid/expv1/expv1_0/output"
   # Pipeline A artifacts (concepts + KCRG). Pipeline B reads from here.
-  concepts_dir: "euclid/expv1/expv1_0/output/concepts"
+  # Use cleaned canonical concepts for generation
+  concepts_dir: "euclid/expv1/expv1_0/output/concepts/cleaned"
 
 seed_data:
   source: "hf"  # hf | jsonl

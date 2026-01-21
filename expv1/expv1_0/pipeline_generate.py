@@ -16,23 +16,62 @@ from .zpd import ZPDScorer
 
 
 def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], ConceptGraph]:
-    seed_concepts_rows = read_jsonl(f"{concepts_dir}/seed_concepts.jsonl")
+    """
+    Load seed concepts and concept graph from concepts_dir.
+    Supports both original format and canonical (cleaned) format.
+    """
+    import os
+
+    # Determine which files to load (prefer canonical versions)
+    seed_file = f"{concepts_dir}/seed_concepts_canonical.jsonl"
+    graph_file = f"{concepts_dir}/concept_graph_canonical.json"
+
+    if not os.path.exists(seed_file):
+        seed_file = f"{concepts_dir}/seed_concepts.jsonl"
+    if not os.path.exists(graph_file):
+        graph_file = f"{concepts_dir}/concept_graph.json"
+
+    print(f"[Pipeline B] Loading seeds from: {seed_file}")
+    print(f"[Pipeline B] Loading graph from: {graph_file}")
+
+    # Load seed concepts
+    seed_concepts_rows = read_jsonl(seed_file)
     seed_concept_sets: List[List[Concept]] = []
+
     for row in seed_concepts_rows:
         concepts: List[Concept] = []
-        for c in row.get("concepts", []) or []:
-            concepts.append(Concept(type=str(c.get("type", "")).strip(), name=str(c.get("name", "")).strip()))
-        seed_concept_sets.append([c for c in concepts if c.type and c.name])
 
-    with open(f"{concepts_dir}/concept_graph.json", "r", encoding="utf-8") as f:
+        # Try canonical format first (canonical_concepts with canonical_key)
+        if "canonical_concepts" in row:
+            for c in row.get("canonical_concepts", []) or []:
+                key = str(c.get("canonical_key", ""))
+                # canonical_key format: "concept:name" - extract just the name
+                name = key.replace("concept:", "") if key.startswith("concept:") else key
+                concepts.append(Concept(type="canonical", name=name.strip()))
+        # Fall back to original format (concepts with type/name)
+        else:
+            for c in row.get("concepts", []) or []:
+                concepts.append(Concept(type=str(c.get("type", "")).strip(), name=str(c.get("name", "")).strip()))
+
+        seed_concept_sets.append([c for c in concepts if c.name])
+
+    # Load concept graph
+    with open(graph_file, "r", encoding="utf-8") as f:
         graph_data = json.load(f)
 
-    concepts_by_key = {
-        k: Concept(type=str(v.get("type", "")).strip(), name=str(v.get("name", "")).strip())
-        for k, v in (graph_data.get("concepts_by_key", {}) or {}).items()
-    }
+    concepts_by_key: Dict[str, Concept] = {}
+    for k, v in (graph_data.get("concepts_by_key", {}) or {}).items():
+        # Handle canonical format (canonical:name) or original format (type:name)
+        if k.startswith("canonical:"):
+            name = k.replace("canonical:", "")
+            concepts_by_key[k] = Concept(type="canonical", name=name.strip())
+        else:
+            concepts_by_key[k] = Concept(type=str(v.get("type", "")).strip(), name=str(v.get("name", "")).strip())
+
     adjacency = graph_data.get("adjacency", {}) or {}
     graph = ConceptGraph(adjacency=adjacency, concepts_by_key=concepts_by_key)
+
+    print(f"[Pipeline B] Loaded {len(seed_concept_sets)} seed concept sets, {len(concepts_by_key)} concepts in graph")
     return seed_concept_sets, graph
 
 
