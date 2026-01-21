@@ -34,13 +34,13 @@ concept_graph:
   min_cooccurrence: 1
 
 concept_cleaning:
-  # Pairwise LLM comparison approach
-  # Compares all concept pairs and uses Union-Find to build clusters
-  enabled: true
-  batch_size: 64  # Number of pairs per batch for vLLM
-  # Model for pairwise comparison (defaults to concept_extractor_model if not set)
-  model: "Qwen/Qwen2.5-7B-Instruct"  # 7B is sufficient for YES/NO comparison
-  gpu_memory_utilization: 0.90
+  # Pass 1: Rule-based normalization (always runs, fast)
+  # Pass 2: Embedding-based clustering
+  run_pass2: true
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  embedding_threshold: 0.85
+  # Pass 3: LLM verification (optional, uses concept_extractor LLM)
+  run_pass3: false
 
 explorator:
   policy: "grip_stage0"  # grip_stage0 | grip_stage1

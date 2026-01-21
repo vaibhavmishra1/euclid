@@ -135,12 +135,12 @@ def build_concepts_and_graph(config_path: str, run_cleaning: bool = True) -> str
     )
 
     # ------------------------------------------------------------------ #
-    # A5) Optional: Run concept cleaning (pairwise LLM comparison)
+    # A5) Optional: Run concept cleaning (canonicalization + dedup)
     # ------------------------------------------------------------------ #
     if run_cleaning:
         cleaning_cfg = cfg.get("concept_cleaning", {})
-        if cleaning_cfg and cleaning_cfg.get("enabled", False):
-            print("\n[Pipeline A] Running concept cleaning (pairwise LLM comparison)...")
+        if cleaning_cfg:
+            print("\n[Pipeline A] Running concept cleaning...")
             _run_concept_cleaning(
                 cfg=cfg,
                 concepts_dir=concepts_dir,
@@ -156,7 +156,7 @@ def _run_concept_cleaning(
     cleaning_cfg: Dict[str, Any],
 ) -> None:
     """
-    Run the concept cleaning pipeline using pairwise LLM comparison.
+    Run the concept cleaning pipeline (Pass 1, 2, 3).
     Saves cleaned artifacts to concepts_dir/cleaned/
     """
     from .concept_cleaner import (
@@ -172,33 +172,33 @@ def _run_concept_cleaning(
         print(f"[Cleaning] Skipping - concept_vocab.json not found at {vocab_path}")
         return
 
-    batch_size = int(cleaning_cfg.get("batch_size", 64))
+    run_pass2 = cleaning_cfg.get("run_pass2", True)
+    run_pass3 = cleaning_cfg.get("run_pass3", False)
+    embedding_model = cleaning_cfg.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2")
+    embedding_threshold = float(cleaning_cfg.get("embedding_threshold", 0.85))
 
-    # Build LLM client for pairwise comparison
-    ce_cfg = cfg.get("concept_extraction", {})
-    vllm_cfg = ce_cfg.get("vllm", {}) or {}
-    
-    # Use cleaning-specific model if provided, else fall back to concept_extractor model
-    model_name = cleaning_cfg.get("model", ce_cfg.get("concept_extractor_model", "Qwen/Qwen2.5-7B-Instruct"))
-    gpu_memory = float(cleaning_cfg.get("gpu_memory_utilization", vllm_cfg.get("gpu_memory_utilization", 0.9)))
-    
-    print(f"[Cleaning] Loading LLM: {model_name}")
-    llm_client = build_llm_client(
-        backend=ce_cfg.get("concept_extractor_backend", "vllm"),
-        model_name=model_name,
-        seed=int(cfg["experiment"]["seed"]),
-        vllm_gpu_memory_utilization=gpu_memory,
-        vllm_tensor_parallel_size=int(vllm_cfg.get("tensor_parallel_size", 1)),
-    )
+    # Build LLM client for Pass 3 if needed
+    llm_client = None
+    if run_pass3:
+        ce_cfg = cfg.get("concept_extraction", {})
+        vllm_cfg = ce_cfg.get("vllm", {}) or {}
+        llm_client = build_llm_client(
+            backend=ce_cfg.get("concept_extractor_backend", "vllm"),
+            model_name=ce_cfg.get("concept_extractor_model", "Qwen/Qwen2.5-32B-Instruct"),
+            seed=int(cfg["experiment"]["seed"]),
+            vllm_gpu_memory_utilization=float(vllm_cfg.get("gpu_memory_utilization", 0.9)),
+            vllm_tensor_parallel_size=int(vllm_cfg.get("tensor_parallel_size", 1)),
+        )
 
-    # Run cleaning with pairwise LLM comparison
+    # Run cleaning
     result = clean_concepts(
         vocab_path=vocab_path,
         output_dir=output_dir,
+        embedding_model=embedding_model,
+        embedding_threshold=embedding_threshold,
         llm_client=llm_client,
-        batch_size=batch_size,
-        max_tokens=8,
-        temperature=0.0,
+        run_pass2=run_pass2,
+        run_pass3=run_pass3,
     )
 
     # Apply mapping to seed_concepts and rebuild graph
