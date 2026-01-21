@@ -10,9 +10,17 @@ from typing import Any, Dict, List, Optional
 
 class LLMClient(ABC):
     @abstractmethod
-    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float, n: int = 1) -> List[str]:
+    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float = 1.0, n: int = 1) -> List[str]:
         """Return a list of n generated completions (strings)."""
         raise NotImplementedError
+
+    def batch_generate(self, prompts: List[str], *, max_tokens: int, temperature: float, top_p: float = 1.0) -> List[str]:
+        """
+        Generate completions for multiple prompts.
+        Default implementation: sequential calls. Override for true batching.
+        Returns one completion per prompt.
+        """
+        return [self.generate(p, max_tokens=max_tokens, temperature=temperature, top_p=top_p, n=1)[0] for p in prompts]
 
 
 @dataclass
@@ -24,7 +32,7 @@ class MockLLMClient(LLMClient):
 
     mode: str = "generic"  # concept_extract | generate_problem | teacher_verify | solver
 
-    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float, n: int = 1) -> List[str]:
+    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float = 1.0, n: int = 1) -> List[str]:
         outs: List[str] = []
         for _ in range(n):
             outs.append(self._one(prompt))
@@ -114,7 +122,7 @@ class HFLLMClient(LLMClient):
             self.model = self.model.to(self.device)
         self.model.eval()
 
-    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float, n: int = 1) -> List[str]:
+    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float = 1.0, n: int = 1) -> List[str]:
         import torch
 
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
@@ -154,7 +162,7 @@ class VLLMLLMClient(LLMClient):
             seed=seed,
         )
 
-    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float, n: int = 1) -> List[str]:
+    def generate(self, prompt: str, *, max_tokens: int, temperature: float, top_p: float = 1.0, n: int = 1) -> List[str]:
         from vllm import SamplingParams
 
         params = SamplingParams(
@@ -165,6 +173,27 @@ class VLLMLLMClient(LLMClient):
         )
         outputs = self.model.generate([prompt], params)
         return [o.text for o in outputs[0].outputs]
+
+    def batch_generate(self, prompts: List[str], *, max_tokens: int, temperature: float, top_p: float = 1.0) -> List[str]:
+        """
+        Generate completions for multiple prompts using vLLM's native batching.
+        Returns one completion per prompt.
+        """
+        from vllm import SamplingParams
+
+        if not prompts:
+            return []
+
+        params = SamplingParams(
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            n=1,
+        )
+        outputs = self.model.generate(prompts, params)
+        # outputs is a list of RequestOutput, one per prompt
+        # Each RequestOutput.outputs is a list of CompletionOutput (length 1 since n=1)
+        return [out.outputs[0].text for out in outputs]
 
 
 def build_llm_client(

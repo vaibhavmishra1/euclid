@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """
-Standalone script to clean/canonicalize extracted concepts.
+Standalone script to clean/canonicalize extracted concepts using pairwise LLM comparison.
 
 Usage:
-    # Pass 1 only (regex rules - fast, no dependencies):
-    python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
-        --config tree/euclid/expv1/expv1_0/config.yaml \
-        --pass1-only
-
-    # Pass 1 + Pass 2 (requires sentence-transformers):
     python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
         --config tree/euclid/expv1/expv1_0/config.yaml
 
-    # Pass 1 + Pass 2 + Pass 3 (requires LLM):
+    # With custom batch size:
     python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
         --config tree/euclid/expv1/expv1_0/config.yaml \
-        --run-pass3
+        --batch-size 128
+
+    # Rebuild graph after cleaning:
+    python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
+        --config tree/euclid/expv1/expv1_0/config.yaml \
+        --rebuild-graph
 """
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ from pathlib import Path
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Clean and canonicalize extracted concepts")
+    parser = argparse.ArgumentParser(description="Clean and canonicalize extracted concepts using pairwise LLM comparison")
     parser.add_argument(
         "--config",
         type=str,
@@ -46,26 +45,22 @@ def main():
         help="Override output directory for cleaned artifacts (default: concepts_dir/cleaned)",
     )
     parser.add_argument(
-        "--pass1-only",
-        action="store_true",
-        help="Run only Pass 1 (regex rules). Fast, no ML dependencies.",
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Batch size for LLM inference (default: 64)",
     )
     parser.add_argument(
-        "--run-pass3",
-        action="store_true",
-        help="Also run Pass 3 (LLM verification). Requires LLM client.",
-    )
-    parser.add_argument(
-        "--embedding-model",
+        "--model",
         type=str,
-        default="sentence-transformers/all-MiniLM-L6-v2",
-        help="Sentence transformer model for Pass 2",
+        default=None,
+        help="Override model for pairwise comparison (default: uses concept_extractor_model from config)",
     )
     parser.add_argument(
-        "--embedding-threshold",
+        "--gpu-memory",
         type=float,
-        default=0.85,
-        help="Cosine similarity threshold for clustering (default: 0.85)",
+        default=None,
+        help="Override GPU memory utilization (0.0-1.0)",
     )
     parser.add_argument(
         "--rebuild-graph",
@@ -99,45 +94,46 @@ def main():
 
     print(f"Input vocab: {vocab_path}")
     print(f"Output dir:  {output_dir}")
+    print(f"Batch size:  {args.batch_size}")
     print()
 
-    # Determine which passes to run
-    run_pass2 = not args.pass1_only
-    run_pass3 = args.run_pass3
-
-    # Build LLM client for Pass 3 if needed
-    llm_client = None
-    if run_pass3:
-        print("Setting up LLM client for Pass 3...")
-        # Use the concept extractor LLM from config (or could add separate config)
-        ce_cfg = cfg.get("concept_extraction", {})
-        vllm_cfg = ce_cfg.get("vllm", {}) or {}
-        llm_client = build_llm_client(
-            backend=ce_cfg.get("concept_extractor_backend", "vllm"),
-            model_name=ce_cfg.get("concept_extractor_model", "Qwen/Qwen2.5-32B-Instruct"),
-            seed=int(cfg["experiment"]["seed"]),
-            vllm_gpu_memory_utilization=float(vllm_cfg.get("gpu_memory_utilization", 0.9)),
-            vllm_tensor_parallel_size=int(vllm_cfg.get("tensor_parallel_size", 1)),
-        )
+    # Build LLM client for pairwise comparison
+    print("Loading LLM for pairwise comparison...")
+    
+    # Use concept_extractor config or overrides
+    ce_cfg = cfg.get("concept_extraction", {})
+    vllm_cfg = ce_cfg.get("vllm", {}) or {}
+    
+    model_name = args.model or ce_cfg.get("concept_extractor_model", "Qwen/Qwen2.5-7B-Instruct")
+    gpu_memory = args.gpu_memory or float(vllm_cfg.get("gpu_memory_utilization", 0.9))
+    
+    print(f"Model: {model_name}")
+    print(f"GPU memory utilization: {gpu_memory}")
+    print()
+    
+    llm_client = build_llm_client(
+        backend=ce_cfg.get("concept_extractor_backend", "vllm"),
+        model_name=model_name,
+        seed=int(cfg["experiment"]["seed"]),
+        vllm_gpu_memory_utilization=gpu_memory,
+        vllm_tensor_parallel_size=int(vllm_cfg.get("tensor_parallel_size", 1)),
+    )
 
     # Run cleaning
     result = clean_concepts(
         vocab_path=vocab_path,
         output_dir=output_dir,
-        embedding_model=args.embedding_model,
-        embedding_threshold=args.embedding_threshold,
         llm_client=llm_client,
-        run_pass2=run_pass2,
-        run_pass3=run_pass3,
+        batch_size=args.batch_size,
+        max_tokens=8,  # Just YES/NO
+        temperature=0.0,
     )
 
     print(f"\nSaved artifacts to {output_dir}/")
     print("  - canonical_mapping.json  (original_key -> canonical_key)")
     print("  - canonical_vocab.json    (deduplicated vocab with merged counts)")
-    if result.embedding_clusters:
-        print("  - embedding_clusters.json (clusters found in Pass 2)")
-    if result.llm_verified_merges:
-        print("  - llm_verification.json   (Pass 3 results)")
+    print("  - pairwise_matches.json   (pairs that LLM said are the same)")
+    print("  - clusters.json           (merged clusters)")
 
     # Optionally apply mapping to seed_concepts and rebuild graph
     if args.rebuild_graph:
