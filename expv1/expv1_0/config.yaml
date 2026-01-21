@@ -33,6 +33,15 @@ concept_graph:
   # implicit edges are derived from explicit graph neighborhoods (2-hop/3-hop)
   min_cooccurrence: 1
 
+concept_cleaning:
+  # Pass 1: Rule-based normalization (always runs, fast)
+  # Pass 2: Embedding-based clustering
+  run_pass2: true
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  embedding_threshold: 0.85
+  # Pass 3: LLM verification (optional, uses concept_extractor LLM)
+  run_pass3: false
+
 explorator:
   policy: "grip_stage0"  # grip_stage0 | grip_stage1
   bundle_size: 4

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import random
 from collections import defaultdict
-from typing import Any, Dict, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .concept_extractor import LLMConceptExtractor
 from .concept_graph import ConceptGraph
@@ -12,7 +13,7 @@ from .types import Concept, SeedExample
 from .utils import ensure_dir, load_yaml, write_json, write_jsonl
 
 
-def build_concepts_and_graph(config_path: str) -> str:
+def build_concepts_and_graph(config_path: str, run_cleaning: bool = True) -> str:
     """
     Pipeline A (GRIP Step 1+2):
     - Load seed problems (problem + full solution)
@@ -133,5 +134,89 @@ def build_concepts_and_graph(config_path: str) -> str:
         },
     )
 
+    # ------------------------------------------------------------------ #
+    # A5) Optional: Run concept cleaning (canonicalization + dedup)
+    # ------------------------------------------------------------------ #
+    if run_cleaning:
+        cleaning_cfg = cfg.get("concept_cleaning", {})
+        if cleaning_cfg:
+            print("\n[Pipeline A] Running concept cleaning...")
+            _run_concept_cleaning(
+                cfg=cfg,
+                concepts_dir=concepts_dir,
+                cleaning_cfg=cleaning_cfg,
+            )
+
     return concepts_dir
+
+
+def _run_concept_cleaning(
+    cfg: Dict[str, Any],
+    concepts_dir: str,
+    cleaning_cfg: Dict[str, Any],
+) -> None:
+    """
+    Run the concept cleaning pipeline (Pass 1, 2, 3).
+    Saves cleaned artifacts to concepts_dir/cleaned/
+    """
+    from .concept_cleaner import (
+        apply_mapping_to_seed_concepts,
+        clean_concepts,
+        rebuild_graph_with_canonical,
+    )
+
+    vocab_path = f"{concepts_dir}/concept_vocab.json"
+    output_dir = f"{concepts_dir}/cleaned"
+
+    if not Path(vocab_path).exists():
+        print(f"[Cleaning] Skipping - concept_vocab.json not found at {vocab_path}")
+        return
+
+    run_pass2 = cleaning_cfg.get("run_pass2", True)
+    run_pass3 = cleaning_cfg.get("run_pass3", False)
+    embedding_model = cleaning_cfg.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2")
+    embedding_threshold = float(cleaning_cfg.get("embedding_threshold", 0.85))
+
+    # Build LLM client for Pass 3 if needed
+    llm_client = None
+    if run_pass3:
+        ce_cfg = cfg.get("concept_extraction", {})
+        vllm_cfg = ce_cfg.get("vllm", {}) or {}
+        llm_client = build_llm_client(
+            backend=ce_cfg.get("concept_extractor_backend", "vllm"),
+            model_name=ce_cfg.get("concept_extractor_model", "Qwen/Qwen2.5-32B-Instruct"),
+            seed=int(cfg["experiment"]["seed"]),
+            vllm_gpu_memory_utilization=float(vllm_cfg.get("gpu_memory_utilization", 0.9)),
+            vllm_tensor_parallel_size=int(vllm_cfg.get("tensor_parallel_size", 1)),
+        )
+
+    # Run cleaning
+    result = clean_concepts(
+        vocab_path=vocab_path,
+        output_dir=output_dir,
+        embedding_model=embedding_model,
+        embedding_threshold=embedding_threshold,
+        llm_client=llm_client,
+        run_pass2=run_pass2,
+        run_pass3=run_pass3,
+    )
+
+    # Apply mapping to seed_concepts and rebuild graph
+    seed_concepts_path = f"{concepts_dir}/seed_concepts.jsonl"
+    if Path(seed_concepts_path).exists():
+        apply_mapping_to_seed_concepts(
+            seed_concepts_path=seed_concepts_path,
+            mapping=result.canonical_mapping,
+            output_path=f"{output_dir}/seed_concepts_canonical.jsonl",
+        )
+
+        min_co = int(cfg.get("concept_graph", {}).get("min_cooccurrence", 1))
+        rebuild_graph_with_canonical(
+            seed_concepts_path=seed_concepts_path,
+            mapping=result.canonical_mapping,
+            output_path=f"{output_dir}/concept_graph_canonical.json",
+            min_cooccurrence=min_co,
+        )
+
+    print(f"[Cleaning] Done. Artifacts saved to {output_dir}/")
 
