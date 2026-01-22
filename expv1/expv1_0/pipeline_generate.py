@@ -90,6 +90,7 @@ def generate_dataset_from_graph(config_path: str) -> str:
 
     out_dir = ensure_dir(cfg["io"]["output_dir"])
     concepts_dir = str(cfg.get("io", {}).get("concepts_dir", f"{out_dir}/concepts"))
+    gen_log_dir = ensure_dir(f"{out_dir}/generator_io")
 
     seed_concept_sets, graph = _load_concepts_and_graph(concepts_dir)
 
@@ -175,7 +176,8 @@ def generate_dataset_from_graph(config_path: str) -> str:
 
     for i in range(num_candidates):
         spec = explorator.sample_spec()
-        cand: CandidateSample = generator.generate_one(spec)
+        log_path = f"{gen_log_dir}/{i:06d}.txt"
+        cand: CandidateSample = generator.generate_one(spec, log_path=log_path)
 
         # Gate 1: dedup
         dup_reason = deduper.check_duplicate(cand.problem)

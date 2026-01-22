@@ -50,27 +50,27 @@ explorator:
   hop_mode: "explicit"   # explicit | implicit_2hop | implicit_3hop
 
 generation:
-  generator_backend: "vllm"   # mock | hf | vllm | api
+  generator_backend: "hf"   # mock | hf | vllm | api
   generator_model: "Qwen/Qwen2.5-Math-7B-Instruct"
   vllm:
-    gpu_memory_utilization: 0.35
+    gpu_memory_utilization: 0.95
     tensor_parallel_size: 1
   max_tokens: 2048
   temperature: 0.8
   top_p: 0.95
-  num_candidates: 200
+  num_candidates: 20
   prompt_path: "euclid/expv1/expv1_0/prompts/problem_generate.md"
 
-teacher:
-  teacher_backend: "vllm"     # mock | hf | vllm | api
-  teacher_model: "Qwen/Qwen2.5-Math-7B-Instruct"
-  vllm:
-    gpu_memory_utilization: 0.35
-    tensor_parallel_size: 1
-  max_tokens: 1024
-  temperature: 0.0
-  prompt_path: "euclid/expv1/expv1_0/prompts/teacher_verify.md"
-  equivalence_prompt_path: "euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
+# teacher:
+#   teacher_backend: "vllm"     # mock | hf | vllm | api
+#   teacher_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+#   vllm:
+#     gpu_memory_utilization: 0.35
+#     tensor_parallel_size: 1
+#   max_tokens: 1024
+#   temperature: 0.0
+#   prompt_path: "euclid/expv1/expv1_0/prompts/teacher_verify.md"
+#   equivalence_prompt_path: "euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
 
 dedup:
   lexical: true
@@ -82,19 +82,19 @@ dedup:
 zpd:
   enabled: true
   solver_backend: "vllm"      # mock | hf | vllm | api
-  solver_model: "Qwen/Qwen2.5-Math-1.5B-Instruct"
-  solver_backend: "vllm"      # mock | hf | vllm | api
   solver_model: "Qwen/Qwen2.5-Math-7B-Instruct"
   vllm:
-    gpu_memory_utilization: 0.20
+    # When generation.generator_backend=hf, the HF model already occupies GPU memory.
+    # vLLM reserves gpu_memory_utilization *total* GPU memory, so 0.95 can fail.
+    gpu_memory_utilization: 0.75
     tensor_parallel_size: 1
   prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
   rollouts: 8  # Increased for better verification + ZPD
   temperature: 0.7
   top_p: 0.95
-  max_tokens: 1024
-  p_min: 0.3
-  p_max: 0.7
+  max_tokens: 2048
+  p_min: 0.1
+  p_max: 1.0
 
 sft:
   enabled: false
