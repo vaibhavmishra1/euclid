@@ -48,6 +48,7 @@ explorator:
   bundle_size: 4
   allow_swap_one_neighbor: true
   hop_mode: "explicit"   # explicit | implicit_2hop | implicit_3hop
+  min_concept_count: 2   # Ignore concepts with count < this (filters rare/noisy concepts)
 
 generation:
   generator_backend: "hf"   # mock | hf | vllm | api

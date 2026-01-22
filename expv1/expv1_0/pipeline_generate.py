@@ -15,12 +15,47 @@ from .utils import ensure_dir, load_yaml, read_jsonl, write_json, write_jsonl
 from .zpd import ZPDScorer
 
 
-def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], ConceptGraph]:
+def _load_concept_counts(concepts_dir: str) -> Dict[str, int]:
+    """Load concept counts from canonical_vocab.json to filter rare concepts."""
+    import os
+    
+    vocab_file = f"{concepts_dir}/canonical_vocab.json"
+    if not os.path.exists(vocab_file):
+        return {}
+    
+    with open(vocab_file, "r", encoding="utf-8") as f:
+        vocab_data = json.load(f)
+    
+    counts: Dict[str, int] = {}
+    for c in vocab_data.get("concepts", []):
+        # canonical_vocab uses "concept:name" as key format
+        name = c.get("name", "")
+        count = int(c.get("count", 0))
+        counts[name.lower()] = count
+    
+    return counts
+
+
+def _load_concepts_and_graph(concepts_dir: str, min_concept_count: int = 1) -> Tuple[List[List[Concept]], ConceptGraph]:
     """
     Load seed concepts and concept graph from concepts_dir.
     Supports both original format and canonical (cleaned) format.
+    
+    Args:
+        concepts_dir: Directory containing concept files
+        min_concept_count: Minimum count required for a concept to be included (default: 1)
     """
     import os
+
+    # Load concept counts to filter rare concepts
+    concept_counts = _load_concept_counts(concepts_dir)
+    
+    def is_valid_concept(name: str) -> bool:
+        """Check if concept has sufficient count."""
+        if not concept_counts:
+            return True  # No vocab file, allow all
+        count = concept_counts.get(name.lower(), 0)
+        return count >= min_concept_count
 
     # Determine which files to load (prefer canonical versions)
     seed_file = f"{concepts_dir}/seed_concepts_canonical.jsonl"
@@ -33,10 +68,13 @@ def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], Co
 
     print(f"[Pipeline B] Loading seeds from: {seed_file}")
     print(f"[Pipeline B] Loading graph from: {graph_file}")
+    print(f"[Pipeline B] Filtering concepts with count < {min_concept_count}")
 
     # Load seed concepts
     seed_concepts_rows = read_jsonl(seed_file)
     seed_concept_sets: List[List[Concept]] = []
+    filtered_count = 0
+    total_count = 0
 
     for row in seed_concepts_rows:
         concepts: List[Concept] = []
@@ -47,13 +85,26 @@ def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], Co
                 key = str(c.get("canonical_key", ""))
                 # canonical_key format: "concept:name" - extract just the name
                 name = key.replace("concept:", "") if key.startswith("concept:") else key
-                concepts.append(Concept(type="canonical", name=name.strip()))
+                name = name.strip()
+                total_count += 1
+                if is_valid_concept(name):
+                    concepts.append(Concept(type="canonical", name=name))
+                else:
+                    filtered_count += 1
         # Fall back to original format (concepts with type/name)
         else:
             for c in row.get("concepts", []) or []:
-                concepts.append(Concept(type=str(c.get("type", "")).strip(), name=str(c.get("name", "")).strip()))
+                name = str(c.get("name", "")).strip()
+                total_count += 1
+                if is_valid_concept(name):
+                    concepts.append(Concept(type=str(c.get("type", "")).strip(), name=name))
+                else:
+                    filtered_count += 1
 
-        seed_concept_sets.append([c for c in concepts if c.name])
+        # Only add non-empty concept sets
+        valid_concepts = [c for c in concepts if c.name]
+        if valid_concepts:
+            seed_concept_sets.append(valid_concepts)
 
     # Load concept graph
     with open(graph_file, "r", encoding="utf-8") as f:
@@ -64,14 +115,26 @@ def _load_concepts_and_graph(concepts_dir: str) -> Tuple[List[List[Concept]], Co
         # Handle canonical format (canonical:name) or original format (type:name)
         if k.startswith("canonical:"):
             name = k.replace("canonical:", "")
-            concepts_by_key[k] = Concept(type="canonical", name=name.strip())
+            if is_valid_concept(name):
+                concepts_by_key[k] = Concept(type="canonical", name=name.strip())
         else:
-            concepts_by_key[k] = Concept(type=str(v.get("type", "")).strip(), name=str(v.get("name", "")).strip())
+            name = str(v.get("name", "")).strip()
+            if is_valid_concept(name):
+                concepts_by_key[k] = Concept(type=str(v.get("type", "")).strip(), name=name)
 
     adjacency = graph_data.get("adjacency", {}) or {}
-    graph = ConceptGraph(adjacency=adjacency, concepts_by_key=concepts_by_key)
+    # Filter adjacency to only include valid concepts
+    filtered_adjacency: Dict[str, Dict[str, int]] = {}
+    for k, neighbors in adjacency.items():
+        if k in concepts_by_key:
+            filtered_neighbors = {n: w for n, w in neighbors.items() if n in concepts_by_key}
+            if filtered_neighbors:
+                filtered_adjacency[k] = filtered_neighbors
+    
+    graph = ConceptGraph(adjacency=filtered_adjacency, concepts_by_key=concepts_by_key)
 
     print(f"[Pipeline B] Loaded {len(seed_concept_sets)} seed concept sets, {len(concepts_by_key)} concepts in graph")
+    print(f"[Pipeline B] Filtered {filtered_count}/{total_count} concept occurrences (count < {min_concept_count})")
     return seed_concept_sets, graph
 
 
@@ -88,11 +151,22 @@ def generate_dataset_from_graph(config_path: str) -> str:
     cfg = load_yaml(config_path)
     random.seed(int(cfg["experiment"]["seed"]))
 
-    out_dir = ensure_dir(cfg["io"]["output_dir"])
-    concepts_dir = str(cfg.get("io", {}).get("concepts_dir", f"{out_dir}/concepts"))
+    # Create output directory named with the generator model
+    base_out_dir = cfg["io"]["output_dir"]
+    generator_model = str(cfg["generation"]["generator_model"])
+    # Sanitize model name for directory (e.g., "Qwen/Qwen2.5-Math-7B-Instruct" -> "Qwen2.5-Math-7B-Instruct")
+    model_name_sanitized = generator_model.split("/")[-1].replace(" ", "_")
+    out_dir = ensure_dir(f"{base_out_dir}_{model_name_sanitized}_generation")
+    
+    concepts_dir = str(cfg.get("io", {}).get("concepts_dir", f"{cfg['io']['output_dir']}/concepts"))
     gen_log_dir = ensure_dir(f"{out_dir}/generator_io")
+    
+    print(f"[Pipeline B] Output directory: {out_dir}")
+    
+    # Filter out rare concepts (count < min_concept_count)
+    min_concept_count = int(cfg.get("explorator", {}).get("min_concept_count", 2))
 
-    seed_concept_sets, graph = _load_concepts_and_graph(concepts_dir)
+    seed_concept_sets, graph = _load_concepts_and_graph(concepts_dir, min_concept_count=min_concept_count)
 
     # ------------------------------------------------------------------ #
     # B1) Explorator policy
@@ -179,13 +253,32 @@ def generate_dataset_from_graph(config_path: str) -> str:
         log_path = f"{gen_log_dir}/{i:06d}.txt"
         cand: CandidateSample = generator.generate_one(spec, log_path=log_path)
 
-        # Gate 1: dedup
+        # Gate 1: Format validation - reject if no <question> tags or empty problem
+        if cand.metadata.get("format_invalid", False):
+            candidate_logs.append({
+                "idx": i, 
+                "accepted": False, 
+                "reject_reason": f"format_invalid:{cand.metadata.get('reason', 'unknown')}", 
+                "candidate": asdict(cand)
+            })
+            continue
+        
+        if not cand.problem or len(cand.problem.strip()) < 10:
+            candidate_logs.append({
+                "idx": i, 
+                "accepted": False, 
+                "reject_reason": "empty_or_too_short", 
+                "candidate": asdict(cand)
+            })
+            continue
+
+        # Gate 2: dedup
         dup_reason = deduper.check_duplicate(cand.problem)
         if dup_reason:
             candidate_logs.append({"idx": i, "accepted": False, "reject_reason": dup_reason, "candidate": asdict(cand)})
             continue
 
-        # Gate 2: ZPD (self-consistency used as verification + difficulty)
+        # Gate 3: ZPD (self-consistency used as verification + difficulty)
         zpd_result = None
         if zpd_enabled and zpd is not None:
             zpd_result = zpd.score(cand.problem, "")

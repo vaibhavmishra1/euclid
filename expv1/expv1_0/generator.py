@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from .llm import LLMClient
-from .text_parse import extract_tag_content
+from .text_parse import extract_tag_content, has_boxed_content, strip_boxed_content
 from .types import CandidateSample, Concept, Spec
 from .utils import read_text, render_template
 
@@ -53,7 +53,31 @@ class LLMQuestionGenerator:
                 encoding="utf-8",
             )
 
-        q = extract_tag_content(raw, "question") or raw.strip()
-        # Only generate questions - answers will be verified by solvers
-        return CandidateSample(spec=spec, problem=q, answer="", raw_output=raw, metadata={})
+        # Extract question from <question> tags - DO NOT fallback to full raw output
+        q = extract_tag_content(raw, "question")
+        
+        # Determine if format is valid
+        format_valid = q is not None and len(q.strip()) > 10  # Must have <question> tags with content
+        
+        if not format_valid:
+            # Mark as invalid format - will be rejected in pipeline
+            return CandidateSample(
+                spec=spec, 
+                problem="", 
+                answer="", 
+                raw_output=raw, 
+                metadata={"format_invalid": True, "reason": "no_question_tags"}
+            )
+        
+        # Strip any \boxed{} content to prevent answer leakage to solver
+        answer_leaked = has_boxed_content(q)
+        q_clean = strip_boxed_content(q)
+        
+        return CandidateSample(
+            spec=spec, 
+            problem=q_clean, 
+            answer="", 
+            raw_output=raw, 
+            metadata={"format_invalid": False, "answer_leaked": answer_leaked}
+        )
 

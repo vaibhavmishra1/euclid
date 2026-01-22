@@ -38,3 +38,34 @@ def extract_boxed_answer(text: str) -> Optional[str]:
         i = j
     return last
 
+
+def strip_boxed_content(text: str) -> str:
+    """
+    Remove all \\boxed{...} from text to prevent answer leakage.
+    Handles nested braces.
+    """
+    result = text
+    prefix = r"\boxed{"
+    
+    while True:
+        start = result.find(prefix)
+        if start == -1:
+            break
+        j = start + len(prefix)
+        depth = 1
+        while j < len(result) and depth:
+            if result[j] == "{":
+                depth += 1
+            elif result[j] == "}":
+                depth -= 1
+            j += 1
+        # Remove the entire \boxed{...} including braces
+        result = result[:start] + result[j:]
+    
+    return result.strip()
+
+
+def has_boxed_content(text: str) -> bool:
+    """Check if text contains any \\boxed{...}."""
+    return r"\boxed{" in text
+
