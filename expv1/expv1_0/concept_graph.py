@@ -57,11 +57,23 @@ class ConceptGraph:
         return random.choice(neigh)
 
     def sample_2hop_neighbor(self, key: str) -> str | None:
+        """Sample a 2-hop neighbor (neighbor of a neighbor)."""
         n1 = self.sample_neighbor(key)
         if not n1:
             return None
         n2 = self.sample_neighbor(n1)
         return n2
+
+    def sample_3hop_neighbor(self, key: str) -> str | None:
+        """Sample a 3-hop neighbor (neighbor of neighbor of neighbor)."""
+        n1 = self.sample_neighbor(key)
+        if not n1:
+            return None
+        n2 = self.sample_neighbor(n1)
+        if not n2:
+            return None
+        n3 = self.sample_neighbor(n2)
+        return n3
 
     def induced_density(self, keys: List[str]) -> float:
         """Edge density of the induced subgraph over keys (0..1)."""

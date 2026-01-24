@@ -78,6 +78,9 @@ def build_dataset(config_path: str) -> str:
         bundle_size=int(cfg["explorator"]["bundle_size"]),
         allow_swap_one_neighbor=bool(cfg["explorator"]["allow_swap_one_neighbor"]),
         hop_mode=str(cfg["explorator"]["hop_mode"]),
+        explicit_ratio=float(cfg["explorator"].get("explicit_ratio", 0.5)),
+        implicit_2hop_ratio=float(cfg["explorator"].get("implicit_2hop_ratio", 0.3)),
+        implicit_3hop_ratio=float(cfg["explorator"].get("implicit_3hop_ratio", 0.2)),
         target_domain="",
         answer_type="final_answer",
     )

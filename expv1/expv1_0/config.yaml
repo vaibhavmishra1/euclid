@@ -47,7 +47,11 @@ explorator:
   policy: "grip_stage0"  # grip_stage0 | grip_stage1
   bundle_size: 4
   allow_swap_one_neighbor: true
-  hop_mode: "explicit"   # explicit | implicit_2hop | implicit_3hop
+  hop_mode: "mixed"   # explicit | implicit_2hop | implicit_3hop | mixed
+  # For mixed mode, specify ratios (will be normalized to sum to 1.0)
+  explicit_ratio: 0.5      # Probability of explicit edge (direct co-occurrence)
+  implicit_2hop_ratio: 0.3  # Probability of 2-hop implicit edge
+  implicit_3hop_ratio: 0.2  # Probability of 3-hop implicit edge
   min_concept_count: 2   # Ignore concepts with count < this (filters rare/noisy concepts)
 
 generation:
