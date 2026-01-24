@@ -12,43 +12,446 @@ Goal (ExpV1_0):
 This implementation is intentionally modular:
 - Concept extraction, generator, teacher, solver inference, and dedup can be swapped between backends (local HF, vLLM, API).
 
-#### Quickstart (high level)
-1) Configure models and budgets in `config.yaml`
+---
 
-2) Run **Pipeline A** (concept extraction + KCRG artifacts):
+## Pipeline Architecture
 
+The pipeline is split into **4 independent stages** for maximum flexibility:
+
+1. **Pipeline A**: Concept extraction + KCRG graph building
+2. **Pipeline B1**: Question generation only (format validation + dedup)
+3. **Pipeline B2**: ZPD filtering + COT generation (can run multiple times with different thresholds)
+4. **Pipeline B3**: SFT training on accepted questions with full COT
+
+---
+
+## Prerequisites
+
+1. **Install dependencies**:
+   ```bash
+   pip install -r tree/euclid/expv1/expv1_0/requirements.txt
+   ```
+
+2. **Configure models** in `config.yaml`:
+   - Set `generation.generator_model` (for question generation)
+   - Set `zpd.solver_model` (for ZPD filtering and COT generation)
+   - Set `concept_extraction.concept_extractor_model` (for concept extraction)
+   - Configure vLLM settings if using vLLM backend
+
+3. **GPU requirements**:
+   - Pipeline A: ~16GB+ VRAM (for 32B concept extractor)
+   - Pipeline B1: ~8GB+ VRAM (for generator model)
+   - Pipeline B2: ~8GB+ VRAM (for solver model)
+   - Pipeline B3: ~16GB+ VRAM (for SFT training)
+
+---
+
+## Step-by-Step Instructions
+
+### Step 1: Pipeline A — Concept Extraction + Graph Building
+
+**Purpose**: Extract mathematical concepts from seed problems and build the concept relationship graph (KCRG).
+
+**Command**:
 ```bash
-python -m tree.euclid.expv1.expv1_0.run_build_concepts --config tree/euclid/expv1/expv1_0/config.yaml
+python -m tree.euclid.expv1.expv1_0.run_build_concepts \
+    --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-3) Run **Pipeline B** (generation + solver filtering):
+**What it does**:
+1. Loads seed problems from HuggingFace dataset or JSONL file
+2. Extracts concepts using LLM (default: Qwen2.5-32B-Instruct)
+3. Cleans and canonicalizes concepts (3-pass pipeline)
+4. Builds concept graph with explicit and implicit edges
+5. Saves artifacts to `output/concepts/`
 
-```bash
-python -m tree.euclid.expv1.expv1_0.run_generate_dataset --config tree/euclid/expv1/expv1_0/config.yaml
+**Expected outputs**:
+```
+output/concepts/
+├── seeds.jsonl                    # Original seed problems
+├── seed_concepts.jsonl            # Extracted concepts per seed
+├── concept_vocab.json             # Concept vocabulary
+├── concept_graph.json             # KCRG graph
+├── cleaned/
+│   ├── canonical_vocab.json       # Cleaned concept vocabulary
+│   ├── canonical_mapping.json     # Concept merging mappings
+│   └── seed_concepts_canonical.jsonl
+└── concept_graph_canonical.json   # Graph with cleaned concepts
 ```
 
-4) Or run **end-to-end** (A then B):
+**Time**: ~30-60 minutes for 200 seeds (depends on concept extractor model)
 
+**Troubleshooting**:
+- If concept extraction fails: Check GPU memory, reduce `concept_extraction.max_tokens`
+- If graph is empty: Check `concept_graph.min_cooccurrence` threshold
+
+---
+
+### Step 2: Pipeline B1 — Question Generation
+
+**Purpose**: Generate mathematical questions from concept bundles (format validation + dedup only).
+
+**Command**:
 ```bash
-python -m tree.euclid.expv1.expv1_0.run_build_dataset --config tree/euclid/expv1/expv1_0/config.yaml
+python -m tree.euclid.expv1.expv1_0.run_generate_questions \
+    --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-5) Run SFT training (optional; heavy):
+**What it does**:
+1. Loads cleaned concepts and KCRG graph from Pipeline A
+2. Samples concept bundles using explorator (GRIP-style)
+3. Generates questions using generator model
+4. Validates format (requires `<question>` tags, no answer leakage)
+5. Deduplicates (lexical + embedding similarity)
+6. Saves valid questions (no ZPD filtering yet)
 
-```bash
-python -m tree.euclid.expv1.expv1_0.run_sft --config tree/euclid/expv1/expv1_0/config.yaml
+**Expected outputs**:
+```
+output_{generator_model}_questions/
+├── generated_questions.jsonl      # Valid questions (format: {idx, spec, problem, metadata})
+├── candidates.jsonl               # All candidates with accept/reject reasons
+├── metrics.json                    # Generation statistics
+└── generator_io/                   # Raw generator outputs for debugging
+    ├── 000000.txt
+    ├── 000001.txt
+    └── ...
 ```
 
-6) Run evaluation:
+**Configuration**:
+- `generation.num_candidates`: Number of questions to generate (default: 20)
+- `generation.generator_model`: Model for question generation
+- `dedup.lexical`: Enable lexical dedup (default: true)
+- `dedup.embedding`: Enable embedding-based dedup (default: false)
 
+**Time**: ~5-10 minutes for 1000 candidates (depends on generator model)
+
+**Troubleshooting**:
+- Low acceptance rate: Check `generator_io/` logs for format issues
+- Too many duplicates: Lower `dedup.cosine_threshold` or enable `dedup.embedding`
+
+---
+
+### Step 3: Pipeline B2 — ZPD Filtering + COT Generation
+
+**Purpose**: Filter questions by difficulty (ZPD) and generate full chain-of-thought solutions.
+
+**Command** (using config defaults):
 ```bash
-python -m tree.euclid.expv1.expv1_0.run_eval --config tree/euclid/expv1/expv1_0/config.yaml
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+    --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-#### Notes
-- This repo already contains an `expv0/exp0_0` baseline and the `R-Zero/` codebase. ExpV1_0 does **not** run co-evolution RL; it focuses on offline dataset construction + SFT for identifiability.
+**Command** (with custom thresholds):
+```bash
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+    --config tree/euclid/expv1/expv1_0/config.yaml \
+    --p-min 0.2 \
+    --p-max 0.7
+```
 
-python -m euclid.expv1.expv1_0.run_clean_concepts \
-    --config euclid/expv1/expv1_0/config.yaml \
+**What it does**:
+1. Loads `generated_questions.jsonl` from Pipeline B1
+2. For each question, runs solver multiple times (self-consistency)
+3. Extracts full COT solution from best rollout
+4. Calculates `p_succ` (solver success probability)
+5. Filters by ZPD threshold: `p_min <= p_succ <= p_max`
+6. Saves accepted questions with full COT solutions
+
+**Expected outputs**:
+```
+output_{solver_model}_accepted_zpd{p_min}-{p_max}/
+├── accepted.jsonl                 # Accepted questions with full COT
+├── rejected.jsonl                  # Rejected questions with reasons
+└── metrics.json                    # Filtering statistics
+```
+
+**Format of `accepted.jsonl`**:
+```json
+{
+  "candidate": {
+    "spec": {...},
+    "problem": "Find the smallest...",
+    "answer": "42",
+    ...
+  },
+  "verification": {
+    "modal_answer": "42",
+    "p_succ": 0.625,
+    "solution": "Let me solve this step by step...\n\\boxed{42}"
+  },
+  "zpd": {
+    "p_succ": 0.625,
+    "rollouts": 8,
+    "details": {...}
+  }
+}
+```
+
+**Configuration**:
+- `zpd.rollouts`: Number of solver rollouts (default: 8)
+- `zpd.p_min`: Minimum p_succ threshold (default: 0.1)
+- `zpd.p_max`: Maximum p_succ threshold (default: 1.0)
+- `zpd.solver_model`: Model for solving and COT generation
+
+**Time**: ~10-20 minutes for 1000 questions (depends on solver model and rollouts)
+
+**Running multiple thresholds**:
+```bash
+# Easy-medium difficulty (p_succ 0.1-0.5)
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+    --config config.yaml --p-min 0.1 --p-max 0.5
+
+# Medium-hard difficulty (p_succ 0.3-0.7)
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+    --config config.yaml --p-min 0.3 --p-max 0.7
+
+# Hard difficulty (p_succ 0.5-0.9)
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+    --config config.yaml --p-min 0.5 --p-max 0.9
+```
+
+Each run creates a separate output directory with different thresholds.
+
+**Troubleshooting**:
+- Low acceptance rate: Adjust `p_min`/`p_max` thresholds
+- No COT solutions: Check solver model output format
+- Out of memory: Reduce `zpd.rollouts` or use smaller solver model
+
+---
+
+### Step 4: Pipeline B3 — SFT Training
+
+**Purpose**: Fine-tune solver model on accepted questions with full COT solutions.
+
+**Command**:
+```bash
+python -m tree.euclid.expv1.expv1_0.run_sft \
+    --config tree/euclid/expv1/expv1_0/config.yaml
+```
+
+**Command** (with explicit accepted.jsonl path):
+```bash
+python -m tree.euclid.expv1.expv1_0.run_sft \
+    --config tree/euclid/expv1/expv1_0/config.yaml \
+    --accepted-path output_{model}_accepted_zpd0.2-0.7/accepted.jsonl
+```
+
+**What it does**:
+1. Auto-detects `accepted.jsonl` from Pipeline B2 (or uses `--accepted-path`)
+2. Extracts full COT solutions from `verification.solution` field
+3. Formats training data: `prompt + "\n" + full_COT_solution`
+4. Fine-tunes solver model using HuggingFace Trainer
+5. Saves fine-tuned model
+
+**Expected outputs**:
+```
+output_{solver_model}_accepted_zpd{p_min}-{p_max}/
+├── accepted.jsonl                 # (from Pipeline B2)
+├── sft_dataset.jsonl              # Formatted training data
+└── ...
+
+output/sft_model/                  # Fine-tuned model
+├── config.json
+├── pytorch_model.bin
+├── tokenizer_config.json
+└── ...
+```
+
+**Configuration**:
+- `sft.enabled`: Enable actual training (default: false)
+- `sft.base_model`: Base model for fine-tuning (defaults to solver_model)
+- `sft.max_steps`: Training steps (default: 100)
+- `sft.output_dir`: Output directory for fine-tuned model
+
+**Training format**:
+```
+Prompt: "You are a careful mathematical problem solver.
+Please reason step by step and put your final answer inside \boxed{}.
+
+Problem:
+Find the smallest positive integer n such that..."
+
+Completion: "Let me solve this step by step.
+First, I need to find...
+Therefore, the answer is \boxed{42}"
+```
+
+**Time**: 
+- Dataset prep: ~1 minute
+- Training: ~30-60 minutes for 100 steps (depends on model size and dataset)
+
+**Troubleshooting**:
+- "Missing accepted.jsonl": Run Pipeline B2 first, or specify `--accepted-path`
+- Out of memory: Reduce batch size, use gradient checkpointing, or use LoRA
+- No COT in training: Check that Pipeline B2 saved `verification.solution` field
+
+---
+
+### Step 5: Evaluation (Optional)
+
+**Purpose**: Evaluate fine-tuned model on benchmarks.
+
+**Command**:
+```bash
+python -m tree.euclid.expv1.expv1_0.run_eval \
+    --config tree/euclid/expv1/expv1_0/config.yaml
+```
+
+**What it does**:
+1. Loads fine-tuned model from `sft.output_dir`
+2. Evaluates on MATH benchmark subset
+3. Compares before/after SFT performance
+
+**Configuration**:
+- `eval.dataset_config`: Benchmark subset (default: "number_theory")
+- `eval.limit`: Number of test examples (default: 50)
+
+---
+
+## Benefits of the 3-Stage Split
+
+- **Flexibility**: Try different ZPD thresholds without re-generating questions
+- **Efficiency**: Don't waste solver calls on obviously bad questions
+- **Iteration**: Experiment with difficulty bands easily
+- **Resource management**: Generate questions on one GPU, filter on another
+- **Debugging**: Easier to debug each stage independently
+- **Full COT**: SFT trains on complete reasoning traces, not just answers
+
+---
+
+## Additional Tools
+
+### Concept Cleaning (Optional)
+
+If you want to re-run concept cleaning with different parameters:
+
+```bash
+python -m tree.euclid.expv1.expv1_0.run_clean_concepts \
+    --config tree/euclid/expv1/expv1_0/config.yaml \
     --run-pass3 \
     --rebuild-graph
+```
+
+This re-runs Pass 3 (LLM verification) and rebuilds the concept graph.
+
+---
+
+## Common Workflows
+
+### Workflow 1: Quick Test (Small Scale)
+
+```bash
+# 1. Generate 50 questions
+# Edit config.yaml: generation.num_candidates = 50
+
+python -m tree.euclid.expv1.expv1_0.run_generate_questions --config config.yaml
+
+# 2. Filter with default ZPD
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd --config config.yaml
+
+# 3. Check results
+cat output_*_accepted*/accepted.jsonl | jq '.candidate.problem' | head -5
+```
+
+### Workflow 2: Production Run (Large Scale)
+
+```bash
+# 1. Generate 5000 questions (overnight)
+# Edit config.yaml: generation.num_candidates = 5000
+
+python -m tree.euclid.expv1.expv1_0.run_generate_questions --config config.yaml
+
+# 2. Filter with multiple thresholds (next day)
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd --config config.yaml --p-min 0.2 --p-max 0.7
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd --config config.yaml --p-min 0.3 --p-max 0.8
+
+# 3. Train on best threshold
+python -m tree.euclid.expv1.expv1_0.run_sft --config config.yaml \
+    --accepted-path output_*_accepted_zpd0.3-0.8/accepted.jsonl
+```
+
+### Workflow 3: Iterative Refinement
+
+```bash
+# 1. Generate questions
+python -m tree.euclid.expv1.expv1_0.run_generate_questions --config config.yaml
+
+# 2. Try different thresholds to find optimal band
+for p_min in 0.1 0.2 0.3; do
+  for p_max in 0.6 0.7 0.8; do
+    python -m tree.euclid.expv1.expv1_0.run_filter_zpd \
+        --config config.yaml --p-min $p_min --p-max $p_max
+  done
+done
+
+# 3. Compare metrics
+cat output_*_accepted*/metrics.json | jq '{threshold: .zpd_threshold, accept_rate: .accept_rate}'
+```
+
+---
+
+## Output File Formats
+
+### `generated_questions.jsonl` (Pipeline B1)
+```json
+{
+  "idx": 0,
+  "spec": {
+    "required_concepts": [{"type": "canonical", "name": "gcd"}],
+    "hop_mode": "explicit",
+    "target_domain": "",
+    "answer_type": "final_answer"
+  },
+  "problem": "Find the smallest positive integer...",
+  "raw_output": "...",
+  "metadata": {"format_invalid": false, "answer_leaked": false}
+}
+```
+
+### `accepted.jsonl` (Pipeline B2)
+```json
+{
+  "candidate": {
+    "spec": {...},
+    "problem": "Find the smallest...",
+    "answer": "42",
+    "raw_output": "...",
+    "metadata": {...}
+  },
+  "verification": {
+    "modal_answer": "42",
+    "p_succ": 0.625,
+    "solution": "Let me solve this step by step...\n\\boxed{42}"
+  },
+  "zpd": {
+    "p_succ": 0.625,
+    "rollouts": 8,
+    "num_correct": 0,
+    "details": {
+      "preds": ["42", "42", "42", ...],
+      "modal_answer": "42",
+      "full_outputs": ["...", "...", ...]
+    }
+  }
+}
+```
+
+### `sft_dataset.jsonl` (Pipeline B3)
+```json
+{
+  "prompt": "You are a careful mathematical problem solver...\n\nProblem:\nFind the smallest...",
+  "completion": "Let me solve this step by step...\n\\boxed{42}",
+  "problem": "Find the smallest...",
+  "answer": "42",
+  "has_cot": true
+}
+```
+
+---
+
+## Notes
+
+- This repo already contains an `expv0/exp0_0` baseline and the `R-Zero/` codebase. ExpV1_0 does **not** run co-evolution RL; it focuses on offline dataset construction + SFT for identifiability.
+- The pipeline automatically handles model name sanitization for directory names (e.g., `Qwen/Qwen2.5-Math-7B-Instruct` → `Qwen2.5-Math-7B-Instruct`).
+- All paths in config.yaml are relative to the workspace root.
+- Pipeline B2 can be run multiple times on the same `generated_questions.jsonl` with different thresholds - each creates a separate output directory.

@@ -15,20 +15,74 @@ def build_sft_dataset(accepted_jsonl: str, solver_prompt_path: str, out_jsonl: s
         cand = r.get("candidate", {}) if isinstance(r, dict) else {}
         problem = cand.get("problem", "")
         answer = cand.get("answer", "")
+        
+        # Try to get full COT solution from verification field (Pipeline B2 format)
+        verification = r.get("verification", {}) if isinstance(r, dict) else {}
+        full_solution = verification.get("solution", "")
+        
         prompt = render_template(prompt_template, {"problem": problem})
-        completion = f"\\boxed{{{answer}}}"
-        out_rows.append({"prompt": prompt, "completion": completion, "problem": problem, "answer": answer})
+        
+        # Use full COT if available, otherwise fall back to boxed answer only
+        if full_solution and full_solution.strip():
+            # Full solution already contains the reasoning + boxed answer
+            completion = full_solution
+        else:
+            # Fallback: just boxed answer (for backward compatibility)
+            completion = f"\\boxed{{{answer}}}"
+        
+        out_rows.append({
+            "prompt": prompt, 
+            "completion": completion, 
+            "problem": problem, 
+            "answer": answer,
+            "has_cot": bool(full_solution and full_solution.strip())
+        })
     write_jsonl(out_jsonl, out_rows)
     return len(out_rows)
 
 
-def run_sft(cfg: Dict[str, Any]) -> None:
-    out_dir = ensure_dir(cfg["io"]["output_dir"])
-    accepted_path = str(Path(out_dir) / "accepted.jsonl")
+def run_sft(cfg: Dict[str, Any], accepted_path: str | None = None) -> None:
+    # Try to find accepted.jsonl in various locations
+    if accepted_path is None:
+        # First, try the new Pipeline B2 output location
+        base_out_dir = cfg["io"]["output_dir"]
+        solver_model = str(cfg["zpd"]["solver_model"])
+        model_name_sanitized = solver_model.split("/")[-1].replace(" ", "_")
+        # Try common ZPD threshold directories
+        possible_paths = [
+            f"{base_out_dir}_{model_name_sanitized}_accepted/accepted.jsonl",
+            f"{base_out_dir}_{model_name_sanitized}_accepted_zpd0.1-1.0/accepted.jsonl",
+            f"{base_out_dir}_{model_name_sanitized}_accepted_zpd0.2-0.7/accepted.jsonl",
+            str(Path(cfg["io"]["output_dir"]) / "accepted.jsonl"),  # Old location
+        ]
+        
+        accepted_path = None
+        for path in possible_paths:
+            if Path(path).exists():
+                accepted_path = path
+                break
+        
+        if accepted_path is None:
+            # List available directories to help user
+            import os
+            base = cfg["io"]["output_dir"]
+            if os.path.exists(base):
+                dirs = [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d)) and "accepted" in d]
+                if dirs:
+                    raise FileNotFoundError(
+                        f"Missing accepted.jsonl. Found these accepted directories: {dirs}\n"
+                        f"Please specify --accepted-path or run Pipeline B2 first."
+                    )
+            raise FileNotFoundError(
+                f"Missing accepted dataset. Run Pipeline B2 (run_filter_zpd) first, or specify --accepted-path."
+            )
+    
     if not Path(accepted_path).exists():
-        raise FileNotFoundError(f"Missing accepted dataset at {accepted_path}. Run run_build_dataset first.")
+        raise FileNotFoundError(f"Accepted file not found: {accepted_path}")
 
-    sft_dataset_path = str(Path(out_dir) / "sft_dataset.jsonl")
+    # Save SFT dataset in the same directory as accepted.jsonl
+    accepted_dir = Path(accepted_path).parent
+    sft_dataset_path = str(accepted_dir / "sft_dataset.jsonl")
     n = build_sft_dataset(
         accepted_jsonl=accepted_path,
         solver_prompt_path=cfg["zpd"]["prompt_path"],
@@ -96,9 +150,10 @@ def run_sft(cfg: Dict[str, Any]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="expv1_0: offline SFT on accepted synthetic dataset")
     parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--accepted-path", type=str, default=None, help="Path to accepted.jsonl (auto-detected if not provided)")
     args = parser.parse_args()
     cfg = load_yaml(args.config)
-    run_sft(cfg)
+    run_sft(cfg, accepted_path=args.accepted_path)
 
 
 if __name__ == "__main__":

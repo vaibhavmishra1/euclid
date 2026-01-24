@@ -46,10 +46,16 @@ class ZPDScorer:
             else:
                 modal_answer = ""
                 p_succ = 0.0
+        
+        # Store full outputs for COT extraction
         return ZPDResult(
             p_succ=p_succ,
             rollouts=self.rollouts,
             num_correct=correct,
-            details={"preds": preds, "modal_answer": modal_answer},
+            details={
+                "preds": preds, 
+                "modal_answer": modal_answer,
+                "full_outputs": outs,  # Store full solver outputs for COT
+            },
         )
 
