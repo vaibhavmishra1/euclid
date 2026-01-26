@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from .llm import build_llm_client
-from .types import AcceptedSample, CandidateSample, Spec
+from .pipeline_types import AcceptedSample, CandidateSample, Spec
 from .utils import ensure_dir, load_yaml, read_jsonl, write_json, write_jsonl
 from .zpd import ZPDScorer
 
@@ -143,7 +143,7 @@ def filter_questions_with_zpd(config_path: str, questions_path: str | None = Non
         spec_dict = q.get("spec", {})
         required_concepts = []
         for c_dict in spec_dict.get("required_concepts", []):
-            from .types import Concept
+            from .pipeline_types import Concept
             required_concepts.append(Concept(
                 type=str(c_dict.get("type", "")),
                 name=str(c_dict.get("name", ""))

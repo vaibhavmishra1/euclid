@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from .types import SeedExample
+from .pipeline_types import SeedExample
 from .text_parse import extract_boxed_answer
 from .utils import read_jsonl
 

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from .concept_graph import ConceptGraph
-from .types import Concept, Spec
+from .pipeline_types import Concept, Spec
 
 
 def _ensure_type_mix(concepts: List[Concept]) -> List[Concept]:

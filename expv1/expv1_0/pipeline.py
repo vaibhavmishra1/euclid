@@ -11,7 +11,7 @@ from .explorator import GRIPStage0Explorator
 from .generator import LLMQuestionGenerator
 from .llm import build_llm_client
 from .seeds import load_seed_examples_from_hendrycks_math, load_seed_examples_from_jsonl
-from .types import AcceptedSample, CandidateSample, Concept, SeedExample, Spec
+from .pipeline_types import AcceptedSample, CandidateSample, Concept, SeedExample, Spec
 from .utils import ensure_dir, load_yaml, write_json, write_jsonl
 from .zpd import ZPDScorer
 from tqdm import tqdm

@@ -103,9 +103,15 @@ zpd:
 
 sft:
   enabled: false
-  base_model: ""
+  base_model: ""  # Defaults to zpd.solver_model if empty
   output_dir: "euclid/expv1/expv1_0/output/sft_model"
-  max_steps: 100
+  # Training hyperparameters (can be overridden via CLI)
+  batch_size: 32           # Per-device batch size (use 64-128 for H200/A100)
+  gradient_accumulation_steps: 1
+  learning_rate: 2e-5
+  max_steps: -1            # -1 = use num_epochs instead
+  num_epochs: 3
+  max_seq_length: 2048
 
 eval:
   enabled: false

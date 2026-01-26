@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from .llm import LLMClient
 from .text_parse import extract_tag_content, has_boxed_content, strip_boxed_content
-from .types import CandidateSample, Concept, Spec
+from .pipeline_types import CandidateSample, Concept, Spec
 from .utils import read_text, render_template
 
 

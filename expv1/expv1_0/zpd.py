@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from .grading import is_correct
 from .llm import LLMClient
 from .text_parse import extract_boxed_answer
-from .types import ZPDResult
+from .pipeline_types import ZPDResult
 from .utils import read_text, render_template
 
 

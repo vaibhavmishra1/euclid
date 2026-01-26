@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .llm import LLMClient
-from .types import TeacherVerdict
+from .pipeline_types import TeacherVerdict
 from .utils import read_text, render_template
 
 

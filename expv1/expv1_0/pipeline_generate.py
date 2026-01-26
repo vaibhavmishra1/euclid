@@ -10,7 +10,7 @@ from .dedup import Deduper
 from .explorator import GRIPStage0Explorator
 from .generator import LLMQuestionGenerator
 from .llm import build_llm_client
-from .types import AcceptedSample, CandidateSample, Concept
+from .pipeline_types import AcceptedSample, CandidateSample, Concept
 from .utils import ensure_dir, load_yaml, read_jsonl, write_json, write_jsonl
 from .zpd import ZPDScorer
 

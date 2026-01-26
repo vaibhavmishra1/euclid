@@ -16,12 +16,13 @@ This implementation is intentionally modular:
 
 ## Pipeline Architecture
 
-The pipeline is split into **4 independent stages** for maximum flexibility:
+The pipeline is split into **5 independent stages** for maximum flexibility:
 
 1. **Pipeline A**: Concept extraction + KCRG graph building
 2. **Pipeline B1**: Question generation only (format validation + dedup)
 3. **Pipeline B2**: ZPD filtering + COT generation (can run multiple times with different thresholds)
-4. **Pipeline B3**: SFT training on accepted questions with full COT
+4. **Verification** (optional): Quality verification using OpenAI API
+5. **Pipeline B3**: SFT training on accepted questions with full COT (supports verified data filtering)
 
 ---
 
@@ -219,43 +220,130 @@ Each run creates a separate output directory with different thresholds.
 
 ---
 
-### Step 4: Pipeline B3 — SFT Training
+### Step 4 (Optional): Verification with OpenAI API
+
+**Purpose**: Verify generated questions and answers using an external LLM (OpenAI GPT-4) to assess quality before SFT.
+
+**Command** (sample and verify questions by difficulty):
+```bash
+python tree/euclid/expv1/expv1_0/verify_questions_and_answers.py \
+    --accepted-file output_Qwen3-1.7B-Base_accepted/accepted.jsonl \
+    --output output_Qwen3-1.7B-Base_accepted/verification_report.json \
+    --verified-output output_Qwen3-1.7B-Base_accepted/accepted_verified.jsonl \
+    --samples-per-bucket 100 \
+    --p-min 0.3 --p-max 0.8
+```
+
+**What it does**:
+1. Samples questions from each difficulty bucket (very_easy, easy, medium, hard, very_hard)
+2. Sends each question + answer + COT to OpenAI for verification
+3. Evaluates: question validity, answer correctness, COT quality, answer leakage
+4. Saves verified questions with OpenAI assessments
+5. Generates a comprehensive verification report
+
+**Expected outputs**:
+```
+output_{model}_accepted/
+├── accepted_verified.jsonl        # Questions with OpenAI verification results
+├── verification_report.json       # Aggregated statistics by difficulty
+└── ...
+```
+
+**Retry quota errors** (if verification failed due to API limits):
+```bash
+python tree/euclid/expv1/expv1_0/retry_quota_errors.py \
+    --verified-file output_Qwen3-1.7B-Base_accepted/accepted_verified.jsonl \
+    --max-retries 3 \
+    --retry-delay 60
+```
+
+**Configuration**:
+- `--samples-per-bucket`: Questions to sample per difficulty level (default: 100)
+- `--p-min` / `--p-max`: Filter by ZPD p_succ before sampling
+- `OPENAI_API_KEY`: Environment variable for OpenAI API key
+
+**Verification metrics**:
+- `question_validity`: valid / invalid
+- `answer_correctness`: correct / incorrect / ambiguous
+- `cot_quality`: high / medium / low
+- `answer_leakage`: yes / no
+- `overall_quality`: excellent / good / fair / poor
+
+---
+
+### Step 5: Pipeline B3 — SFT Training
 
 **Purpose**: Fine-tune solver model on accepted questions with full COT solutions.
 
-**Command**:
+**Command** (basic, using all data):
 ```bash
 python -m tree.euclid.expv1.expv1_0.run_sft \
     --config tree/euclid/expv1/expv1_0/config.yaml
 ```
 
-**Command** (with explicit accepted.jsonl path):
+**Command** (with explicit file path):
 ```bash
 python -m tree.euclid.expv1.expv1_0.run_sft \
     --config tree/euclid/expv1/expv1_0/config.yaml \
     --accepted-path output_{model}_accepted_zpd0.2-0.7/accepted.jsonl
 ```
 
+**Command** (using verified data with quality filters):
+```bash
+python -m tree.euclid.expv1.expv1_0.run_sft \
+    --config tree/euclid/expv1/expv1_0/config.yaml \
+    --accepted-path tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl \
+    --require-valid --require-correct \
+    --batch-size 128 \
+    --num-epochs 3 \
+    --use-bf16 \
+    --use-flash-attention \
+    --use-torch-compile
+```
+
+**Command** (high quality only):
+```bash
+python -m tree.euclid.expv1.expv1_0.run_sft \
+    --config tree/euclid/expv1/expv1_0/config.yaml \
+    --accepted-path output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl \
+    --require-valid --require-correct --require-no-leakage --min-overall-quality good
+```
+
 **What it does**:
-1. Auto-detects `accepted.jsonl` from Pipeline B2 (or uses `--accepted-path`)
-2. Extracts full COT solutions from `verification.solution` field
-3. Formats training data: `prompt + "\n" + full_COT_solution`
-4. Fine-tunes solver model using HuggingFace Trainer
-5. Saves fine-tuned model
+1. Auto-detects data file from Pipeline B2 (or uses `--accepted-path`)
+2. Supports both formats:
+   - `accepted.jsonl` (Pipeline B2 output)
+   - `accepted_verified.jsonl` (with OpenAI verification results)
+3. Applies quality filters if using verified data
+4. Extracts full COT solutions from `verification.solution` field
+5. Formats training data: `prompt + "\n" + full_COT_solution`
+6. Fine-tunes solver model using HuggingFace Trainer
+7. Saves fine-tuned model
 
 **Expected outputs**:
 ```
-output_{solver_model}_accepted_zpd{p_min}-{p_max}/
-├── accepted.jsonl                 # (from Pipeline B2)
-├── sft_dataset.jsonl              # Formatted training data
+output_{solver_model}_accepted/
+├── accepted.jsonl                     # (from Pipeline B2)
+├── accepted_verified.jsonl            # (from verification step)
+├── sft_dataset.jsonl                  # Formatted training data (no filters)
+├── sft_dataset_valid_correct.jsonl    # With --require-valid --require-correct
 └── ...
 
-output/sft_model/                  # Fine-tuned model
+output/sft_model/                      # Fine-tuned model
 ├── config.json
 ├── pytorch_model.bin
 ├── tokenizer_config.json
 └── ...
 ```
+
+**Filtering options** (for verified data):
+| Flag | Description |
+|------|-------------|
+| `--require-valid` | Only questions marked as valid by OpenAI |
+| `--require-correct` | Only questions with correct answers |
+| `--min-cot-quality` | Minimum COT quality: `low`, `medium`, `high` |
+| `--require-no-leakage` | Only questions with no answer leakage |
+| `--min-overall-quality` | Minimum quality: `poor`, `fair`, `good`, `excellent` |
 
 **Configuration**:
 - `sft.enabled`: Enable actual training (default: false)
@@ -284,10 +372,11 @@ Therefore, the answer is \boxed{42}"
 - "Missing accepted.jsonl": Run Pipeline B2 first, or specify `--accepted-path`
 - Out of memory: Reduce batch size, use gradient checkpointing, or use LoRA
 - No COT in training: Check that Pipeline B2 saved `verification.solution` field
+- Filtering removed all data: Check verification report for quality breakdown
 
 ---
 
-### Step 5: Evaluation (Optional)
+### Step 6: Evaluation (Optional)
 
 **Purpose**: Evaluate fine-tuned model on benchmarks.
 
@@ -308,7 +397,7 @@ python -m tree.euclid.expv1.expv1_0.run_eval \
 
 ---
 
-## Benefits of the 3-Stage Split
+## Benefits of the Multi-Stage Pipeline
 
 - **Flexibility**: Try different ZPD thresholds without re-generating questions
 - **Efficiency**: Don't waste solver calls on obviously bad questions
@@ -316,6 +405,8 @@ python -m tree.euclid.expv1.expv1_0.run_eval \
 - **Resource management**: Generate questions on one GPU, filter on another
 - **Debugging**: Easier to debug each stage independently
 - **Full COT**: SFT trains on complete reasoning traces, not just answers
+- **Quality control**: Optional verification step with OpenAI to filter bad data before SFT
+- **Configurable filtering**: Train on all data or only verified high-quality samples
 
 ---
 
@@ -370,7 +461,31 @@ python -m tree.euclid.expv1.expv1_0.run_sft --config config.yaml \
     --accepted-path output_*_accepted_zpd0.3-0.8/accepted.jsonl
 ```
 
-### Workflow 3: Iterative Refinement
+### Workflow 3: With Quality Verification
+
+```bash
+# 1. Generate and filter questions (Pipelines B1 + B2)
+python -m tree.euclid.expv1.expv1_0.run_generate_questions --config config.yaml
+python -m tree.euclid.expv1.expv1_0.run_filter_zpd --config config.yaml --p-min 0.3 --p-max 0.8
+
+# 2. Verify quality with OpenAI (sample from medium difficulty)
+export OPENAI_API_KEY="your-key"
+python tree/euclid/expv1/expv1_0/verify_questions_and_answers.py \
+    --accepted-file output_*_accepted/accepted.jsonl \
+    --output output_*_accepted/verification_report.json \
+    --verified-output output_*_accepted/accepted_verified.jsonl \
+    --samples-per-bucket 100 --p-min 0.3 --p-max 0.8
+
+# 3. Review verification report
+cat output_*_accepted/verification_report.json | jq '.summary'
+
+# 4. Train SFT on verified high-quality data only
+python -m tree.euclid.expv1.expv1_0.run_sft --config config.yaml \
+    --accepted-path output_*_accepted/accepted_verified.jsonl \
+    --require-valid --require-correct --min-overall-quality good
+```
+
+### Workflow 4: Iterative Refinement
 
 ```bash
 # 1. Generate questions
@@ -436,6 +551,46 @@ cat output_*_accepted*/metrics.json | jq '{threshold: .zpd_threshold, accept_rat
 }
 ```
 
+### `accepted_verified.jsonl` (Verification Step)
+```json
+{
+  "id": "uuid-string",
+  "difficulty_bucket": "medium",
+  "original_data": {
+    "candidate": {
+      "spec": {...},
+      "problem": "Find the smallest...",
+      "answer": "42"
+    },
+    "verification": {
+      "modal_answer": "42",
+      "p_succ": 0.625,
+      "solution": "Let me solve this step by step...\n\\boxed{42}"
+    },
+    "zpd": {...}
+  },
+  "verification": {
+    "status": "success",
+    "verification_result": {
+      "question_validity": "valid",
+      "answer_correctness": "correct",
+      "cot_quality": "high",
+      "answer_leakage": "no",
+      "overall_quality": "excellent",
+      "reasoning": "..."
+    },
+    "error": null
+  },
+  "verification_summary": {
+    "question_validity": "valid",
+    "answer_correctness": "correct",
+    "cot_quality": "high",
+    "answer_leakage": "no",
+    "overall_quality": "excellent"
+  }
+}
+```
+
 ### `sft_dataset.jsonl` (Pipeline B3)
 ```json
 {
@@ -443,7 +598,9 @@ cat output_*_accepted*/metrics.json | jq '{threshold: .zpd_threshold, accept_rat
   "completion": "Let me solve this step by step...\n\\boxed{42}",
   "problem": "Find the smallest...",
   "answer": "42",
-  "has_cot": true
+  "has_cot": true,
+  "p_succ": 0.625,
+  "difficulty_bucket": "medium"
 }
 ```
 

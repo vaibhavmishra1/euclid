@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from .llm import LLMClient
-from .types import Concept
+from .pipeline_types import Concept
 from .utils import read_text, render_template
 
 

@@ -9,7 +9,7 @@ from .concept_extractor import LLMConceptExtractor
 from .concept_graph import ConceptGraph
 from .llm import build_llm_client
 from .seeds import load_seed_examples_from_hendrycks_math, load_seed_examples_from_jsonl
-from .types import Concept, SeedExample
+from .pipeline_types import Concept, SeedExample
 from .utils import ensure_dir, load_yaml, write_json, write_jsonl
 
 

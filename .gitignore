@@ -18,3 +18,13 @@ wandb/
 */.venv
 *.png
 *.DS_STORE
+
+# Experiment outputs
+**/output/
+**/output_*/
+**/generator_io/
+**/*_accepted/
+**/*_questions/
+**/sft_model/
+**/sft_dataset*.jsonl
+**/*.jsonl

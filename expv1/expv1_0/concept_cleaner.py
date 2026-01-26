@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
-from .types import Concept
+from .pipeline_types import Concept
 from .utils import load_yaml, write_json
 
 
