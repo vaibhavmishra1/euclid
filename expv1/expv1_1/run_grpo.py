@@ -94,6 +94,7 @@ class GRPOExperimentConfig:
     
     # vLLM Configuration (for fast rollout generation)
     use_vllm: bool = True  # Enable vLLM for generation
+    vllm_mode: str = "colocate"  # "colocate" avoids needing an external server
     vllm_device: str = "cuda"
     vllm_gpu_memory_utilization: float = 0.7
     vllm_dtype: str = "bfloat16"
@@ -265,10 +266,10 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
         # GRPO specific
         num_generations=config.num_generations,
         temperature=config.temperature,
-        max_new_tokens=config.max_response_length,
+        max_completion_length=config.max_response_length,
         
         # KL penalty
-        kl_coef=config.kl_coef,
+        beta=config.kl_coef,
         
         # Training
         num_train_epochs=config.num_train_epochs,
@@ -298,13 +299,12 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
     if config.use_vllm:
         grpo_config_kwargs.update(
             use_vllm=True,
-            vllm_device=config.vllm_device,
+            vllm_mode=config.vllm_mode,
             vllm_gpu_memory_utilization=config.vllm_gpu_memory_utilization,
-            vllm_dtype=config.vllm_dtype,
             vllm_tensor_parallel_size=config.vllm_tensor_parallel_size,
         )
         if config.vllm_max_model_len:
-            grpo_config_kwargs["vllm_max_model_len"] = config.vllm_max_model_len
+            grpo_config_kwargs["vllm_max_model_length"] = config.vllm_max_model_len
         print("\n[GRPO] vLLM enabled for fast rollout generation")
     
     grpo_config = GRPOConfig(**grpo_config_kwargs)
@@ -313,7 +313,7 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
     print("\n[GRPO] Creating GRPOTrainer...")
     trainer = GRPOTrainer(
         model=model,
-        config=grpo_config,
+        args=grpo_config,
         processing_class=tokenizer,
         train_dataset=dataset,
         reward_funcs=reward_fn,

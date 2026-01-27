@@ -17,7 +17,7 @@ grpo:
   # ==========================================================================
   # Path to ExpV1_0 accepted dataset (relative to workspace root)
   # Use the same data that was used for SFT in ExpV1_0
-  dataset_path: "tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl"
+  dataset_path: "/workspace/euclid/expv1/expv1_1/output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl"
   # Alternative: Use all accepted data (not just verified)
   # dataset_path: "tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted.jsonl"
   
@@ -25,7 +25,7 @@ grpo:
   prompt_template: null
   
   # Token limits
-  max_prompt_length: 512
+  max_prompt_length: 768
   max_response_length: 1024
   
   # ==========================================================================
@@ -34,7 +34,7 @@ grpo:
   # Number of generations per prompt (group size for advantage estimation)
   # Higher = better advantage estimates but more compute
   # GRPO paper typically uses 4-16
-  num_generations: 4
+  num_generations: 8
   
   # Sampling parameters for generation
   temperature: 0.8  # Higher for more exploration
@@ -43,7 +43,7 @@ grpo:
   # KL penalty coefficient (prevents divergence from reference model)
   # Higher = more conservative updates
   # Typical range: 0.01-0.1
-  kl_coef: 0.05
+  kl_coef: 0.00
   
   # ==========================================================================
   # Reward Configuration
@@ -63,8 +63,8 @@ grpo:
   # Batch size: effective_batch = per_device × num_gpus × gradient_accum
   # Note: Each prompt generates num_generations sequences
   # So total sequences = per_device × num_generations × gradient_accum × num_gpus
-  per_device_train_batch_size: 2
-  gradient_accumulation_steps: 8
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4
   
   # Learning rate (typically lower than SFT for RL)
   learning_rate: 1.0e-6
@@ -92,6 +92,7 @@ grpo:
   # vLLM provides 10-20x faster generation compared to HuggingFace generate()
   # This is critical for GRPO which needs many rollouts per prompt
   use_vllm: true
+  vllm_mode: "colocate"  # run vLLM in-process; no external server needed
   vllm_device: "cuda"
   vllm_gpu_memory_utilization: 0.7  # Leave room for training
   vllm_dtype: "bfloat16"

@@ -31,28 +31,33 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def extract_boxed_answer(text: str) -> Optional[str]:
     """
-    Extract the answer from \\boxed{...} in the text.
-    Handles nested braces.
+    Extract the *last* \\boxed{...} content from a string (handles nested braces).
+
+    Notes:
+    - MATH solutions sometimes contain multiple boxed expressions; the final answer is typically the last one.
+    - Model outputs can also include intermediate boxed values; taking the last is more robust.
     """
-    pattern = r'\\boxed\{'
-    match = re.search(pattern, text)
-    if not match:
-        return None
-    
-    start = match.end()
-    depth = 1
-    pos = start
-    
-    while pos < len(text) and depth > 0:
-        if text[pos] == '{':
-            depth += 1
-        elif text[pos] == '}':
-            depth -= 1
-        pos += 1
-    
-    if depth == 0:
-        return text[start:pos-1].strip()
-    return None
+    prefix = r"\boxed{"
+    i = 0
+    last: Optional[str] = None
+
+    while True:
+        start = text.find(prefix, i)
+        if start == -1:
+            break
+        j = start + len(prefix)
+        depth = 1
+        while j < len(text) and depth:
+            if text[j] == "{":
+                depth += 1
+            elif text[j] == "}":
+                depth -= 1
+            j += 1
+        if depth == 0:
+            last = text[start + len(prefix) : j - 1].strip()
+        i = j
+
+    return last
 
 
 def normalize_answer(answer: str) -> str:
@@ -125,9 +130,10 @@ The GCD is \\boxed{143}.
     else:
         examples = ""
     
+    # IMPORTANT: require \\boxed{} so answer extraction is comparable across models.
     prompt = f"""{examples}Problem: {problem}
 
-Solution: Let me solve this step by step.
+Solution: Please reason step by step and put your final answer inside \\boxed{{}}.
 """
     return prompt
 

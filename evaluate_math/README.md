@@ -13,8 +13,8 @@ pip install vllm datasets tqdm
 ### Basic Evaluation (Qwen 3B on Number Theory)
 
 ```bash
-python -m tree.euclid.evaluate_math.evaluate \
-    --model Qwen/Qwen2.5-3B \
+python -m euclid.evaluate_math.evaluate \
+    --model vibhuiitj/Qwen3-1.7B-Base-grpo-expv1_1 \
     --dataset-config number_theory \
     --split test \
     --output results_qwen3b_number_theory.jsonl

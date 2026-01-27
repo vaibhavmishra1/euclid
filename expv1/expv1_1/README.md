@@ -45,8 +45,8 @@ pip install -r requirements.txt
 ### Basic Training
 
 ```bash
-python -m tree.euclid.expv1.expv1_1.run_grpo \
-    --config tree/euclid/expv1/expv1_1/config.yaml
+python -m euclid.expv1.expv1_1.run_grpo \
+    --config euclid/expv1/expv1_1/config.yaml
 ```
 
 ### With Command-Line Overrides
