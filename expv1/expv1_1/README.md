@@ -99,6 +99,49 @@ grpo:
   # Training
   num_train_epochs: 1
   learning_rate: 1.0e-6
+  
+  # vLLM (fast rollout generation)
+  use_vllm: true
+  vllm_gpu_memory_utilization: 0.7
+  vllm_tensor_parallel_size: 1
+```
+
+## vLLM Integration
+
+GRPO requires generating **multiple rollouts per prompt** (e.g., 4-8). Using vLLM instead of HuggingFace `generate()` provides **10-20x speedup**.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TRL GRPOTrainer with vLLM                                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  vLLM Engine                      Actor Model               │
+│  ────────────                     ───────────               │
+│  • Fast batch generation          • Policy updates          │
+│  • Continuous batching            • Gradient computation    │
+│  • PagedAttention                 • KL penalty              │
+│                                                             │
+│  Rollouts ─────────────────────► Advantages + Rewards       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Disable vLLM (fallback to HF generate)
+
+If you have issues with vLLM, disable it:
+
+```bash
+python -m tree.euclid.expv1.expv1_1.run_grpo \
+    --config tree/euclid/expv1/expv1_1/config.yaml \
+    --no-vllm
+```
+
+Or in config.yaml:
+```yaml
+grpo:
+  use_vllm: false
 ```
 
 ## Reward Function

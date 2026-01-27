@@ -92,6 +92,14 @@ class GRPOExperimentConfig:
     bf16: bool = True
     gradient_checkpointing: bool = True
     
+    # vLLM Configuration (for fast rollout generation)
+    use_vllm: bool = True  # Enable vLLM for generation
+    vllm_device: str = "cuda"
+    vllm_gpu_memory_utilization: float = 0.7
+    vllm_dtype: str = "bfloat16"
+    vllm_tensor_parallel_size: int = 1
+    vllm_max_model_len: Optional[int] = None  # Auto-detect if None
+    
     # Misc
     seed: int = 42
     push_to_hub: bool = False
@@ -204,6 +212,10 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
     print(f"Output: {config.output_dir}")
     print(f"Num generations (group size): {config.num_generations}")
     print(f"KL coefficient: {config.kl_coef}")
+    print(f"Use vLLM: {config.use_vllm}")
+    if config.use_vllm:
+        print(f"  vLLM GPU memory: {config.vllm_gpu_memory_utilization}")
+        print(f"  vLLM tensor parallel: {config.vllm_tensor_parallel_size}")
     print("=" * 60)
     
     # Create output directory
@@ -247,7 +259,7 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
     )
     
     # GRPO Config
-    grpo_config = GRPOConfig(
+    grpo_config_kwargs = dict(
         output_dir=config.output_dir,
         
         # GRPO specific
@@ -281,6 +293,21 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
         # Generation settings
         top_p=config.top_p,
     )
+    
+    # Add vLLM configuration if enabled
+    if config.use_vllm:
+        grpo_config_kwargs.update(
+            use_vllm=True,
+            vllm_device=config.vllm_device,
+            vllm_gpu_memory_utilization=config.vllm_gpu_memory_utilization,
+            vllm_dtype=config.vllm_dtype,
+            vllm_tensor_parallel_size=config.vllm_tensor_parallel_size,
+        )
+        if config.vllm_max_model_len:
+            grpo_config_kwargs["vllm_max_model_len"] = config.vllm_max_model_len
+        print("\n[GRPO] vLLM enabled for fast rollout generation")
+    
+    grpo_config = GRPOConfig(**grpo_config_kwargs)
     
     # Create trainer
     print("\n[GRPO] Creating GRPOTrainer...")
@@ -330,6 +357,9 @@ def main():
     parser.add_argument("--kl-coef", type=float, default=None, help="KL coefficient")
     parser.add_argument("--batch-size", type=int, default=None, help="Per-device batch size")
     parser.add_argument("--temperature", type=float, default=None, help="Sampling temperature")
+    parser.add_argument("--no-vllm", action="store_true", help="Disable vLLM (use HF generate)")
+    parser.add_argument("--vllm-gpu-memory", type=float, default=None, help="vLLM GPU memory utilization")
+    parser.add_argument("--vllm-tp", type=int, default=None, help="vLLM tensor parallel size")
     
     args = parser.parse_args()
     
@@ -358,6 +388,12 @@ def main():
         config.per_device_train_batch_size = args.batch_size
     if args.temperature:
         config.temperature = args.temperature
+    if args.no_vllm:
+        config.use_vllm = False
+    if args.vllm_gpu_memory:
+        config.vllm_gpu_memory_utilization = args.vllm_gpu_memory
+    if args.vllm_tp:
+        config.vllm_tensor_parallel_size = args.vllm_tp
     
     # Validate
     if not config.dataset_path:

@@ -87,6 +87,18 @@ grpo:
   gradient_checkpointing: true  # Reduce memory usage
   
   # ==========================================================================
+  # vLLM Configuration (for fast rollout generation)
+  # ==========================================================================
+  # vLLM provides 10-20x faster generation compared to HuggingFace generate()
+  # This is critical for GRPO which needs many rollouts per prompt
+  use_vllm: true
+  vllm_device: "cuda"
+  vllm_gpu_memory_utilization: 0.7  # Leave room for training
+  vllm_dtype: "bfloat16"
+  vllm_tensor_parallel_size: 1  # Increase for larger models or multi-GPU
+  vllm_max_model_len: null  # Auto-detect from model config
+  
+  # ==========================================================================
   # Miscellaneous
   # ==========================================================================
   seed: 42
