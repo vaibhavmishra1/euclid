@@ -1,6 +1,10 @@
 """
 Data utilities for ExpV1_1 GRPO training.
 Loads and converts the ExpV1_0 dataset for use with TRL's GRPOTrainer.
+
+NOTE: For self-consistency based GRPO, we only need the 'problem' field.
+The 'answer' field from the dataset is NOT used for reward computation -
+rewards are computed via self-consistency across rollouts during training.
 """
 
 from __future__ import annotations
@@ -24,7 +28,7 @@ def load_expv1_0_dataset(
         limit: Optional limit on number of examples
     
     Returns:
-        List of dicts with 'problem' and 'answer' fields
+        List of dicts with 'problem' field (answer is optional, not used for training)
     """
     data = []
     
@@ -40,26 +44,18 @@ def load_expv1_0_dataset(
                 # Verified format
                 original = row.get("original_data", {})
                 candidate = original.get("candidate", {})
-                verification = original.get("verification", {})
-                
                 problem = candidate.get("problem", "")
-                # Use modal_answer from verification (solver's agreed answer)
-                answer = verification.get("modal_answer", "") or candidate.get("answer", "")
             else:
                 # Original format
                 candidate = row.get("candidate", {})
-                verification = row.get("verification", {})
-                
                 problem = candidate.get("problem", "")
-                answer = verification.get("modal_answer", "") or candidate.get("answer", "")
             
-            if problem and answer:
+            if problem:
                 data.append({
                     "problem": problem,
-                    "answer": answer,
                 })
     
-    print(f"[data_utils] Loaded {len(data)} examples from {jsonl_path}")
+    print(f"[data_utils] Loaded {len(data)} problems from {jsonl_path}")
     return data
 
 
@@ -70,12 +66,16 @@ def create_grpo_dataset(
     """
     Create a HuggingFace Dataset for GRPO training.
     
+    For self-consistency GRPO, we only need the 'prompt' column.
+    The reward is computed during training from rollout agreement,
+    NOT from a ground truth answer.
+    
     Args:
-        data: List of dicts with 'problem' and 'answer' fields
+        data: List of dicts with 'problem' field
         prompt_template: Jinja-style template for the prompt
     
     Returns:
-        HuggingFace Dataset with 'prompt' and 'answer' columns
+        HuggingFace Dataset with 'prompt' column
     """
     from jinja2 import Template
     
@@ -86,7 +86,6 @@ def create_grpo_dataset(
         prompt = template.render(problem=item["problem"])
         processed.append({
             "prompt": prompt,
-            "answer": item["answer"],
         })
     
     return Dataset.from_list(processed)
@@ -114,13 +113,18 @@ def load_dataset_for_grpo(
     """
     Convenience function to load and prepare dataset for GRPO.
     
+    For self-consistency based GRPO:
+    - Only the 'prompt' column is needed
+    - Rewards are computed from agreement across rollouts during training
+    - No ground truth answer is used
+    
     Args:
         jsonl_path: Path to ExpV1_0 accepted.jsonl
         prompt_template: Optional custom prompt template
         limit: Optional limit on number of examples
     
     Returns:
-        HuggingFace Dataset ready for GRPOTrainer
+        HuggingFace Dataset ready for GRPOTrainer (with 'prompt' column)
     """
     if prompt_template is None:
         prompt_template = get_default_prompt_template()
@@ -146,4 +150,4 @@ if __name__ == "__main__":
     print(f"Columns: {dataset.column_names}")
     print(f"\nFirst example:")
     print(f"Prompt: {dataset[0]['prompt'][:200]}...")
-    print(f"Answer: {dataset[0]['answer']}")
+    print(f"\nNOTE: No 'answer' column - rewards computed via self-consistency during training")

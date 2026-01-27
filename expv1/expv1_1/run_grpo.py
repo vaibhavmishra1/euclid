@@ -1,5 +1,5 @@
 """
-ExpV1_1: GRPO Training for Math Problem Solving
+ExpV1_1: GRPO Training for Math Problem Solving with Self-Consistency Rewards
 
 This script trains a model using Group Relative Policy Optimization (GRPO)
 on the same dataset used in ExpV1_0 (SFT), allowing direct comparison of
@@ -7,7 +7,15 @@ training algorithms.
 
 Key differences from SFT (ExpV1_0):
 - SFT: Uses best rollout COT as supervised target
-- GRPO: Uses reward signal across all rollouts with advantage-weighted updates
+- GRPO: Uses SELF-CONSISTENCY across rollouts to determine rewards
+  (no ground truth answer needed - rewards based on agreement)
+
+Reward Mechanism:
+- For each prompt, generate N rollouts
+- Extract \boxed{} answer from each rollout
+- Find the modal (majority) answer
+- Reward rollouts that agree with the modal answer
+- This allows training on synthetic datasets with no ground truth!
 
 Usage:
     python -m tree.euclid.expv1.expv1_1.run_grpo \
@@ -48,7 +56,7 @@ except ImportError:
     print("Warning: TRL not installed. Install with: pip install trl>=0.9.0")
 
 from .data_utils import load_dataset_for_grpo, get_default_prompt_template
-from .reward_function import compute_reward, extract_boxed_answer
+from .reward_function import create_self_consistency_reward_fn
 
 
 @dataclass
@@ -69,10 +77,11 @@ class GRPOExperimentConfig:
     top_p: float = 0.95
     kl_coef: float = 0.05  # KL penalty coefficient
     
-    # Reward
+    # Self-consistency reward settings
     correct_reward: float = 1.0
     incorrect_reward: float = 0.0
     format_penalty: float = 0.1  # Penalty for missing \boxed{}
+    min_agreement: int = 2  # Minimum rollouts agreeing for consensus
     
     # Training
     num_train_epochs: int = 1
@@ -115,48 +124,6 @@ def load_config(config_path: str) -> GRPOExperimentConfig:
     return GRPOExperimentConfig(**cfg_dict.get("grpo", {}))
 
 
-def create_reward_function(
-    correct_reward: float = 1.0,
-    incorrect_reward: float = 0.0,
-    format_penalty: float = 0.1,
-):
-    """
-    Create a reward function closure for TRL.
-    
-    TRL's GRPOTrainer expects a function that takes:
-    - prompts: List[str]
-    - completions: List[str]
-    - any additional columns from the dataset
-    
-    Returns: List[float] rewards
-    """
-    def reward_fn(prompts: List[str], completions: List[str], answer: List[str], **kwargs) -> List[float]:
-        """
-        Compute rewards for completions.
-        
-        Args:
-            prompts: List of prompts (for context, not used in reward)
-            completions: List of model-generated completions
-            answer: List of ground truth answers (from dataset)
-        
-        Returns:
-            List of reward values
-        """
-        rewards = []
-        for completion, gt_answer in zip(completions, answer):
-            reward = compute_reward(
-                completion,
-                gt_answer,
-                correct_reward=correct_reward,
-                incorrect_reward=incorrect_reward,
-                format_penalty=format_penalty,
-            )
-            rewards.append(reward)
-        return rewards
-    
-    return reward_fn
-
-
 def prepare_dataset(
     dataset_path: str,
     prompt_template: Optional[str],
@@ -166,9 +133,8 @@ def prepare_dataset(
     """
     Prepare dataset for GRPO training.
     
-    The dataset needs columns:
-    - prompt: The input prompt
-    - answer: Ground truth answer (for reward computation)
+    The dataset only needs the 'prompt' column.
+    Rewards are computed via self-consistency during training.
     """
     if prompt_template is None:
         prompt_template = get_default_prompt_template()
@@ -195,28 +161,37 @@ def prepare_dataset(
     
     print(f"[GRPO] Dataset size: {len(dataset)}")
     
+    # Remove the prompt_length column (not needed for training)
+    dataset = dataset.remove_columns(["prompt_length"])
+    
     return dataset
 
 
 def train_grpo(config: GRPOExperimentConfig) -> None:
     """
-    Main GRPO training function.
+    Main GRPO training function with self-consistency rewards.
     """
     if not HAS_TRL:
         raise ImportError("TRL is required for GRPO training. Install with: pip install trl>=0.9.0")
     
     print("=" * 60)
-    print("ExpV1_1: GRPO Training")
+    print("ExpV1_1: GRPO Training with Self-Consistency Rewards")
     print("=" * 60)
     print(f"Model: {config.model_name_or_path}")
     print(f"Dataset: {config.dataset_path}")
     print(f"Output: {config.output_dir}")
     print(f"Num generations (group size): {config.num_generations}")
+    print(f"Min agreement for consensus: {config.min_agreement}")
     print(f"KL coefficient: {config.kl_coef}")
     print(f"Use vLLM: {config.use_vllm}")
     if config.use_vllm:
         print(f"  vLLM GPU memory: {config.vllm_gpu_memory_utilization}")
         print(f"  vLLM tensor parallel: {config.vllm_tensor_parallel_size}")
+    print("=" * 60)
+    print("\nReward mechanism: SELF-CONSISTENCY")
+    print("  - No ground truth answer required")
+    print("  - Rewards based on agreement across rollouts")
+    print("  - Modal (majority) answer is treated as 'correct'")
     print("=" * 60)
     
     # Create output directory
@@ -252,11 +227,14 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
         config.max_prompt_length,
     )
     
-    # Create reward function
-    reward_fn = create_reward_function(
+    # Create self-consistency reward function
+    print("\n[GRPO] Creating self-consistency reward function...")
+    reward_fn = create_self_consistency_reward_fn(
+        num_generations=config.num_generations,
         correct_reward=config.correct_reward,
         incorrect_reward=config.incorrect_reward,
         format_penalty=config.format_penalty,
+        min_agreement=config.min_agreement,
     )
     
     # GRPO Config
@@ -338,7 +316,7 @@ def train_grpo(config: GRPOExperimentConfig) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ExpV1_1: GRPO Training for Math")
+    parser = argparse.ArgumentParser(description="ExpV1_1: GRPO Training with Self-Consistency Rewards")
     
     parser.add_argument(
         "--config",
@@ -352,6 +330,7 @@ def main():
     parser.add_argument("--dataset", type=str, default=None, help="Path to dataset JSONL")
     parser.add_argument("--output", type=str, default=None, help="Output directory")
     parser.add_argument("--num-generations", type=int, default=None, help="Rollouts per prompt")
+    parser.add_argument("--min-agreement", type=int, default=None, help="Min rollouts for consensus")
     parser.add_argument("--epochs", type=int, default=None, help="Number of epochs")
     parser.add_argument("--lr", type=float, default=None, help="Learning rate")
     parser.add_argument("--kl-coef", type=float, default=None, help="KL coefficient")
@@ -378,6 +357,8 @@ def main():
         config.output_dir = args.output
     if args.num_generations:
         config.num_generations = args.num_generations
+    if args.min_agreement:
+        config.min_agreement = args.min_agreement
     if args.epochs:
         config.num_train_epochs = args.epochs
     if args.lr:

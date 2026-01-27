@@ -1,10 +1,11 @@
-# ExpV1_1 Configuration: GRPO Training
+# ExpV1_1 Configuration: GRPO Training with Self-Consistency Rewards
 # 
 # This experiment compares GRPO (RL) vs SFT (ExpV1_0) on the same dataset.
 # 
 # Key difference:
 # - ExpV1_0 (SFT): Trains on solver's best COT (selected via self-consistency)
-# - ExpV1_1 (GRPO): Trains with reward signal across all rollouts
+# - ExpV1_1 (GRPO): Uses SELF-CONSISTENCY across rollouts to compute rewards
+#   (no ground truth needed - modal answer across rollouts is treated as "correct")
 
 grpo:
   # ==========================================================================
@@ -46,14 +47,26 @@ grpo:
   kl_coef: 0.00
   
   # ==========================================================================
-  # Reward Configuration
+  # Self-Consistency Reward Configuration
   # ==========================================================================
-  # Binary reward based on answer correctness
-  correct_reward: 1.0
-  incorrect_reward: 0.0
+  # Rewards are computed via SELF-CONSISTENCY across rollouts:
+  # 1. Extract \boxed{} answer from each of the num_generations rollouts
+  # 2. Find the modal (majority) answer
+  # 3. Reward rollouts that agree with the modal answer
+  # 4. No ground truth answer is needed!
+  
+  # Reward values
+  correct_reward: 1.0    # For rollouts matching the modal answer
+  incorrect_reward: 0.0  # For rollouts NOT matching the modal answer
   
   # Penalty for missing \boxed{} format (encourages proper formatting)
   format_penalty: 0.1
+  
+  # Minimum number of rollouts that must agree for an answer to be considered "consensus"
+  # If fewer rollouts agree, no rewards are given (all get incorrect_reward)
+  # This prevents rewarding answers with low confidence
+  # Typical: 2 for num_generations=4, 3 for num_generations=8
+  min_agreement: 2
   
   # ==========================================================================
   # Training Configuration
@@ -110,24 +123,49 @@ grpo:
 
 
 # ==========================================================================
+# Self-Consistency Reward Mechanism (Key Innovation)
+# ==========================================================================
+# 
+# For synthetic datasets generated via concept graph exploration,
+# there is NO ground truth answer. Instead, we use self-consistency:
+#
+# For each prompt:
+#   1. Generate num_generations rollouts
+#   2. Extract \boxed{answer} from each
+#   3. Find modal (most common) answer
+#   4. If modal_count >= min_agreement:
+#      - Rollouts matching modal → correct_reward (1.0)
+#      - Rollouts not matching → incorrect_reward (0.0)
+#   5. If modal_count < min_agreement:
+#      - All rollouts get incorrect_reward (0.0) - no consensus
+#
+# This is the SAME mechanism used in ExpV1_0's ZPD filtering,
+# but now applied during training to compute rewards on-the-fly.
+#
+# ==========================================================================
+
+# ==========================================================================
 # Experiment Notes
 # ==========================================================================
 # 
-# Expected comparison with ExpV1_0:
+# Comparison with ExpV1_0:
 # 
-# | Aspect          | ExpV1_0 (SFT)          | ExpV1_1 (GRPO)           |
-# |-----------------|------------------------|--------------------------|
-# | Training signal | Best COT (supervised)  | Reward-weighted gradient |
-# | Rollouts used   | 1 (best only)          | All (num_generations)    |
-# | Learning        | Imitation              | Trial and error          |
-# | Data efficiency | Higher (direct target) | Lower (needs exploration)|
+# | Aspect          | ExpV1_0 (SFT)          | ExpV1_1 (GRPO)            |
+# |-----------------|------------------------|---------------------------|
+# | Training signal | Best COT (supervised)  | Self-consistency reward   |
+# | Ground truth    | Precomputed modal ans  | Computed during training  |
+# | Rollouts used   | 1 (best only)          | All (num_generations)     |
+# | Learning        | Imitation              | Trial and error           |
+# | Data efficiency | Higher (direct target) | Lower (needs exploration) |
 # 
 # Hypothesis:
 # - GRPO may show different learning dynamics
 # - GRPO learns from failures (incorrect solutions get negative advantage)
 # - SFT only learns from successes (best solutions)
+# - Self-consistency rewards allow training on ANY synthetic data
 # 
 # Metrics to track:
 # - MATH number_theory accuracy (same as ExpV1_0)
 # - Training reward curve
+# - Agreement rate (% of prompts with consensus)
 # - Generation diversity

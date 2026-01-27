@@ -1,20 +1,33 @@
-# ExpV1_1: GRPO Training for Mathematical Reasoning
+# ExpV1_1: GRPO Training with Self-Consistency Rewards
 
-This experiment compares **GRPO (Group Relative Policy Optimization)** vs **SFT (ExpV1_0)** on the same synthetic math dataset.
+This experiment compares **GRPO (Group Relative Policy Optimization)** vs **SFT (ExpV1_0)** on the same synthetic math dataset, using **self-consistency** to compute rewards (no ground truth needed).
 
 ## Overview
 
 ### Research Question
-> Does GRPO outperform SFT when training on the same dataset of solver-generated solutions?
+> Does GRPO with self-consistency rewards outperform SFT when training on synthetic math problems?
 
-### Key Insight from ExpV1_0
-In ExpV1_0, SFT was trained on the **solver's own best COT** (selected via self-consistency from multiple rollouts), NOT on teacher-provided solutions. This makes the comparison with GRPO more interesting:
+### Key Innovation: Self-Consistency Rewards
+For **synthetic datasets** (generated via concept graph exploration), there is **no ground truth answer**. Instead of requiring a teacher or oracle, we compute rewards using **self-consistency across rollouts**:
+
+```
+For each prompt:
+  1. Generate N rollouts (e.g., N=4)
+  2. Extract \boxed{answer} from each rollout
+  3. Find modal (majority) answer
+  4. Reward rollouts that agree with modal answer
+```
+
+This is the **same mechanism** used in ExpV1_0's ZPD filtering, but now applied during GRPO training.
+
+### Comparison with ExpV1_0
 
 | Aspect | ExpV1_0 (SFT) | ExpV1_1 (GRPO) |
 |--------|---------------|----------------|
 | COT Source | Solver's best rollout | Solver's all rollouts |
-| Selection | Self-consistency (offline) | Reward-weighted (online) |
-| Signal | "Best" solution as target | Binary correctness reward |
+| Ground Truth | Precomputed modal answer | Computed during training |
+| Selection | Self-consistency (offline) | Self-consistency (online) |
+| Signal | "Best" solution as target | Binary self-consistency reward |
 | Learning | Imitation (from best) | Trial and error (from all) |
 
 ## What is GRPO?
@@ -22,7 +35,7 @@ In ExpV1_0, SFT was trained on the **solver's own best COT** (selected via self-
 **Group Relative Policy Optimization** (from DeepSeek-Math) is a simplified RL algorithm:
 
 1. Generate **n rollouts** per problem (e.g., n=4)
-2. Score each rollout with **reward function** (correct=1, incorrect=0)
+2. Score each rollout with **self-consistency reward**
 3. Compute **group-relative advantage**:
    ```
    advantage_i = (reward_i - mean) / (std + ε)
@@ -33,6 +46,42 @@ In ExpV1_0, SFT was trained on the **solver's own best COT** (selected via self-
 - No value network needed (uses group statistics as baseline)
 - Simpler and more stable
 - Works well for outcome-supervised tasks
+
+## Self-Consistency Reward Mechanism
+
+```python
+def compute_rewards(completions, num_generations):
+    """
+    For each group of rollouts (same prompt):
+    1. Extract \boxed{} answer from each
+    2. Find modal (majority) answer
+    3. If enough agreement (>= min_agreement):
+       - Matching rollouts → reward = 1.0
+       - Non-matching → reward = 0.0
+    4. If no consensus:
+       - All rollouts → reward = 0.0
+    """
+    rewards = []
+    for group in chunks(completions, num_generations):
+        answers = [extract_boxed(c) for c in group]
+        modal_answer = find_modal(answers)
+        
+        for ans in answers:
+            if ans is None:
+                rewards.append(-0.1)  # Format penalty
+            elif ans matches modal_answer:
+                rewards.append(1.0)   # Agrees with consensus
+            else:
+                rewards.append(0.0)   # Disagrees
+    
+    return rewards
+```
+
+### Why Self-Consistency Works
+- **Synthetic problems have no oracle** - self-consistency is the only signal
+- **Majority voting is a proxy for correctness** - if 3/4 rollouts agree, likely correct
+- **Same principle as ExpV1_0** - but computed online during training
+- **Forces model to be consistent** - rewards reproducible reasoning
 
 ## Installation
 
@@ -58,6 +107,7 @@ python -m tree.euclid.expv1.expv1_1.run_grpo \
     --dataset tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl \
     --output ./output_grpo \
     --num-generations 4 \
+    --min-agreement 2 \
     --epochs 1 \
     --kl-coef 0.05
 ```
@@ -71,11 +121,13 @@ python -m tree.euclid.expv1.expv1_1.run_grpo \
 | `--dataset` | Path to ExpV1_0 dataset | - |
 | `--output` | Output directory | ./output_grpo |
 | `--num-generations` | Rollouts per prompt | 4 |
+| `--min-agreement` | Min rollouts for consensus | 2 |
 | `--epochs` | Training epochs | 1 |
 | `--lr` | Learning rate | 1e-6 |
 | `--kl-coef` | KL penalty coefficient | 0.05 |
 | `--batch-size` | Per-device batch size | 2 |
 | `--temperature` | Sampling temperature | 0.8 |
+| `--no-vllm` | Disable vLLM (use HF generate) | False |
 
 ## Configuration
 
@@ -87,14 +139,15 @@ grpo:
   model_name_or_path: "Qwen/Qwen3-1.7B-Base"
   
   # GRPO specific
-  num_generations: 4      # Group size for advantage
+  num_generations: 4      # Group size for self-consistency
   temperature: 0.8        # Exploration
   kl_coef: 0.05          # Prevent divergence
   
-  # Reward
-  correct_reward: 1.0
-  incorrect_reward: 0.0
+  # Self-Consistency Reward
+  correct_reward: 1.0     # Matches modal answer
+  incorrect_reward: 0.0   # Doesn't match
   format_penalty: 0.1     # For missing \boxed{}
+  min_agreement: 2        # Min rollouts for consensus
   
   # Training
   num_train_epochs: 1
@@ -123,7 +176,7 @@ GRPO requires generating **multiple rollouts per prompt** (e.g., 4-8). Using vLL
 │  • Continuous batching            • Gradient computation    │
 │  • PagedAttention                 • KL penalty              │
 │                                                             │
-│  Rollouts ─────────────────────► Advantages + Rewards       │
+│  Rollouts ─────► Self-Consistency ─────► Advantages         │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -144,23 +197,6 @@ grpo:
   use_vllm: false
 ```
 
-## Reward Function
-
-Binary reward based on answer correctness:
-
-```python
-def compute_reward(generated_text, ground_truth):
-    predicted = extract_boxed_answer(generated_text)
-    
-    if predicted is None:
-        return -0.1  # Format penalty
-    
-    if answers_match(predicted, ground_truth):
-        return 1.0   # Correct
-    else:
-        return 0.0   # Incorrect
-```
-
 ## Expected Results
 
 ### Comparison with ExpV1_0
@@ -173,9 +209,10 @@ def compute_reward(generated_text, ground_truth):
 
 ### Hypotheses
 
-1. **GRPO may have similar performance to SFT** since both use solver-generated solutions
+1. **GRPO may have similar performance to SFT** since both use self-consistency
 2. **GRPO might show better generalization** by learning from both correct and incorrect attempts
-3. **GRPO requires more careful tuning** (temperature, KL coef, num_generations)
+3. **Self-consistency rewards may be noisier** than ground truth, affecting convergence
+4. **GRPO requires more careful tuning** (temperature, KL coef, num_generations, min_agreement)
 
 ## Evaluation
 
@@ -207,9 +244,11 @@ For each batch of prompts:
 1. GENERATION PHASE
    └─► Generate n=4 solutions per problem (temperature=0.8)
    
-2. REWARD PHASE
+2. SELF-CONSISTENCY REWARD PHASE
    └─► Extract \boxed{} answer from each generation
-   └─► Compare with ground truth → reward ∈ {0, 1}
+   └─► Find modal (majority) answer per prompt
+   └─► Reward = 1.0 if matches modal, 0.0 if not
+   └─► No ground truth needed!
    
 3. ADVANTAGE COMPUTATION
    └─► For each problem group:
@@ -230,7 +269,7 @@ tree/euclid/expv1/expv1_1/
 ├── requirements.txt        # Dependencies
 ├── run_grpo.py            # Main training script
 ├── data_utils.py          # Dataset loading utilities
-├── reward_function.py     # Math reward computation
+├── reward_function.py     # Self-consistency reward computation
 └── __init__.py
 ```
 
@@ -241,18 +280,34 @@ tree/euclid/expv1/expv1_1/
 - Reduce `num_generations` to 2
 - Enable `gradient_checkpointing: true`
 
-### Low Reward Signal
-- Check that dataset has valid `answer` field
-- Verify `extract_boxed_answer` works on your generations
-- Consider reducing `format_penalty`
+### Low Reward Signal / No Consensus
+- Increase `num_generations` (more samples → better consensus)
+- Decrease `min_agreement` (but may reward noise)
+- Check that `extract_boxed_answer` works on your generations
+- Lower `temperature` to reduce generation diversity
 
 ### Unstable Training
 - Increase `kl_coef` to prevent divergence
 - Reduce `learning_rate`
 - Increase `num_generations` for better advantage estimates
 
+### All Rewards are Zero
+- Check if generations have `\boxed{}` format
+- Check if `min_agreement` is too high for `num_generations`
+- Review sample generations for formatting issues
+
+## Key Differences from Standard GRPO
+
+| Standard GRPO | ExpV1_1 GRPO |
+|---------------|--------------|
+| Requires ground truth answer | Uses self-consistency |
+| Oracle determines correctness | Modal answer determines correctness |
+| Works on benchmarks with labels | Works on ANY synthetic data |
+| Reward = f(pred, gold) | Reward = f(pred, modal_from_rollouts) |
+
 ## References
 
 - GRPO: DeepSeek-Math paper
 - TRL: https://huggingface.co/docs/trl/
 - ExpV1_0: `tree/euclid/expv1/expv1_0/`
+- Self-Consistency: Wang et al., "Self-Consistency Improves Chain of Thought Reasoning"
