@@ -3,7 +3,7 @@ Evaluate math models on the MATH dataset using HuggingFace Transformers.
 Works on CPU/MPS (Mac) without requiring CUDA.
 
 Usage:
-    python -m tree.euclid.evaluate_math.evaluate_hf \
+    python -m euclid.evaluate_math.evaluate_hf \
         --model Qwen/Qwen2.5-3B \
         --dataset-config number_theory \
         --split test \

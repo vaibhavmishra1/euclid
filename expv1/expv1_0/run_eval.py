@@ -23,7 +23,7 @@ def main() -> None:
         print("[expv1_0] Eval disabled in config; set eval.enabled=true to run.")
         return
 
-    from tree.euclid.evaluate_math.evaluate_hf import evaluate
+    from euclid.evaluate_math.evaluate_hf import evaluate
 
     dataset_config = cfg["eval"]["dataset_config"]
     split = cfg["eval"]["split"]

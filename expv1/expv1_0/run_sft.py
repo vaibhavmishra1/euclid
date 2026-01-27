@@ -213,6 +213,7 @@ def run_sft(
     use_bf16: bool = True,
     use_flash_attention: bool = True,
     use_torch_compile: bool = False,
+    use_gradient_checkpointing: bool = False,
     num_workers: int = 4,
 ) -> None:
     # Try to find accepted.jsonl in various locations
@@ -310,7 +311,7 @@ def run_sft(
     sft_cfg = cfg.get("sft", {})
     _batch_size = batch_size or sft_cfg.get("batch_size", 32)
     _grad_accum = gradient_accumulation_steps or sft_cfg.get("gradient_accumulation_steps", 1)
-    _lr = learning_rate or sft_cfg.get("learning_rate", 2e-5)
+    _lr = float(learning_rate or sft_cfg.get("learning_rate", 2e-5))
     _max_steps = max_steps or sft_cfg.get("max_steps", -1)
     _num_epochs = num_epochs or sft_cfg.get("num_epochs", 3)
     _max_seq_len = max_seq_length or sft_cfg.get("max_seq_length", 2048)
@@ -337,6 +338,7 @@ def run_sft(
     print(f"  - bf16: {use_bf16}")
     print(f"  - Flash Attention 2: {use_flash_attention}")
     print(f"  - torch.compile: {use_torch_compile}")
+    print(f"  - Gradient checkpointing: {use_gradient_checkpointing}")
     print(f"  - Dataloader workers: {num_workers}")
     
     # Load dataset
@@ -417,7 +419,7 @@ def run_sft(
         dataloader_pin_memory=True,
         dataloader_prefetch_factor=2 if num_workers > 0 else None,
         # Memory optimization
-        gradient_checkpointing=False,  # Not needed for small models on large GPUs
+        gradient_checkpointing=use_gradient_checkpointing,
         # Other
         report_to=[],
         remove_unused_columns=False,
@@ -516,6 +518,8 @@ Examples:
                             help="Disable Flash Attention 2")
     perf_group.add_argument("--use-torch-compile", action="store_true", default=False,
                             help="Use torch.compile for extra speed (default: False)")
+    perf_group.add_argument("--use-gradient-checkpointing", action="store_true", default=False,
+                            help="Use gradient checkpointing to reduce memory usage (default: False)")
     perf_group.add_argument("--num-workers", type=int, default=4,
                             help="Number of dataloader workers (default: 4)")
     
@@ -541,6 +545,7 @@ Examples:
         use_bf16=args.use_bf16,
         use_flash_attention=args.use_flash_attention,
         use_torch_compile=args.use_torch_compile,
+        use_gradient_checkpointing=args.use_gradient_checkpointing,
         num_workers=args.num_workers,
     )
 

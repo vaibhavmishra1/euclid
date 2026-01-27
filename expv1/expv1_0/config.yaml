@@ -102,9 +102,9 @@ zpd:
   p_max: 1.0
 
 sft:
-  enabled: false
-  base_model: ""  # Defaults to zpd.solver_model if empty
-  output_dir: "euclid/expv1/expv1_0/output/sft_model"
+  enabled: true
+  base_model: "Qwen/Qwen3-1.7B-Base"  # Defaults to zpd.solver_model if empty
+  output_dir: "euclid/expv1/expv1_0/output/sft_model_accepted"
   # Training hyperparameters (can be overridden via CLI)
   batch_size: 32           # Per-device batch size (use 64-128 for H200/A100)
   gradient_accumulation_steps: 1
@@ -114,9 +114,9 @@ sft:
   max_seq_length: 2048
 
 eval:
-  enabled: false
+  enabled: true
   # See tree/euclid/evaluate_math/evaluate_hf.py for available MATH subsets
   dataset_config: "number_theory"
   split: "test"
-  limit: 50
+  limit: 5000
 
