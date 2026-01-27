@@ -123,3 +123,65 @@
     }
   }
 }
+
+{
+  "model": "vibhuiitj/Qwen3-1.7B-Base-sft-expv1_0",
+  "dataset": "EleutherAI/hendrycks_math/number_theory",
+  "split": "test",
+  "total": 540,
+  "correct": 126,
+  "accuracy": 0.23333333333333334,
+  "level_stats": {
+    "Level 2": {
+      "correct": 26,
+      "total": 92
+    },
+    "Level 4": {
+      "correct": 37,
+      "total": 142
+    },
+    "Level 5": {
+      "correct": 18,
+      "total": 154
+    },
+    "Level 1": {
+      "correct": 8,
+      "total": 30
+    },
+    "Level 3": {
+      "correct": 37,
+      "total": 122
+    }
+  }
+}
+
+{
+  "model": "vibhuiitj/Qwen3-1.7B-Base-sft-expv1_0-accepted",
+  "dataset": "EleutherAI/hendrycks_math/number_theory",
+  "split": "test",
+  "total": 540,
+  "correct": 151,
+  "accuracy": 0.2796296296296296,
+  "level_stats": {
+    "Level 2": {
+      "correct": 36,
+      "total": 92
+    },
+    "Level 4": {
+      "correct": 39,
+      "total": 142
+    },
+    "Level 5": {
+      "correct": 24,
+      "total": 154
+    },
+    "Level 1": {
+      "correct": 10,
+      "total": 30
+    },
+    "Level 3": {
+      "correct": 42,
+      "total": 122
+    }
+  }
+}
