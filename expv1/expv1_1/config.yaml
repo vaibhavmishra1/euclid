@@ -1,0 +1,120 @@
+# ExpV1_1 Configuration: GRPO Training
+# 
+# This experiment compares GRPO (RL) vs SFT (ExpV1_0) on the same dataset.
+# 
+# Key difference:
+# - ExpV1_0 (SFT): Trains on solver's best COT (selected via self-consistency)
+# - ExpV1_1 (GRPO): Trains with reward signal across all rollouts
+
+grpo:
+  # ==========================================================================
+  # Model Configuration
+  # ==========================================================================
+  model_name_or_path: "Qwen/Qwen3-1.7B-Base"  # Same as ExpV1_0 for fair comparison
+  
+  # ==========================================================================
+  # Data Configuration
+  # ==========================================================================
+  # Path to ExpV1_0 accepted dataset (relative to workspace root)
+  # Use the same data that was used for SFT in ExpV1_0
+  dataset_path: "tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted_verified_retried.jsonl"
+  # Alternative: Use all accepted data (not just verified)
+  # dataset_path: "tree/euclid/expv1/expv1_0/output_Qwen3-1.7B-Base_accepted/accepted.jsonl"
+  
+  # Prompt template (null = use default matching ExpV1_0)
+  prompt_template: null
+  
+  # Token limits
+  max_prompt_length: 512
+  max_response_length: 1024
+  
+  # ==========================================================================
+  # GRPO-Specific Configuration
+  # ==========================================================================
+  # Number of generations per prompt (group size for advantage estimation)
+  # Higher = better advantage estimates but more compute
+  # GRPO paper typically uses 4-16
+  num_generations: 4
+  
+  # Sampling parameters for generation
+  temperature: 0.8  # Higher for more exploration
+  top_p: 0.95
+  
+  # KL penalty coefficient (prevents divergence from reference model)
+  # Higher = more conservative updates
+  # Typical range: 0.01-0.1
+  kl_coef: 0.05
+  
+  # ==========================================================================
+  # Reward Configuration
+  # ==========================================================================
+  # Binary reward based on answer correctness
+  correct_reward: 1.0
+  incorrect_reward: 0.0
+  
+  # Penalty for missing \boxed{} format (encourages proper formatting)
+  format_penalty: 0.1
+  
+  # ==========================================================================
+  # Training Configuration
+  # ==========================================================================
+  num_train_epochs: 1  # GRPO typically needs fewer epochs than SFT
+  
+  # Batch size: effective_batch = per_device × num_gpus × gradient_accum
+  # Note: Each prompt generates num_generations sequences
+  # So total sequences = per_device × num_generations × gradient_accum × num_gpus
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 8
+  
+  # Learning rate (typically lower than SFT for RL)
+  learning_rate: 1.0e-6
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  
+  # ==========================================================================
+  # Output Configuration
+  # ==========================================================================
+  output_dir: "./output_expv1_1_grpo"
+  
+  logging_steps: 10
+  save_steps: 200
+  eval_steps: 200
+  
+  # ==========================================================================
+  # Hardware Configuration
+  # ==========================================================================
+  bf16: true  # Use bfloat16 for training
+  gradient_checkpointing: true  # Reduce memory usage
+  
+  # ==========================================================================
+  # Miscellaneous
+  # ==========================================================================
+  seed: 42
+  
+  # HuggingFace Hub (optional)
+  push_to_hub: false
+  hub_model_id: null  # e.g., "vibhuiitj/Qwen3-1.7B-Base-grpo-expv1_1"
+
+
+# ==========================================================================
+# Experiment Notes
+# ==========================================================================
+# 
+# Expected comparison with ExpV1_0:
+# 
+# | Aspect          | ExpV1_0 (SFT)          | ExpV1_1 (GRPO)           |
+# |-----------------|------------------------|--------------------------|
+# | Training signal | Best COT (supervised)  | Reward-weighted gradient |
+# | Rollouts used   | 1 (best only)          | All (num_generations)    |
+# | Learning        | Imitation              | Trial and error          |
+# | Data efficiency | Higher (direct target) | Lower (needs exploration)|
+# 
+# Hypothesis:
+# - GRPO may show different learning dynamics
+# - GRPO learns from failures (incorrect solutions get negative advantage)
+# - SFT only learns from successes (best solutions)
+# 
+# Metrics to track:
+# - MATH number_theory accuracy (same as ExpV1_0)
+# - Training reward curve
+# - Generation diversity
