@@ -1,0 +1,33 @@
+# Rentropy Configuration
+# This file controls the diversity reward settings for the Rentropy experiment.
+
+# Diversity reward mode (1-4):
+#   1: Vanilla majority voting reward only (R-Zero baseline)
+#   2: Mode 1 + reward for choosing a rare cluster
+#   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
+#   4: Mode 3 + within-cluster uniqueness reward
+diversity_mode: 2
+
+# Path to cluster centroids (built by cluster_space/build_clusters.py)
+centroids_path: "../cluster_space/cluster_data/centroids.npy"
+
+# Embedding model for cluster assignment
+embedding_model: "Qwen/Qwen3-Embedding-0.6B"
+
+# Reward weights (only applied when majority vote passes threshold)
+weights:
+  # Weight for rarity reward (mode 2+)
+  rarity: 0.1
+  # Weight for batch uniqueness reward (mode 3+)
+  batch_uniqueness: 0.05
+  # Weight for within-cluster uniqueness (mode 4)
+  within_cluster_uniqueness: 0.05
+
+# Majority voting threshold - diversity reward only applied if score >= this
+majority_vote_threshold: 0.3
+
+# EMA decay for cluster count tracking
+ema_decay: 0.99
+
+# Smoothing constant for log-inverse-frequency
+smoothing_alpha: 1.0
