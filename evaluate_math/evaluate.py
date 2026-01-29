@@ -129,41 +129,13 @@ def build_prompt(problem: str, few_shot: bool = False) -> str:
     """
     Build the prompt for the model.
     """
-    if few_shot:
-        # Few-shot examples for number theory
-        examples = """Problem: What is the remainder when 2^100 is divided by 7?
-
-Solution: Let me find the pattern of remainders when powers of 2 are divided by 7.
-2^1 ≡ 2 (mod 7)
-2^2 ≡ 4 (mod 7)
-2^3 ≡ 8 ≡ 1 (mod 7)
-
-The pattern repeats every 3 powers. Since 100 = 33 × 3 + 1, we have:
-2^100 ≡ 2^1 ≡ 2 (mod 7)
-
-The answer is \\boxed{2}.
-
----
-
-Problem: Find the greatest common divisor of 1001 and 2431.
-
-Solution: Using the Euclidean algorithm:
-2431 = 2 × 1001 + 429
-1001 = 2 × 429 + 143
-429 = 3 × 143 + 0
-
-The GCD is \\boxed{143}.
-
----
-
-"""
-    else:
-        examples = ""
     
     # IMPORTANT: require \\boxed{} so answer extraction is comparable across models.
-    prompt = f"""{examples}Problem: {problem}
+    prompt = f"""You are a careful mathematical problem solver.
+Please reason step by step and put your final answer inside \\boxed{{}}.
 
-Solution: Please reason step by step and put your final answer inside \\boxed{{}}.
+Problem:
+{problem}
 """
     return prompt
 
