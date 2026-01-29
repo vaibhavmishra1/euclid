@@ -118,10 +118,6 @@ python scripts/run_concept_curriculum.py \
   --base_model Qwen/Qwen3-4B-Base --model_abbr qwen3-4b \
   --evaluate_after_each --eval_num_rollouts 9
 ```
-python scripts/run_concept_curriculum.py \
-  --base_model Qwen/Qwen3-4B-Base --model_abbr qwen3-4b \
-  --num_gpus 2 --questions_per_concept 10 --solver_rollouts 4 --evaluate_after_each --eval_num_rollouts 8 --start_idx 0 --end_idx 5
-
 
 ### Performance Tracking & Visualization
 
@@ -259,4 +255,3 @@ If our work is useful for you, please consider citing our paper:
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Chengsong-Huang/R-Zero&type=Date)](https://star-history.com/#Chengsong-Huang/R-Zero&Date)
-end
