@@ -16,6 +16,8 @@ A lightweight, simplified implementation of R-Zero using HuggingFace TRL (GRPO) 
 pip install -r requirements.txt
 ```
 
+**Note**: TRL is only compatible with specific vLLM versions. This repo pins `vllm==0.12.0` in `requirements.txt`.
+
 ## 🚀 Quick Start
 
 1. **Edit configuration** (optional):
