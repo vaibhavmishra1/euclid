@@ -54,7 +54,7 @@ class Config:
 
     # TRL GRPO vLLM generation (used *inside* GRPOTrainer when use_vllm=True)
     # This can significantly speed up the generation portion of GRPO.
-    grpo_use_vllm: bool = True
+    grpo_use_vllm: bool = False
     # TRL defaults to "server" which expects `trl vllm-serve` to be running.
     # Use "colocate" to run vLLM in-process on the same GPU(s) as training.
     grpo_vllm_mode: str = "colocate"
@@ -63,3 +63,8 @@ class Config:
     grpo_vllm_tensor_parallel_size: int = 1
     # Optional cap for vLLM's max model length during GRPO generation.
     grpo_vllm_max_model_length: int | None = None
+    
+    # HuggingFace Transformers model loading memory limit
+    # Format: dict mapping device_id to memory string (e.g., "75GiB" for 75GB)
+    # Set to None to use Transformers' default (90% of GPU memory)
+    hf_max_memory: dict | None = None  # e.g., {0: "100GiB"} for H200-140GB
