@@ -165,7 +165,7 @@ class SimpleRZeroTrainer:
         vllm_model = LLM(
             model=self.current_model_path,
             tensor_parallel_size=self.config.tensor_parallel_size,
-            gpu_memory_utilization=0.2,
+            gpu_memory_utilization=self.config.gpu_memory_utilization,
             max_num_seqs=self.config.vllm_max_num_seqs,
         )
         vllm_tokenizer = AutoTokenizer.from_pretrained(self.current_model_path)
@@ -199,7 +199,7 @@ class SimpleRZeroTrainer:
         vllm_model = LLM(
             model=self.current_model_path,
             tensor_parallel_size=self.config.tensor_parallel_size,
-            gpu_memory_utilization=0.2,
+            gpu_memory_utilization=self.config.gpu_memory_utilization,
             max_num_seqs=self.config.vllm_max_num_seqs,
         )
         vllm_tokenizer = AutoTokenizer.from_pretrained(self.current_model_path)
@@ -312,11 +312,11 @@ class SimpleRZeroTrainer:
         # One vLLM instance for all concepts to keep eval fast.
         # Use a lower gpu_memory_utilization for eval since it runs right after GRPO
         # which may not fully release GPU memory immediately.
-        eval_mem_util = 0.1
+        eval_mem_util = float(getattr(self.config, "eval_gpu_memory_utilization", 0.2))
         vllm_model = LLM(
             model=model_path,
             tensor_parallel_size=self.config.tensor_parallel_size,
-            gpu_memory_utilization=0.2,
+            gpu_memory_utilization=eval_mem_util,
             max_num_seqs=self.config.vllm_max_num_seqs,
         )
         vllm_tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -438,7 +438,7 @@ class SimpleRZeroTrainer:
             # Use vLLM for faster online generation during GRPO (TRL v0.27+).
             use_vllm=self.config.grpo_use_vllm,
             vllm_mode=self.config.grpo_vllm_mode,
-            vllm_gpu_memory_utilization=0.1,
+            vllm_gpu_memory_utilization=self.config.grpo_vllm_gpu_memory_utilization,
             vllm_tensor_parallel_size=self.config.grpo_vllm_tensor_parallel_size,
             vllm_max_model_length=self.config.grpo_vllm_max_model_length,
         )

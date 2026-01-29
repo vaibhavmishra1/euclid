@@ -30,7 +30,7 @@ class QuestionGenerator:
             self.llm = LLM(
                 model=model_path,
                 tensor_parallel_size=tensor_parallel_size,
-                gpu_memory_utilization=0.2,
+                gpu_memory_utilization=gpu_memory_utilization,
             )
             print("Model loaded!")
     
