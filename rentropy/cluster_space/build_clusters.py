@@ -36,36 +36,56 @@ def load_questions_from_file(filepath: str, dataset_source: str = None) -> List[
     """
     Load questions from a JSON file. Supports multiple formats.
     
+    Supports:
+    1. New format: [{"question": "...", "source": "..."}, ...]
+    2. Old format: ["question1", "question2", ...] (uses filename as source)
+    3. Dict format: {"questions": [...]}
+    
     Returns:
         List of (question_text, dataset_source) tuples
     """
     if dataset_source is None:
-        dataset_source = Path(filepath).stem  # Use filename as source
+        dataset_source = Path(filepath).stem  # Use filename as source (fallback)
     
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     questions = []
     if isinstance(data, list):
         for item in data:
             question_text = None
+            source = dataset_source  # Default to file-based source
+            
             if isinstance(item, str):
+                # Old format: plain string
                 question_text = item
             elif isinstance(item, dict):
-                # Try common keys
+                # New format: dict with question and source
+                # Try to extract question text
                 for key in ['question', 'problem', 'text', 'input']:
                     if key in item and item[key]:
                         question_text = item[key]
                         break
+                
+                # Extract source if present
+                if 'source' in item:
+                    source = item['source']
+                elif 'dataset_source' in item:
+                    source = item['dataset_source']
             
             if question_text and len(question_text.strip()) > 10:
-                questions.append((question_text, dataset_source))
+                questions.append((question_text, source))
     elif isinstance(data, dict):
         # If it's a dict with a questions key
         if 'questions' in data:
             for q in data['questions']:
-                if q and len(q.strip()) > 10:
+                if isinstance(q, str) and q and len(q.strip()) > 10:
                     questions.append((q, dataset_source))
+                elif isinstance(q, dict) and 'question' in q:
+                    source = q.get('source', q.get('dataset_source', dataset_source))
+                    question_text = q.get('question') or q.get('problem') or q.get('text')
+                    if question_text and len(question_text.strip()) > 10:
+                        questions.append((question_text, source))
     
     return questions
 
@@ -76,14 +96,24 @@ def load_questions_from_dir(corpus_dir: str) -> List[Tuple[str, str]]:
     
     Returns:
         List of (question_text, dataset_source) tuples
+    
+    Note: If files contain source info in the data, that takes precedence.
+    Otherwise, filename stem is used as source.
     """
     questions = []
     corpus_path = Path(corpus_dir)
     
     for json_file in corpus_path.glob("*.json"):
-        dataset_source = json_file.stem  # Use filename as source
-        print(f"Loading from {json_file} (source: {dataset_source})...")
-        questions.extend(load_questions_from_file(str(json_file), dataset_source))
+        dataset_source = json_file.stem  # Use filename as source (fallback)
+        print(f"Loading from {json_file} (default source: {dataset_source})...")
+        file_questions = load_questions_from_file(str(json_file), dataset_source)
+        questions.extend(file_questions)
+        
+        # Show actual sources found in this file
+        if file_questions:
+            sources_found = set(q[1] for q in file_questions)
+            if len(sources_found) > 1 or (len(sources_found) == 1 and list(sources_found)[0] != dataset_source):
+                print(f"  Found sources: {sources_found}")
     
     return questions
 

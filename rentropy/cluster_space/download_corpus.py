@@ -19,11 +19,14 @@ except ImportError:
 
 
 def download_math_dataset(output_dir: str):
-    """Download MATH dataset questions."""
+    """Download MATH dataset questions with source info."""
     print("Downloading MATH dataset...")
     try:
         ds = load_dataset("lighteval/MATH", "all", split="train")
-        questions = [item["problem"] for item in ds if item.get("problem")]
+        questions = [
+            {"question": item["problem"], "source": "math"}
+            for item in ds if item.get("problem")
+        ]
         
         output_path = os.path.join(output_dir, "math_questions.json")
         with open(output_path, 'w') as f:
@@ -36,11 +39,14 @@ def download_math_dataset(output_dir: str):
 
 
 def download_gsm8k_dataset(output_dir: str):
-    """Download GSM8K dataset questions."""
+    """Download GSM8K dataset questions with source info."""
     print("Downloading GSM8K dataset...")
     try:
         ds = load_dataset("gsm8k", "main", split="train")
-        questions = [item["question"] for item in ds if item.get("question")]
+        questions = [
+            {"question": item["question"], "source": "gsm8k"}
+            for item in ds if item.get("question")
+        ]
         
         output_path = os.path.join(output_dir, "gsm8k_questions.json")
         with open(output_path, 'w') as f:
@@ -53,11 +59,14 @@ def download_gsm8k_dataset(output_dir: str):
 
 
 def download_math12k_dataset(output_dir: str):
-    """Download math12k dataset (used by R-Zero)."""
+    """Download math12k dataset (used by R-Zero) with source info."""
     print("Downloading math12k dataset...")
     try:
         ds = load_dataset("hiyouga/math12k", split="train")
-        questions = [item["problem"] for item in ds if item.get("problem")]
+        questions = [
+            {"question": item["problem"], "source": "math12k"}
+            for item in ds if item.get("problem")
+        ]
         
         output_path = os.path.join(output_dir, "math12k_questions.json")
         with open(output_path, 'w') as f:
@@ -94,11 +103,21 @@ def main():
     if "math12k" in datasets_to_download:
         all_questions.extend(download_math12k_dataset(args.output_dir))
     
-    # Save combined corpus
+    # Save combined corpus (preserving source info)
     combined_path = os.path.join(args.output_dir, "all_questions.json")
     with open(combined_path, 'w') as f:
         json.dump(all_questions, f, indent=2)
     print(f"\nTotal: {len(all_questions)} questions saved to {combined_path}")
+    
+    # Print source distribution
+    if all_questions and isinstance(all_questions[0], dict) and "source" in all_questions[0]:
+        from collections import Counter
+        sources = [q.get("source", "unknown") for q in all_questions]
+        source_counts = Counter(sources)
+        print("\nQuestions by source:")
+        for source, count in source_counts.most_common():
+            print(f"  {source}: {count}")
+    
     print("\nNext step: Run build_clusters.py to create cluster centroids")
     print(f"  python build_clusters.py --corpus_file {combined_path} --output_dir ./cluster_data")
 
