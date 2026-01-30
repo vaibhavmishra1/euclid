@@ -21,7 +21,7 @@ class ClusterConfig:
     centroids_file: str = "centroids.npy"
     
     # Processing
-    batch_size: int = 64
+    batch_size: int = 1024 * 10
     normalize_embeddings: bool = True
     
     # K-means settings

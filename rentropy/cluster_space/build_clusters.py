@@ -142,7 +142,7 @@ def load_questions_from_dir(corpus_dir: str) -> List[Dict]:
     return questions
 
 
-def embed_questions(questions: List[str], model_name: str, batch_size: int = 32, normalize: bool = True, use_vllm: bool = False) -> np.ndarray:
+def embed_questions(questions: List[str], model_name: str, batch_size: int = 1024 * 10, normalize: bool = True, use_vllm: bool = False) -> np.ndarray:
     """Embed questions using a sentence transformer model or vLLM."""
     print(f"Loading embedding model: {model_name} (use_vllm={use_vllm})")
     
@@ -152,19 +152,53 @@ def embed_questions(questions: List[str], model_name: str, batch_size: int = 32,
         
         # vLLM implementation for embedding
         print(f"Using vLLM for embedding...")
+        max_tokens = 32768
         model = LLM(
             model=model_name,
             runner="pooling",
             trust_remote_code=True,
             gpu_memory_utilization=0.85, # Leave some room for other things
             enforce_eager=True,
+            max_model_len=max_tokens,
         )
         
-        print(f"Embedding {len(questions)} questions...")
-        outputs = model.embed(questions)
+        # Get tokenizer to properly check/truncate questions
+        tokenizer = model.get_tokenizer()
         
-        # Extract embeddings and convert to numpy
-        embeddings = np.array([output.outputs.embedding for output in outputs])
+        # Truncate questions that are too long using actual tokenization
+        truncated_questions = []
+        num_truncated = 0
+        print(f"Checking and truncating questions longer than {max_tokens} tokens...")
+        for q in tqdm(questions, desc="Processing questions"):
+            # First do a quick character-based filter (4 chars ≈ 1 token) to avoid tokenizing everything
+            if len(q) > max_tokens * 4:
+                # Likely too long, tokenize to check
+                tokens = tokenizer.encode(q)
+                if len(tokens) > max_tokens:
+                    # Truncate by decoding only the first max_tokens
+                    q = tokenizer.decode(tokens[:max_tokens])
+                    num_truncated += 1
+            truncated_questions.append(q)
+        
+        if num_truncated > 0:
+            print(f"Warning: Truncated {num_truncated} questions that exceeded {max_tokens} tokens")
+        
+        print(f"Embedding {len(truncated_questions)} questions in batches of {batch_size}...")
+        all_embeddings = []
+        
+        # Process in batches to show progress and handle memory better
+        for i in tqdm(range(0, len(truncated_questions), batch_size), desc="Batches"):
+            batch = truncated_questions[i:i+batch_size]
+            try:
+                outputs = model.embed(batch)
+                batch_embeddings = [output.outputs.embedding for output in outputs]
+                all_embeddings.extend(batch_embeddings)
+            except Exception as e:
+                print(f"\nError embedding batch {i//batch_size}: {e}")
+                print(f"Batch sizes: {[len(q) for q in batch[:5]]}... (showing first 5)")
+                raise
+        
+        embeddings = np.array(all_embeddings)
         
         # vLLM doesn't automatically normalize in the same way, so we do it manually if requested
         if normalize:
@@ -322,7 +356,7 @@ def main():
     parser.add_argument("--dataset_source", type=str, default=None,
                        help="Dataset source name (if using --corpus_file)")
     parser.add_argument("--output_dir", type=str, default="./cluster_data")
-    parser.add_argument("--num_clusters", type=int, default=128)
+    parser.add_argument("--num_clusters", type=int, default=2048)
     parser.add_argument("--embedding_model", type=str, default="Qwen/Qwen3-Embedding-0.6B")
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--normalize", action="store_true", default=True)
