@@ -32,7 +32,8 @@ def download_mathlake_dataset(output_dir: str):
         
         # Filter for "Problem Solving" format and extract all fields
         questions = []
-        for item in ds:
+        from tqdm import tqdm
+        for item in tqdm(ds, desc="Filtering MathLake questions"):
             # Only keep items with format == "Problem Solving"
             if item.get("format") == "Problem Solving":
                 question_data = {

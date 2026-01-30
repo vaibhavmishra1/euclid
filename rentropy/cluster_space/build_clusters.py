@@ -4,7 +4,7 @@ Build cluster space from a corpus of math questions.
 This is run ONCE offline before training.
 
 Usage:
-    python build_clusters.py --corpus_file questions.json --output_dir ./cluster_data --num_clusters 128
+    python build_clusters.py --corpus_file all_questions.json --output_dir ./cluster_data --num_clusters 2048
 """
 import argparse
 import json
@@ -18,8 +18,12 @@ from tqdm import tqdm
 try:
     from sentence_transformers import SentenceTransformer
 except ImportError:
-    print("Please install sentence-transformers: pip install sentence-transformers")
-    raise
+    SentenceTransformer = None
+
+try:
+    from vllm import LLM
+except ImportError:
+    LLM = None
 
 from sklearn.cluster import KMeans
 
@@ -138,21 +142,52 @@ def load_questions_from_dir(corpus_dir: str) -> List[Dict]:
     return questions
 
 
-def embed_questions(questions: List[str], model_name: str, batch_size: int = 32, normalize: bool = True) -> np.ndarray:
-    """Embed questions using a sentence transformer model."""
-    print(f"Loading embedding model: {model_name}")
-    model = SentenceTransformer(model_name, trust_remote_code=True)
+def embed_questions(questions: List[str], model_name: str, batch_size: int = 32, normalize: bool = True, use_vllm: bool = False) -> np.ndarray:
+    """Embed questions using a sentence transformer model or vLLM."""
+    print(f"Loading embedding model: {model_name} (use_vllm={use_vllm})")
     
-    print(f"Embedding {len(questions)} questions...")
-    embeddings = model.encode(
-        questions,
-        batch_size=batch_size,
-        show_progress_bar=True,
-        convert_to_numpy=True,
-        normalize_embeddings=normalize,
-    )
-    
-    return embeddings
+    if use_vllm:
+        if LLM is None:
+            raise ImportError("vllm is not installed. Please install it with: pip install vllm")
+        
+        # vLLM implementation for embedding
+        print(f"Using vLLM for embedding...")
+        model = LLM(
+            model=model_name,
+            task="embed",
+            trust_remote_code=True,
+            gpu_memory_utilization=0.85, # Leave some room for other things
+            enforce_eager=True,
+        )
+        
+        print(f"Embedding {len(questions)} questions...")
+        outputs = model.embed(questions)
+        
+        # Extract embeddings and convert to numpy
+        embeddings = np.array([output.outputs.embedding for output in outputs])
+        
+        # vLLM doesn't automatically normalize in the same way, so we do it manually if requested
+        if normalize:
+            norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+            embeddings = embeddings / (norms + 1e-12)
+            
+        return embeddings
+    else:
+        if SentenceTransformer is None:
+            raise ImportError("sentence-transformers is not installed. Please install it with: pip install sentence-transformers")
+            
+        model = SentenceTransformer(model_name, trust_remote_code=True)
+        
+        print(f"Embedding {len(questions)} questions...")
+        embeddings = model.encode(
+            questions,
+            batch_size=batch_size,
+            show_progress_bar=True,
+            convert_to_numpy=True,
+            normalize_embeddings=normalize,
+        )
+        
+        return embeddings
 
 
 def fit_kmeans(embeddings: np.ndarray, num_clusters: int, n_init: int = 10, max_iter: int = 300, random_state: int = 42) -> KMeans:
@@ -291,6 +326,7 @@ def main():
     parser.add_argument("--embedding_model", type=str, default="Qwen/Qwen3-Embedding-0.6B")
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--normalize", action="store_true", default=True)
+    parser.add_argument("--use_vllm", action="store_true", help="Use vLLM for encoding")
     args = parser.parse_args()
     
     # Load questions (now returns list of metadata dicts)
@@ -322,7 +358,7 @@ def main():
         print(f"Reducing to {args.num_clusters} clusters")
     
     # Embed
-    embeddings = embed_questions(questions_text, args.embedding_model, args.batch_size, args.normalize)
+    embeddings = embed_questions(questions_text, args.embedding_model, args.batch_size, args.normalize, args.use_vllm)
     
     # Cluster
     kmeans = fit_kmeans(embeddings, args.num_clusters)
