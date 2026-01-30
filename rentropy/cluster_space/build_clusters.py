@@ -32,17 +32,19 @@ def generate_question_id(question: str, index: int) -> str:
     return f"q_{hash_obj.hexdigest()[:12]}_{index}"
 
 
-def load_questions_from_file(filepath: str, dataset_source: str = None) -> List[Tuple[str, str]]:
+def load_questions_from_file(filepath: str, dataset_source: str = None) -> List[Dict]:
     """
     Load questions from a JSON file. Supports multiple formats.
     
     Supports:
-    1. New format: [{"question": "...", "source": "..."}, ...]
-    2. Old format: ["question1", "question2", ...] (uses filename as source)
-    3. Dict format: {"questions": [...]}
+    1. MathLake format: [{"question": "...", "source": "...", "id": "...", "subject": "...", "format": "...", "difficulty": "..."}, ...]
+    2. Simple format: [{"question": "...", "source": "..."}, ...]
+    3. Old format: ["question1", "question2", ...] (uses filename as source)
+    4. Dict format: {"questions": [...]}
     
     Returns:
-        List of (question_text, dataset_source) tuples
+        List of metadata dicts, each with at least "question" and "source" fields.
+        For MathLake format, preserves: source, id, question, subject, format, difficulty
     """
     if dataset_source is None:
         dataset_source = Path(filepath).stem  # Use filename as source (fallback)
@@ -54,48 +56,66 @@ def load_questions_from_file(filepath: str, dataset_source: str = None) -> List[
     if isinstance(data, list):
         for item in data:
             question_text = None
-            source = dataset_source  # Default to file-based source
+            metadata = {}
             
             if isinstance(item, str):
                 # Old format: plain string
                 question_text = item
+                metadata = {
+                    "question": question_text,
+                    "source": dataset_source,
+                }
             elif isinstance(item, dict):
-                # New format: dict with question and source
+                # New format: dict with question and potentially full metadata
                 # Try to extract question text
                 for key in ['question', 'problem', 'text', 'input']:
                     if key in item and item[key]:
                         question_text = item[key]
                         break
                 
-                # Extract source if present
-                if 'source' in item:
-                    source = item['source']
-                elif 'dataset_source' in item:
-                    source = item['dataset_source']
+                # Preserve all metadata fields from MathLake format
+                metadata = {
+                    "question": question_text,
+                    "source": item.get('source', item.get('dataset_source', dataset_source)),
+                    "id": item.get('id', ''),
+                    "subject": item.get('subject', ''),
+                    "format": item.get('format', ''),
+                    "difficulty": item.get('difficulty', ''),
+                }
             
             if question_text and len(question_text.strip()) > 10:
-                questions.append((question_text, source))
+                questions.append(metadata)
     elif isinstance(data, dict):
         # If it's a dict with a questions key
         if 'questions' in data:
             for q in data['questions']:
                 if isinstance(q, str) and q and len(q.strip()) > 10:
-                    questions.append((q, dataset_source))
-                elif isinstance(q, dict) and 'question' in q:
-                    source = q.get('source', q.get('dataset_source', dataset_source))
+                    questions.append({
+                        "question": q,
+                        "source": dataset_source,
+                    })
+                elif isinstance(q, dict) and ('question' in q or 'problem' in q):
                     question_text = q.get('question') or q.get('problem') or q.get('text')
                     if question_text and len(question_text.strip()) > 10:
-                        questions.append((question_text, source))
+                        metadata = {
+                            "question": question_text,
+                            "source": q.get('source', q.get('dataset_source', dataset_source)),
+                            "id": q.get('id', ''),
+                            "subject": q.get('subject', ''),
+                            "format": q.get('format', ''),
+                            "difficulty": q.get('difficulty', ''),
+                        }
+                        questions.append(metadata)
     
     return questions
 
 
-def load_questions_from_dir(corpus_dir: str) -> List[Tuple[str, str]]:
+def load_questions_from_dir(corpus_dir: str) -> List[Dict]:
     """
     Load questions from all JSON files in a directory.
     
     Returns:
-        List of (question_text, dataset_source) tuples
+        List of metadata dicts (each with "question" and "source" fields, plus MathLake fields if present)
     
     Note: If files contain source info in the data, that takes precedence.
     Otherwise, filename stem is used as source.
@@ -111,7 +131,7 @@ def load_questions_from_dir(corpus_dir: str) -> List[Tuple[str, str]]:
         
         # Show actual sources found in this file
         if file_questions:
-            sources_found = set(q[1] for q in file_questions)
+            sources_found = set(q.get('source', dataset_source) for q in file_questions)
             if len(sources_found) > 1 or (len(sources_found) == 1 and list(sources_found)[0] != dataset_source):
                 print(f"  Found sources: {sources_found}")
     
@@ -154,7 +174,7 @@ def save_cluster_data(
     output_dir: str,
     centroids: np.ndarray,
     labels: np.ndarray,
-    questions: List[Tuple[str, str]],
+    questions: List[Dict],
     embeddings: np.ndarray,
 ):
     """
@@ -164,7 +184,7 @@ def save_cluster_data(
         output_dir: Directory to save files
         centroids: Cluster centroids array (num_clusters, embedding_dim)
         labels: Cluster assignments array (num_questions,)
-        questions: List of (question_text, dataset_source) tuples
+        questions: List of metadata dicts (each with "question" and "source" fields, plus MathLake fields)
         embeddings: Question embeddings array (num_questions, embedding_dim)
     """
     os.makedirs(output_dir, exist_ok=True)
@@ -188,17 +208,37 @@ def save_cluster_data(
     np.save(embeddings_path, embeddings)
     print(f"Saved embeddings to {embeddings_path} (shape: {embeddings.shape})")
     
-    # Generate question IDs and create metadata
+    # Generate question IDs and create metadata (preserving all MathLake fields)
     question_metadata = []
-    for index, (question_text, dataset_source) in enumerate(questions):
-        question_id = generate_question_id(question_text, index)
-        question_metadata.append({
+    for index, q_meta in enumerate(questions):
+        question_text = q_meta.get("question", "")
+        # Use existing ID if present (from MathLake), otherwise generate one
+        existing_id = q_meta.get("id", "")
+        if existing_id:
+            question_id = existing_id
+        else:
+            question_id = generate_question_id(question_text, index)
+        
+        # Build metadata preserving all original fields
+        metadata = {
             "question_id": question_id,
             "index": index,  # Index in labels.npy and embeddings.npy
             "question": question_text,
             "cluster_id": int(labels[index]),
-            "dataset_source": dataset_source,
-        })
+            "dataset_source": q_meta.get("source", q_meta.get("dataset_source", "unknown")),
+        }
+        
+        # Preserve MathLake-specific fields if present
+        if "id" in q_meta and q_meta["id"]:
+            metadata["original_id"] = q_meta["id"]
+        if "subject" in q_meta:
+            metadata["subject"] = q_meta.get("subject", "")
+        if "format" in q_meta:
+            metadata["format"] = q_meta.get("format", "")
+        if "difficulty" in q_meta:
+            metadata["difficulty"] = q_meta.get("difficulty", "")
+        
+        question_metadata.append(metadata)
     
     # Save question metadata (mapping from question_id to all info)
     metadata_path = os.path.join(output_dir, "question_metadata.json")
@@ -220,11 +260,23 @@ def save_cluster_data(
         "num_questions": num_questions,
         "cluster_sizes": {int(k): int(v) for k, v in zip(unique, counts)},
         "embedding_dim": centroids.shape[1],
-        "dataset_sources": list(set([q[1] for q in questions])),
+        "dataset_sources": list(set([q.get("source", q.get("dataset_source", "unknown")) for q in questions])),
     }
+    
+    # Add MathLake-specific stats if available
+    if questions and "subject" in questions[0]:
+        from collections import Counter
+        subjects = [q.get("subject", "") for q in questions if q.get("subject")]
+        difficulties = [q.get("difficulty", "") for q in questions if q.get("difficulty")]
+        formats = [q.get("format", "") for q in questions if q.get("format")]
+        
+        stats["subjects"] = dict(Counter(subjects))
+        stats["difficulties"] = dict(Counter(difficulties))
+        stats["formats"] = dict(Counter(formats))
+    
     stats_path = os.path.join(output_dir, "cluster_stats.json")
-    with open(stats_path, 'w') as f:
-        json.dump(stats, f, indent=2)
+    with open(stats_path, 'w', encoding='utf-8') as f:
+        json.dump(stats, f, indent=2, ensure_ascii=False)
     print(f"Saved stats to {stats_path}")
 
 
@@ -241,36 +293,46 @@ def main():
     parser.add_argument("--normalize", action="store_true", default=True)
     args = parser.parse_args()
     
-    # Load questions (now returns tuples of (question, source))
+    # Load questions (now returns list of metadata dicts)
     if args.corpus_file:
         dataset_source = args.dataset_source or Path(args.corpus_file).stem
-        questions_with_source = load_questions_from_file(args.corpus_file, dataset_source)
+        questions_metadata = load_questions_from_file(args.corpus_file, dataset_source)
     elif args.corpus_dir:
-        questions_with_source = load_questions_from_dir(args.corpus_dir)
+        questions_metadata = load_questions_from_dir(args.corpus_dir)
     else:
         raise ValueError("Must provide either --corpus_file or --corpus_dir")
     
     # Extract just question texts for embedding
-    questions = [q[0] for q in questions_with_source]
-    print(f"Loaded {len(questions)} questions from {len(set(q[1] for q in questions_with_source))} dataset(s)")
+    questions_text = [q["question"] for q in questions_metadata]
+    sources = set(q.get("source", q.get("dataset_source", "unknown")) for q in questions_metadata)
+    print(f"Loaded {len(questions_text)} questions from {len(sources)} dataset source(s)")
     
-    if len(questions) < args.num_clusters:
-        print(f"Warning: fewer questions ({len(questions)}) than clusters ({args.num_clusters})")
-        args.num_clusters = max(10, len(questions) // 5)
+    # Print field statistics if MathLake format
+    if questions_metadata and "subject" in questions_metadata[0]:
+        from collections import Counter
+        subjects = [q.get("subject", "") for q in questions_metadata if q.get("subject")]
+        difficulties = [q.get("difficulty", "") for q in questions_metadata if q.get("difficulty")]
+        if subjects:
+            print(f"Subjects: {len(set(subjects))} unique")
+            print(f"Difficulties: {Counter(difficulties)}")
+    
+    if len(questions_text) < args.num_clusters:
+        print(f"Warning: fewer questions ({len(questions_text)}) than clusters ({args.num_clusters})")
+        args.num_clusters = max(10, len(questions_text) // 5)
         print(f"Reducing to {args.num_clusters} clusters")
     
     # Embed
-    embeddings = embed_questions(questions, args.embedding_model, args.batch_size, args.normalize)
+    embeddings = embed_questions(questions_text, args.embedding_model, args.batch_size, args.normalize)
     
     # Cluster
     kmeans = fit_kmeans(embeddings, args.num_clusters)
     
-    # Save everything (including embeddings and metadata)
+    # Save everything (including embeddings and full metadata)
     save_cluster_data(
         args.output_dir,
         kmeans.cluster_centers_,
         kmeans.labels_,
-        questions_with_source,  # Pass tuples with source info
+        questions_metadata,  # Pass full metadata dicts
         embeddings,  # Pass embeddings to save
     )
     
