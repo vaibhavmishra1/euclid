@@ -154,7 +154,7 @@ def embed_questions(questions: List[str], model_name: str, batch_size: int = 32,
         print(f"Using vLLM for embedding...")
         model = LLM(
             model=model_name,
-            task="embed",
+            runner="pooling",
             trust_remote_code=True,
             gpu_memory_utilization=0.85, # Leave some room for other things
             enforce_eager=True,
