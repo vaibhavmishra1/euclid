@@ -75,6 +75,49 @@ python cluster_space/build_clusters.py \
     --num_clusters 128
 ```
 
+This creates:
+- `cluster_data/centroids.npy` - Cluster centroids (required)
+- `cluster_data/labels.npy` - Cluster assignments (optional)
+- `cluster_data/cluster_stats.json` - Metadata
+
+### 3.5. Upload Clusters to Hugging Face (Optional)
+
+Upload your clusters to share or use across environments:
+
+```bash
+# Upload to Hugging Face
+python cluster_space/upload_clusters.py \
+    --cluster_dir cluster_space/cluster_data \
+    --repo_name rentropy-clusters \
+    --private
+
+# Or make it public
+python cluster_space/upload_clusters.py \
+    --cluster_dir cluster_space/cluster_data \
+    --repo_name rentropy-clusters \
+    --public
+```
+
+**To use clusters from Hugging Face:**
+
+Update `rentropy_config.yaml`:
+```yaml
+centroids_path: "path/to/downloaded/centroids.npy"
+```
+
+Or download programmatically:
+```python
+from huggingface_hub import hf_hub_download
+import numpy as np
+
+centroids_path = hf_hub_download(
+    "your-org/rentropy-clusters",
+    "centroids.npy",
+    repo_type="dataset"
+)
+centroids = np.load(centroids_path)
+```
+
 ### 4. Configure Diversity Mode
 
 Edit `rentropy_config.yaml`:
