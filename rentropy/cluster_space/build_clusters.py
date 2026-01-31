@@ -9,6 +9,7 @@ Usage:
 import argparse
 import json
 import os
+import tempfile
 import numpy as np
 import hashlib
 from pathlib import Path
@@ -142,7 +143,7 @@ def load_questions_from_dir(corpus_dir: str) -> List[Dict]:
     return questions
 
 
-def embed_questions(questions: List[str], model_name: str, batch_size: int = 1024 * 10, normalize: bool = True, use_vllm: bool = False) -> np.ndarray:
+def embed_questions(questions: List[str], model_name: str, batch_size: int = 1024 * 10, normalize: bool = True, use_vllm: bool = False, timeout: int = 300, min_batch_size: int = 100) -> np.ndarray:
     """Embed questions using a sentence transformer model or vLLM."""
     print(f"Loading embedding model: {model_name} (use_vllm={use_vllm})")
     
@@ -171,12 +172,12 @@ def embed_questions(questions: List[str], model_name: str, batch_size: int = 102
         print(f"Checking and truncating questions longer than {max_tokens} tokens...")
         for q in tqdm(questions, desc="Processing questions"):
             # First do a quick character-based filter (4 chars ≈ 1 token) to avoid tokenizing everything
-            if len(q) > max_tokens * 4:
+            if len(q) > max_tokens * 2:
                 # Likely too long, tokenize to check
                 tokens = tokenizer.encode(q)
                 if len(tokens) > max_tokens:
                     # Truncate by decoding only the first max_tokens
-                    q = tokenizer.decode(tokens[:max_tokens])
+                    q = tokenizer.decode(tokens[:max_tokens -1 ])
                     num_truncated += 1
             truncated_questions.append(q)
         
@@ -184,25 +185,200 @@ def embed_questions(questions: List[str], model_name: str, batch_size: int = 102
             print(f"Warning: Truncated {num_truncated} questions that exceeded {max_tokens} tokens")
         
         print(f"Embedding {len(truncated_questions)} questions in batches of {batch_size}...")
-        all_embeddings = []
+        
+        embedding_dim = 1024
+        print(f"Embedding dimension: {embedding_dim}")
+        
+        # Use memory-mapped array to avoid OOM with large datasets
+        temp_dir = tempfile.gettempdir()
+        
+        # Check for existing memmap file from previous run
+        existing_files = [f for f in os.listdir(temp_dir) if f.startswith('embeddings_') and f.endswith('.npy')]
+        embeddings_file = None
+        embeddings = None
+        resume_mode = False
+        
+        if existing_files:
+            # Found existing file(s), use the most recent one
+            existing_files.sort(key=lambda f: os.path.getmtime(os.path.join(temp_dir, f)), reverse=True)
+            embeddings_file = os.path.join(temp_dir, existing_files[0])
+            
+            # Check if it matches our expected size
+            expected_size = len(truncated_questions) * embedding_dim * 4  # 4 bytes per float32
+            actual_size = os.path.getsize(embeddings_file)
+            
+            if actual_size == expected_size:
+                print(f"Found existing embeddings file: {embeddings_file}")
+                print(f"Resuming from previous run...")
+                embeddings = np.memmap(
+                    embeddings_file, 
+                    dtype='float32', 
+                    mode='r+',  # Read-write mode to continue
+                    shape=(len(truncated_questions), embedding_dim)
+                )
+                resume_mode = True
+            else:
+                print(f"Found existing file but size mismatch (expected {expected_size}, got {actual_size})")
+                print(f"Creating new embeddings file...")
+                embeddings_file = os.path.join(temp_dir, f"embeddings_{os.getpid()}.npy")
+        
+        if embeddings is None:
+            embeddings_file = os.path.join(temp_dir, f"embeddings_{os.getpid()}.npy")
+            print(f"Creating memory-mapped file: {embeddings_file}")
+            embeddings = np.memmap(
+                embeddings_file, 
+                dtype='float32', 
+                mode='w+', 
+                shape=(len(truncated_questions), embedding_dim)
+            )
+        
+        # Helper function to embed with timeout
+        import signal
+        
+        def embed_with_timeout(questions_batch, timeout_seconds=180):
+            """Embed a batch with timeout. Returns outputs or raises TimeoutError."""
+            def timeout_handler(signum, frame):
+                raise TimeoutError(f"vLLM embed call timed out after {timeout_seconds}s")
+            
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout_seconds)
+            
+            try:
+                outputs = model.embed(questions_batch)
+                signal.alarm(0)  # Cancel alarm
+                return outputs
+            except TimeoutError:
+                signal.alarm(0)  # Cancel alarm
+                raise
+            except Exception as e:
+                signal.alarm(0)  # Cancel alarm
+                raise e
+        
+        def process_batch_with_fallback(batch, batch_start_idx, embeddings, timeout=180, min_batch=1):
+            """
+            Process a batch with fallback to smaller batches if timeout occurs.
+            Returns number of questions that failed.
+            """
+            failed_count = 0
+            
+            # Skip if already completed (resuming)
+            if resume_mode:
+                batch_embeddings = embeddings[batch_start_idx:batch_start_idx+len(batch)]
+                if np.any(batch_embeddings != 0):
+                    return 0  # Already done
+            
+            try:
+                # Try to process the full batch
+                outputs = embed_with_timeout(batch, timeout_seconds=timeout)
+                
+                # Extract embeddings
+                for j, output in enumerate(outputs):
+                    try:
+                        embedding = output.outputs.embedding
+                        embeddings[batch_start_idx + j] = embedding
+                    except Exception as e:
+                        print(f"\nWarning: Failed to extract embedding at index {batch_start_idx + j}: {e}")
+                        embeddings[batch_start_idx + j] = np.zeros(embedding_dim, dtype='float32')
+                        failed_count += 1
+                
+                embeddings.flush()
+                del outputs
+                
+                # Clear GPU cache
+                try:
+                    import torch
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                except:
+                    pass
+                
+                return failed_count
+                
+            except TimeoutError as e:
+                print(f"\n{e} for batch starting at {batch_start_idx} (size: {len(batch)})")
+                
+                # If batch is small enough, skip these questions
+                if len(batch) <= min_batch:
+                    print(f"Skipping {len(batch)} question(s) that cause timeout")
+                    for j in range(len(batch)):
+                        embeddings[batch_start_idx + j] = np.zeros(embedding_dim, dtype='float32')
+                    embeddings.flush()
+                    return len(batch)
+                
+                # Otherwise, split batch and retry with smaller chunks
+                print(f"Retrying with smaller sub-batches...")
+                mid = len(batch) // 2
+                
+                # Process first half
+                failed_count += process_batch_with_fallback(
+                    batch[:mid], 
+                    batch_start_idx, 
+                    embeddings,
+                    timeout=timeout // 2,
+                    min_batch=min_batch
+                )
+                
+                # Process second half
+                failed_count += process_batch_with_fallback(
+                    batch[mid:], 
+                    batch_start_idx + mid, 
+                    embeddings,
+                    timeout=timeout // 2,
+                    min_batch=min_batch
+                )
+                
+                return failed_count
+                
+            except Exception as e:
+                print(f"\nError embedding batch starting at {batch_start_idx}: {e}")
+                print(f"Skipping {len(batch)} question(s)")
+                for j in range(len(batch)):
+                    embeddings[batch_start_idx + j] = np.zeros(embedding_dim, dtype='float32')
+                embeddings.flush()
+                return len(batch)
         
         # Process in batches to show progress and handle memory better
+        num_failed = 0
+        num_skipped = 0
+        timeout_per_batch = timeout  # Timeout for full batch
+        min_batch_size_param = min_batch_size  # Minimum batch size before giving up on individual questions
+        
         for i in tqdm(range(0, len(truncated_questions), batch_size), desc="Batches"):
             batch = truncated_questions[i:i+batch_size]
-            try:
-                outputs = model.embed(batch)
-                batch_embeddings = [output.outputs.embedding for output in outputs]
-                all_embeddings.extend(batch_embeddings)
-            except Exception as e:
-                print(f"\nError embedding batch {i//batch_size}: {e}")
-                print(f"Batch sizes: {[len(q) for q in batch[:5]]}... (showing first 5)")
-                raise
+            batch_start_idx = i
+            
+            failed = process_batch_with_fallback(
+                batch, 
+                batch_start_idx, 
+                embeddings,
+                timeout=timeout_per_batch,
+                min_batch=min_batch_size_param
+            )
+            num_failed += failed
         
-        embeddings = np.array(all_embeddings)
+        if num_skipped > 0:
+            print(f"\nResumed: Skipped {num_skipped} already-completed batches")
+        if num_failed > 0:
+            print(f"\nWarning: {num_failed}/{len(truncated_questions)} questions failed to embed and were zero-padded")
+        
+        # Convert memmap to regular array for further processing
+        print("Loading embeddings into memory for normalization...")
+        embeddings = np.array(embeddings)
+        
+        # Clean up temporary memmap file
+        try:
+            if os.path.exists(embeddings_file):
+                os.remove(embeddings_file)
+                print(f"Cleaned up temporary file: {embeddings_file}")
+        except Exception as e:
+            print(f"Warning: Could not remove temporary file {embeddings_file}: {e}")
         
         # vLLM doesn't automatically normalize in the same way, so we do it manually if requested
         if normalize:
+            print("Normalizing embeddings...")
             norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+            # Handle any zero embeddings (failed questions)
+            norms = np.where(norms == 0, 1, norms)  # Avoid division by zero
             embeddings = embeddings / (norms + 1e-12)
             
         return embeddings
@@ -361,6 +537,10 @@ def main():
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--normalize", action="store_true", default=True)
     parser.add_argument("--use_vllm", action="store_true", help="Use vLLM for encoding")
+    parser.add_argument("--timeout", type=int, default=300,
+                       help="Timeout in seconds for each batch (default: 300)")
+    parser.add_argument("--min_batch_size", type=int, default=100,
+                       help="Minimum batch size before giving up on questions (default: 100)")
     args = parser.parse_args()
     
     # Load questions (now returns list of metadata dicts)
@@ -392,7 +572,15 @@ def main():
         print(f"Reducing to {args.num_clusters} clusters")
     
     # Embed
-    embeddings = embed_questions(questions_text, args.embedding_model, args.batch_size, args.normalize, args.use_vllm)
+    embeddings = embed_questions(
+        questions_text, 
+        args.embedding_model, 
+        args.batch_size, 
+        args.normalize, 
+        args.use_vllm,
+        args.timeout,
+        args.min_batch_size
+    )
     
     # Cluster
     kmeans = fit_kmeans(embeddings, args.num_clusters)
