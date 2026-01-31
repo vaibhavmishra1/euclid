@@ -1,0 +1,20 @@
+Rentropy Smoke Test Results
+Started: Sat Jan 31 12:21:18 UTC 2026
+Base Model: Qwen/Qwen3-0.6B-Base
+
+
+Mode 1 (Vanilla (baseline)):
+  Duration: 604s
+  Questioner log: /root/euclid/rentropy/R-Zero/storage/smoketest_results/rentropy_smoketest_20260131_122118_mode1_questioner.log
+
+Mode 2 (Rarity reward):
+  Duration: 483s
+  Questioner log: /root/euclid/rentropy/R-Zero/storage/smoketest_results/rentropy_smoketest_20260131_122118_mode2_questioner.log
+
+Mode 3 (Rarity + Batch uniqueness):
+  Duration: 508s
+  Questioner log: /root/euclid/rentropy/R-Zero/storage/smoketest_results/rentropy_smoketest_20260131_122118_mode3_questioner.log
+
+Mode 4 (Full Rentropy):
+  Duration: 500s
+  Questioner log: /root/euclid/rentropy/R-Zero/storage/smoketest_results/rentropy_smoketest_20260131_122118_mode4_questioner.log

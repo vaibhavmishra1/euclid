@@ -6,7 +6,7 @@
 #   2: Mode 1 + reward for choosing a rare cluster
 #   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
 #   4: Mode 3 + within-cluster uniqueness reward
-diversity_mode: 1
+diversity_mode: 4
 
 # Path to cluster centroids (built by cluster_space/build_clusters.py)
 centroids_path: "../cluster_space/cluster_data/centroids.npy"

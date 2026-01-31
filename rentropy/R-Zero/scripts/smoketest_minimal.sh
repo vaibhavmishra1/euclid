@@ -38,6 +38,11 @@ echo "RUN_ID=$RUN_ID"
 # Use single vLLM server
 export RENTROPY_NUM_SERVERS=1
 
+# Clean up any existing vLLM processes first
+echo "Cleaning up any existing vLLM processes..."
+pkill -f "vllm_service_init.*port 5000" 2>/dev/null || true
+sleep 2
+
 # Start vLLM with MINIMAL memory settings
 echo "Starting vLLM service with minimal memory..."
 CUDA_VISIBLE_DEVICES=0 python3 vllm_service_init/start_vllm_server.py \
@@ -75,10 +80,19 @@ CUDA_VISIBLE_DEVICES=0 python3 -m verl.trainer.main \
 
 TRAIN_EXIT=$?
 
-# Kill vLLM service
-echo "Stopping vLLM service..."
+# Kill vLLM service (aggressive cleanup)
+echo "Stopping vLLM service (PID: $VLLM_PID)..."
 kill $VLLM_PID 2>/dev/null
-wait $VLLM_PID 2>/dev/null
+sleep 3
+
+# Force kill if still running
+if ps -p $VLLM_PID > /dev/null 2>&1; then
+    echo "Force killing vLLM..."
+    kill -9 $VLLM_PID 2>/dev/null
+fi
+
+# Clean up any orphaned vLLM processes on port 5000
+pkill -f "vllm_service_init.*port 5000" 2>/dev/null || true
 sleep 2
 
 if [ $TRAIN_EXIT -eq 0 ]; then
