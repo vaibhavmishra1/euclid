@@ -26,6 +26,14 @@ weights:
 # Majority voting threshold - diversity reward only applied if score >= this
 majority_vote_threshold: 0.3
 
+# Scale diversity reward by ZPD score (Zone of Proximal Development)
+# When true: diversity_reward *= (min(score, 1-score) / 0.5)
+# This prevents reward hacking via "easy but rare" questions:
+#   - Easy questions (score=0.9): zpd=0.1, scale=0.2 → small bonus
+#   - Medium questions (score=0.5): zpd=0.5, scale=1.0 → full bonus
+#   - Hard questions (score=0.3): zpd=0.3, scale=0.6 → medium bonus
+scale_diversity_by_zpd: true
+
 # EMA decay for cluster count tracking
 ema_decay: 0.99
 
