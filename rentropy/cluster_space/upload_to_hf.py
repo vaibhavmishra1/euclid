@@ -6,7 +6,7 @@ Usage:
     python upload_to_hf.py --repo_id your-username/your-repo-name --file embeddings_201027.npy
     
 Or upload entire directory:
-    python upload_to_hf.py --repo_id your-username/your-repo-name --folder ./cluster_data
+    python3 upload_to_hf.py --repo_id your-username/your-repo-name --folder ./cluster_data
 """
 import argparse
 from pathlib import Path
