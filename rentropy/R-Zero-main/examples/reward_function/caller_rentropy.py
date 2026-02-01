@@ -61,6 +61,7 @@ def load_rentropy_config() -> dict:
             "ema_decay": 0.99,
             "smoothing_alpha": 1.0,
             "scale_diversity_by_zpd": True,  # Scale diversity reward by ZPD score to prevent reward hacking
+            "log_cluster_stats_freq": 1,  # Log cluster stats every N steps
         }
 
 # Load config once at module import
@@ -68,6 +69,9 @@ RENTROPY_CONFIG = load_rentropy_config()
 
 # Lazy-loaded cluster assigner
 _cluster_assigner = None
+
+# Global step counter for logging
+_global_step_counter = 0
 
 def get_cluster_assigner() -> ClusterAssigner:
     """Get or create the cluster assigner instance."""
@@ -251,7 +255,63 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     # Update cluster counts for valid questions
     assigner.update_counts(cluster_ids)
     
+    # Log cluster statistics
+    _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+    
     return diversity_rewards.tolist()
+
+def _log_cluster_stats(assigner: ClusterAssigner, cluster_ids: np.ndarray, 
+                       base_scores: list, questions: list):
+    """Log cluster statistics to file for later analysis."""
+    global _global_step_counter
+    _global_step_counter += 1
+    
+    # Only log periodically to avoid too many files
+    log_freq = RENTROPY_CONFIG.get("log_cluster_stats_freq", 1)
+    if _global_step_counter % log_freq != 0:
+        return
+    
+    # Create logs directory
+    log_dir = os.path.join(STORAGE_PATH, "cluster_logs")
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # Get cluster statistics
+    stats = assigner.get_stats()
+    
+    # Compute per-cluster scores
+    cluster_score_sums = {}
+    cluster_question_counts = {}
+    
+    for cid, score in zip(cluster_ids, base_scores):
+        cid = int(cid)
+        if cid not in cluster_score_sums:
+            cluster_score_sums[cid] = 0.0
+            cluster_question_counts[cid] = 0
+        cluster_score_sums[cid] += score
+        cluster_question_counts[cid] += 1
+    
+    # Compute averages
+    cluster_avg_scores = {
+        cid: cluster_score_sums[cid] / cluster_question_counts[cid]
+        for cid in cluster_score_sums
+    }
+    
+    # Build log entry
+    log_entry = {
+        "step": _global_step_counter,
+        "timestamp": time.time(),
+        "num_questions": len(cluster_ids),
+        "cluster_stats": stats,
+        "batch_cluster_distribution": cluster_question_counts,
+        "batch_cluster_avg_scores": cluster_avg_scores,
+    }
+    
+    # Save to JSON file
+    log_file = os.path.join(log_dir, f"cluster_stats_step_{_global_step_counter:06d}.json")
+    with open(log_file, 'w') as f:
+        json.dump(log_entry, f, indent=2)
+    
+    print(f"[Rentropy] Logged cluster stats to {log_file}")
 
 # ============================================================================
 # Main Reward Function

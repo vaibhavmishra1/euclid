@@ -39,3 +39,7 @@ ema_decay: 0.99
 
 # Smoothing constant for log-inverse-frequency
 smoothing_alpha: 1.0
+
+# Logging frequency for cluster statistics (log every N reward computations)
+# Set to 1 to log every step, higher values reduce logging overhead
+log_cluster_stats_freq: 1

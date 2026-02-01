@@ -131,6 +131,15 @@ class ClusterAssigner:
             self.cluster_counts *= self.ema_decay
             self.cluster_counts[cid] += (1 - self.ema_decay)
         self.total_count = np.sum(self.cluster_counts)
+    
+    def get_stats(self) -> dict:
+        """Get current cluster statistics for logging."""
+        return {
+            "cluster_counts": self.cluster_counts.tolist(),
+            "cluster_probabilities": self.get_cluster_probabilities().tolist(),
+            "total_count": float(self.total_count),
+            "num_clusters": self.num_clusters,
+        }
 
 
 # Global instance (lazy loaded)
