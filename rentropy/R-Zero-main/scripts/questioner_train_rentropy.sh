@@ -57,16 +57,18 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
     worker.actor.model.model_path=$questioner_model_path \
     trainer.experiment_name=$save_path \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/$save_path \
-    trainer.total_epochs=6 \
     worker.reward.reward_function=./examples/reward_function/caller_rentropy.py:compute_score \
     trainer.val_freq=-1 \
-    trainer.n_gpus_per_node=6 \
+    trainer.n_gpus_per_node=4 \
     data.format_prompt=./examples/format_prompt/questioner.jinja \
+    data.rollout_batch_size=512 \
+    data.val_batch_size=1024 \
     worker.rollout.n=4 \
-    worker.actor.global_batch_size=128 \
-    worker.actor.micro_batch_size_per_device_for_update=4 \
-    worker.actor.micro_batch_size_per_device_for_experience=16 \
-    trainer.max_steps=6 \
+    worker.actor.global_batch_size=16 \
+    worker.actor.micro_batch_size_per_device_for_update=2 \
+    worker.actor.micro_batch_size_per_device_for_experience=8 \
+    trainer.total_epochs=1 \
+    trainer.max_steps=1 \
     trainer.save_freq=1
 
 sleep 5
@@ -83,7 +85,29 @@ sleep 2
 
 # Merge model
 echo "merging model"
-python scripts/model_merger.py --local_dir ${STORAGE_PATH}/models/$save_path/global_step_5/actor
+# Find the latest checkpoint directory dynamically
+CHECKPOINT_DIR="${STORAGE_PATH}/models/$save_path"
+if [ -f "${CHECKPOINT_DIR}/latest_global_step.txt" ]; then
+    # Use tracker file if available
+    LATEST_STEP=$(cat "${CHECKPOINT_DIR}/latest_global_step.txt")
+    ACTOR_PATH="${CHECKPOINT_DIR}/global_step_${LATEST_STEP}/actor"
+else
+    # Fallback: find the highest global_step_* directory
+    LATEST_STEP=$(ls -d ${CHECKPOINT_DIR}/global_step_* 2>/dev/null | sed 's/.*global_step_//' | sort -n | tail -1)
+    if [ -z "$LATEST_STEP" ]; then
+        echo "ERROR: No checkpoint found in ${CHECKPOINT_DIR}"
+        exit 1
+    fi
+    ACTOR_PATH="${CHECKPOINT_DIR}/global_step_${LATEST_STEP}/actor"
+fi
+
+if [ ! -d "$ACTOR_PATH" ]; then
+    echo "ERROR: Checkpoint directory not found: $ACTOR_PATH"
+    exit 1
+fi
+
+echo "Using checkpoint at: $ACTOR_PATH"
+python scripts/model_merger.py --local_dir "$ACTOR_PATH"
 
 sleep 10
 

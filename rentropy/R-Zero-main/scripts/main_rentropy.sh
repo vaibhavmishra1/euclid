@@ -18,6 +18,8 @@
 Base_model=$1
 Model_abbr=$2
 Diversity_mode=${3:-4}  # Default to mode 4 (full Rentropy)
+export HUGGINGFACENAME="vibhuiitj"
+export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
 
 # Validate diversity mode
 if [[ ! "$Diversity_mode" =~ ^[1-4]$ ]]; then
@@ -28,7 +30,13 @@ fi
 echo "Model_abbr: $Model_abbr"
 echo "Diversity Mode: $Diversity_mode"
 echo "Running Rentropy experiment with cluster-entropy diversity reward (mode $Diversity_mode)"
-
+echo "STORAGE_PATH: $STORAGE_PATH"
+echo "HUGGINGFACENAME: $HUGGINGFACENAME"
+mkdir -p \
+  "$STORAGE_PATH/evaluation" \
+  "$STORAGE_PATH/models" \
+  "$STORAGE_PATH/generated_question" \
+  "$STORAGE_PATH/temp_results"
 # Check if cluster centroids exist
 CENTROIDS_PATH="../cluster_space/cluster_data/centroids.npy"
 if [ ! -f "$CENTROIDS_PATH" ]; then
@@ -37,24 +45,47 @@ if [ ! -f "$CENTROIDS_PATH" ]; then
     echo "Continuing anyway (will fall back to mode 1 if diversity_mode > 1)"
 fi
 
+# Helper function to find latest checkpoint path
+find_latest_checkpoint() {
+    local checkpoint_dir="$1"
+    if [ -f "${checkpoint_dir}/latest_global_step.txt" ]; then
+        # Use tracker file if available
+        local latest_step=$(cat "${checkpoint_dir}/latest_global_step.txt")
+        echo "${checkpoint_dir}/global_step_${latest_step}/actor/huggingface"
+    else
+        # Fallback: find the highest global_step_* directory
+        local latest_step=$(ls -d ${checkpoint_dir}/global_step_* 2>/dev/null | sed 's/.*global_step_//' | sort -n | tail -1)
+        if [ -z "$latest_step" ]; then
+            echo "ERROR: No checkpoint found in ${checkpoint_dir}" >&2
+            return 1
+        fi
+        echo "${checkpoint_dir}/global_step_${latest_step}/actor/huggingface"
+    fi
+}
+
 # Initialize first iteration with base model
 bash scripts/questioner_train_rentropy.sh $Base_model $Base_model ${Model_abbr}_questioner_v1 $Diversity_mode
-bash scripts/solver_train.sh $Base_model ${STORAGE_PATH}/models/${Model_abbr}_questioner_v1/global_step_5/actor/huggingface ${Model_abbr}_solver_v1
+# QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
+# bash scripts/solver_train.sh $Base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
 
 # for i in {2..5}; do
 #     prev=$((i-1))
     
 #     # Train questioner with rentropy reward
+#     SOLVER_PREV_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_solver_v${prev}")
+#     QUESTIONER_PREV_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v${prev}")
 #     bash scripts/questioner_train_rentropy.sh \
-#         ${STORAGE_PATH}/models/${Model_abbr}_solver_v${prev}/global_step_15/actor/huggingface \
-#         ${STORAGE_PATH}/models/${Model_abbr}_questioner_v${prev}/global_step_5/actor/huggingface \
+#         "$SOLVER_PREV_CHECKPOINT" \
+#         "$QUESTIONER_PREV_CHECKPOINT" \
 #         ${Model_abbr}_questioner_v${i} \
 #         $Diversity_mode
 
 #     # Train solver
+#     SOLVER_PREV_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_solver_v${prev}")
+#     QUESTIONER_CURR_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v${i}")
 #     bash scripts/solver_train.sh \
-#         ${STORAGE_PATH}/models/${Model_abbr}_solver_v${prev}/global_step_15/actor/huggingface \
-#         ${STORAGE_PATH}/models/${Model_abbr}_questioner_v${i}/global_step_5/actor/huggingface \
+#         "$SOLVER_PREV_CHECKPOINT" \
+#         "$QUESTIONER_CURR_CHECKPOINT" \
 #         ${Model_abbr}_solver_v${i}
 # done
 
