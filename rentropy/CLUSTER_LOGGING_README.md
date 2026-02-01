@@ -2,11 +2,13 @@
 
 ## Overview
 
-The Rentropy training pipeline now automatically logs cluster statistics during training, allowing you to analyze:
+The Rentropy training pipeline now automatically logs cluster statistics during training **for all diversity modes (1-4)**, allowing you to analyze:
 - Which clusters were visited most frequently
 - Average majority voting scores per cluster
 - Evolution of cluster probabilities over time
 - Distribution of generated questions across the cluster space
+
+**Note:** Even in **mode 1 (baseline)**, cluster statistics are logged for comparison purposes, but diversity rewards are **not** applied to the training signal. This allows direct comparison of question distribution between baseline and diversity-enhanced modes.
 
 ## How It Works
 
@@ -149,17 +151,37 @@ low_score_clusters = [
 ]
 ```
 
-### 3. Compare Different Modes
+### 3. Compare Different Modes (Mode 1 vs Mode 4)
+
+**Important:** Mode 1 tracks cluster statistics but doesn't use them for rewards, allowing direct comparison.
 
 Train with different diversity modes and compare:
 ```bash
-# Mode 1 (baseline)
-python analyze_cluster_logs.py --log_dir storage_mode1/cluster_logs --output mode1.json
+# Mode 1 (baseline - no diversity reward, only tracking)
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base baseline 1
+python analyze_cluster_logs.py --log_dir storage/cluster_logs --output mode1.json
 
-# Mode 4 (full Rentropy)
-python analyze_cluster_logs.py --log_dir storage_mode4/cluster_logs --output mode4.json
+# Mode 4 (full Rentropy - diversity rewards active)
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base rentropy 4
+python analyze_cluster_logs.py --log_dir storage/cluster_logs --output mode4.json
 
-# Compare clusters_visited, distribution statistics, etc.
+# Compare results
+python3 << 'EOF'
+import json
+
+with open('mode1.json') as f:
+    m1 = json.load(f)
+with open('mode4.json') as f:
+    m4 = json.load(f)
+
+print(f"Mode 1 - Clusters visited: {m1['clusters_visited']}/{m1['num_clusters']}")
+print(f"Mode 4 - Clusters visited: {m4['clusters_visited']}/{m4['num_clusters']}")
+
+print(f"\nMode 1 - Std dev of visits: {m1['cluster_visit_std']:.2f}")
+print(f"Mode 4 - Std dev of visits: {m4['cluster_visit_std']:.2f}")
+
+print("\nMode 1 collapsed to fewer clusters!" if m1['clusters_visited'] < m4['clusters_visited'] else "\nMode 4 achieved better diversity!")
+EOF
 ```
 
 ### 4. Track Evolution Over Time
@@ -207,9 +229,9 @@ $STORAGE_PATH/
 ## Troubleshooting
 
 **No logs created:**
-- Check that `diversity_mode > 1` (mode 1 has no cluster tracking)
 - Verify `$STORAGE_PATH` is set correctly
-- Check that centroids file exists and is loaded
+- Check that centroids file exists and is loaded (required for all modes)
+- Ensure `rentropy_config.yaml` has correct `centroids_path`
 
 **Too many log files:**
 - Increase `log_cluster_stats_freq` in `rentropy_config.yaml`

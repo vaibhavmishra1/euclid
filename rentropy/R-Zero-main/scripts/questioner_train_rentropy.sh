@@ -56,7 +56,7 @@ echo "Start training questioner with Rentropy: $questioner_model_path -> $save_p
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
     config=examples/config.yaml \
-    data.max_response_length=1024 \
+    data.max_response_length=4096 \
     worker.actor.model.model_path=$questioner_model_path \
     trainer.experiment_name=$save_path \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/$save_path \
@@ -70,8 +70,8 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
     worker.actor.global_batch_size=16 \
     worker.actor.micro_batch_size_per_device_for_update=2 \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
-    trainer.total_epochs=1 \
-    trainer.max_steps=1 \
+    trainer.total_epochs=6 \
+    trainer.max_steps=6 \
     trainer.save_freq=1
 
 sleep 5

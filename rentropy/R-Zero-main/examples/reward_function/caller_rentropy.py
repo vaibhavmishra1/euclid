@@ -74,9 +74,13 @@ _cluster_assigner = None
 _global_step_counter = 0
 
 def get_cluster_assigner() -> ClusterAssigner:
-    """Get or create the cluster assigner instance."""
+    """Get or create the cluster assigner instance.
+    
+    Note: Creates cluster assigner for all modes (including mode 1) to enable
+    logging of cluster statistics for comparison purposes.
+    """
     global _cluster_assigner
-    if _cluster_assigner is None and RENTROPY_CONFIG.get("diversity_mode", 1) > 1:
+    if _cluster_assigner is None:
         centroids_path = RENTROPY_CONFIG.get("centroids_path")
         if centroids_path and not os.path.isabs(centroids_path):
             centroids_path = os.path.join(RENTROPY_ROOT, centroids_path)
@@ -88,8 +92,13 @@ def get_cluster_assigner() -> ClusterAssigner:
                 ema_decay=RENTROPY_CONFIG.get("ema_decay", 0.99),
                 smoothing_alpha=RENTROPY_CONFIG.get("smoothing_alpha", 1.0),
             )
+            mode = RENTROPY_CONFIG.get("diversity_mode", 1)
+            if mode == 1:
+                print(f"[Rentropy] Mode 1: Cluster assigner loaded for logging only (no diversity reward)")
         else:
-            print(f"[Rentropy] WARNING: centroids not found at {centroids_path}, falling back to mode 1")
+            print(f"[Rentropy] WARNING: centroids not found at {centroids_path}")
+            if RENTROPY_CONFIG.get("diversity_mode", 1) > 1:
+                print(f"[Rentropy] WARNING: Diversity modes 2-4 require centroids, falling back to mode 1")
     return _cluster_assigner
 
 # ============================================================================
@@ -191,6 +200,9 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
         (min(score, 1-score)) to prevent reward hacking via easy-but-rare questions.
         This ensures medium-difficulty questions get higher diversity bonus than
         very easy or very hard questions.
+        
+        Even in mode 1 (no diversity reward), cluster statistics are still logged
+        for comparison purposes.
     """
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
     threshold = RENTROPY_CONFIG.get("majority_vote_threshold", 0.3)
@@ -200,10 +212,7 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     n = len(questions)
     diversity_rewards = np.zeros(n)
     
-    if mode == 1:
-        # Mode 1: No diversity reward
-        return diversity_rewards.tolist()
-    
+    # Get cluster assigner (needed even for mode 1 for logging purposes)
     assigner = get_cluster_assigner()
     if assigner is None:
         print("[Rentropy] No cluster assigner available, returning zero diversity rewards")
@@ -217,6 +226,17 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     if not valid_questions:
         return diversity_rewards.tolist()
     
+    # Assign clusters (for all modes, including mode 1 for logging)
+    cluster_ids = assigner.assign_clusters(valid_questions)
+    
+    # Mode 1: Only log cluster stats, don't compute diversity rewards
+    if mode == 1:
+        # Update cluster counts for tracking (but no reward)
+        assigner.update_counts(cluster_ids)
+        # Log cluster statistics
+        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+        return diversity_rewards.tolist()
+    
     # Compute ZPD scores for scaling (peaks at 0.5, penalizes too-easy and too-hard)
     # ZPD = Zone of Proximal Development: min(score, 1-score)
     zpd_scores = np.array([min(s, 1 - s) for s in valid_base_scores])
@@ -224,9 +244,6 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     # Normalize ZPD scores to [0, 1] range (max ZPD is 0.5 at score=0.5)
     # This makes scaling factor 1.0 at optimal difficulty
     zpd_scale_factors = zpd_scores / 0.5 if scale_by_zpd else np.ones(len(valid_indices))
-    
-    # Assign clusters
-    cluster_ids = assigner.assign_clusters(valid_questions)
     
     # Mode 2+: Rarity reward (scaled by ZPD)
     if mode >= 2:
