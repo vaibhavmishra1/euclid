@@ -5,6 +5,18 @@ experiment_name=$3
 # Add project root to PYTHONPATH
 export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
 
+# Helper function to find latest checkpoint path
+find_latest_checkpoint() {
+    local checkpoint_dir="$1"
+    # Find the highest global_step_* directory
+    local latest_step=$(ls -d ${checkpoint_dir}/global_step_* 2>/dev/null | sed 's/.*global_step_//' | sort -n | tail -1)
+    if [ -z "$latest_step" ]; then
+        echo "ERROR: No checkpoint found in ${checkpoint_dir}" >&2
+        return 1
+    fi
+    echo "${checkpoint_dir}/global_step_${latest_step}/actor"
+}
+
 echo $STORAGE_PATH
 
 echo "start train solver $experiment_name $solver_model_path $questioner_model_path" 
@@ -29,7 +41,7 @@ python3 -m verl.trainer.main \
     trainer.max_steps=2 \
     data.format_prompt=./examples/format_prompt/solver.jinja \
     trainer.val_freq=4 \
-    trainer.save_freq=4 \
+    trainer.save_freq=2 \
     worker.rollout.n=4 \
     trainer.n_gpus_per_node=8 \
     worker.actor.global_batch_size=128 \
@@ -37,7 +49,15 @@ python3 -m verl.trainer.main \
     worker.actor.micro_batch_size_per_device_for_experience=16 
 
 echo "merging model"
-python scripts/model_merger.py --local_dir ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor
+# Find the latest checkpoint dynamically instead of hardcoding global_step_15
+LATEST_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${experiment_name}")
+if [ $? -eq 0 ]; then
+    echo "Found checkpoint at: $LATEST_CHECKPOINT"
+    python scripts/model_merger.py --local_dir "$LATEST_CHECKPOINT"
+else
+    echo "ERROR: Could not find checkpoint for ${experiment_name}"
+    exit 1
+fi
 
 sleep 10
 sleep 5
@@ -55,4 +75,4 @@ sleep 10
 
 echo "solver training finished"
 echo "Solver training finished"
-# bash evaluation/evaluate.bash ${STORAGE_PATH}/models/${experiment_name}/global_step_15/actor/huggingface
+# bash evaluation/evaluate.bash ${LATEST_CHECKPOINT}/huggingface
