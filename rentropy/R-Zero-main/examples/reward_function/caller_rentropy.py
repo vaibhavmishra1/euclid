@@ -60,6 +60,7 @@ def load_rentropy_config() -> dict:
             "majority_vote_threshold": 0.3,
             "ema_decay": 0.99,
             "smoothing_alpha": 1.0,
+            "scale_diversity_by_zpd": True,  # Scale diversity reward by ZPD score to prevent reward hacking
         }
 
 # Load config once at module import
@@ -102,30 +103,59 @@ def split_list(lst, n=4):
 
 os.environ["NO_PROXY"] = "0.0.0.0,127.0.0.1"
 
-def fetch(index, i):
-    response = requests.get(f"http://0.0.0.0:{5000+index}/hello?name={i}")
-    print(response)
-    return True
+# Number of vLLM servers (set via env var for smoke test flexibility)
+NUM_VLLM_SERVERS = int(os.getenv("RENTROPY_NUM_SERVERS", "4"))
+
+def fetch(index, filepath):
+    """Call vLLM server to process a batch."""
+    port = 5000 + index
+    try:
+        response = requests.get(f"http://0.0.0.0:{port}/hello?name={filepath}", timeout=300)
+        print(f"[Server {port}] {response.status_code}")
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"[Server {port}] Error: {e}")
+        return False
 
 def generate_results(data):
-    """Call vLLM servers to get majority voting scores."""
-    datas = split_list(data, 4)
-    random_names = [generate_temp_filename(prefix=f"temp_{i}", suffix=".json") for i in range(4)]
-    for i in range(4):
+    """Call vLLM servers to get majority voting scores.
+    
+    Supports 1-4 servers (configurable via RENTROPY_NUM_SERVERS env var).
+    """
+    num_servers = min(NUM_VLLM_SERVERS, len(data))
+    if num_servers < 1:
+        num_servers = 1
+    
+    datas = split_list(data, num_servers)
+    random_names = [generate_temp_filename(prefix=f"temp_{i}", suffix=".json") for i in range(num_servers)]
+    
+    # Write data files
+    for i in range(num_servers):
         with open(random_names[i], 'w') as f:
             json.dump(datas[i], f, indent=4)
 
+    # Call servers in parallel
     final_results = []
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(fetch, i, random_names[i]) for i in range(4)]
+    with ThreadPoolExecutor(max_workers=num_servers) as executor:
+        futures = [executor.submit(fetch, i, random_names[i]) for i in range(num_servers)]
         for future in as_completed(futures):
-            print(future.result())
+            result = future.result()
+            if not result:
+                print("[Rentropy] WARNING: Some server calls failed")
 
-    for i in range(4):
-        with open(random_names[i].replace('.json', '_results.json'), 'r') as f:
-            final_results.extend(json.load(f))
-    for i in range(4):
-        os.remove(random_names[i].replace('.json', '_results.json'))
+    # Collect results
+    for i in range(num_servers):
+        results_file = random_names[i].replace('.json', '_results.json')
+        if os.path.exists(results_file):
+            with open(results_file, 'r') as f:
+                final_results.extend(json.load(f))
+            os.remove(results_file)
+        else:
+            print(f"[Rentropy] WARNING: Results file not found: {results_file}")
+            # Return empty results for this batch
+            final_results.extend([{"question": d.get("question", ""), "answer": "", "score": -1} 
+                                 for d in datas[i]])
+    
     return final_results
 
 def format_reward(predict: str) -> float:
@@ -151,10 +181,17 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     
     Returns:
         List of diversity reward bonuses (0 if below threshold or mode=1)
+    
+    Note:
+        If scale_by_zpd=True (default), diversity rewards are scaled by the ZPD score
+        (min(score, 1-score)) to prevent reward hacking via easy-but-rare questions.
+        This ensures medium-difficulty questions get higher diversity bonus than
+        very easy or very hard questions.
     """
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
     threshold = RENTROPY_CONFIG.get("majority_vote_threshold", 0.3)
     weights = RENTROPY_CONFIG.get("weights", {})
+    scale_by_zpd = RENTROPY_CONFIG.get("scale_diversity_by_zpd", True)  # NEW: default enabled
     
     n = len(questions)
     diversity_rewards = np.zeros(n)
@@ -171,33 +208,45 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     # Filter to questions that pass majority vote threshold
     valid_indices = [i for i, s in enumerate(base_scores) if s >= threshold and questions[i]]
     valid_questions = [questions[i] for i in valid_indices]
+    valid_base_scores = [base_scores[i] for i in valid_indices]
     
     if not valid_questions:
         return diversity_rewards.tolist()
     
+    # Compute ZPD scores for scaling (peaks at 0.5, penalizes too-easy and too-hard)
+    # ZPD = Zone of Proximal Development: min(score, 1-score)
+    zpd_scores = np.array([min(s, 1 - s) for s in valid_base_scores])
+    
+    # Normalize ZPD scores to [0, 1] range (max ZPD is 0.5 at score=0.5)
+    # This makes scaling factor 1.0 at optimal difficulty
+    zpd_scale_factors = zpd_scores / 0.5 if scale_by_zpd else np.ones(len(valid_indices))
+    
     # Assign clusters
     cluster_ids = assigner.assign_clusters(valid_questions)
     
-    # Mode 2+: Rarity reward
+    # Mode 2+: Rarity reward (scaled by ZPD)
     if mode >= 2:
         rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
         rarity_weight = weights.get("rarity", 0.1)
         for idx, valid_idx in enumerate(valid_indices):
-            diversity_rewards[valid_idx] += rarity_weight * rarity_rewards[idx]
+            scaled_reward = rarity_weight * rarity_rewards[idx] * zpd_scale_factors[idx]
+            diversity_rewards[valid_idx] += scaled_reward
     
-    # Mode 3+: Batch uniqueness reward
+    # Mode 3+: Batch uniqueness reward (scaled by ZPD)
     if mode >= 3:
         batch_uniqueness_rewards = assigner.compute_batch_uniqueness_reward(cluster_ids)
         batch_weight = weights.get("batch_uniqueness", 0.05)
         for idx, valid_idx in enumerate(valid_indices):
-            diversity_rewards[valid_idx] += batch_weight * batch_uniqueness_rewards[idx]
+            scaled_reward = batch_weight * batch_uniqueness_rewards[idx] * zpd_scale_factors[idx]
+            diversity_rewards[valid_idx] += scaled_reward
     
-    # Mode 4: Within-cluster uniqueness reward
+    # Mode 4: Within-cluster uniqueness reward (scaled by ZPD)
     if mode >= 4:
         within_cluster_rewards = assigner.compute_within_cluster_uniqueness(valid_questions, cluster_ids)
         within_weight = weights.get("within_cluster_uniqueness", 0.05)
         for idx, valid_idx in enumerate(valid_indices):
-            diversity_rewards[valid_idx] += within_weight * within_cluster_rewards[idx]
+            scaled_reward = within_weight * within_cluster_rewards[idx] * zpd_scale_factors[idx]
+            diversity_rewards[valid_idx] += scaled_reward
     
     # Update cluster counts for valid questions
     assigner.update_counts(cluster_ids)
