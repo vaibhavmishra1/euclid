@@ -17,6 +17,9 @@ questioner_model_path=$2
 save_path=$3
 diversity_mode=${4:-4}  # Default to mode 4 (full Rentropy)
 
+# Add project root to PYTHONPATH
+export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
+
 # Validate diversity mode
 if [[ ! "$diversity_mode" =~ ^[1-4]$ ]]; then
     echo "ERROR: diversity_mode must be 1, 2, 3, or 4. Got: $diversity_mode"

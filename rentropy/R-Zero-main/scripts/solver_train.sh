@@ -2,6 +2,9 @@ solver_model_path=$1
 questioner_model_path=$2
 experiment_name=$3
 
+# Add project root to PYTHONPATH
+export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
+
 echo $STORAGE_PATH
 
 echo "start train solver $experiment_name $solver_model_path $questioner_model_path" 
@@ -22,8 +25,8 @@ python3 -m verl.trainer.main \
     trainer.experiment_name=${experiment_name} \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/${experiment_name}/ \
     data.train_files=${HUGGINGFACENAME}/${experiment_name}@train \
-    trainer.total_epochs=10 \
-    trainer.max_steps=10 \
+    trainer.total_epochs=2 \
+    trainer.max_steps=2 \
     data.format_prompt=./examples/format_prompt/solver.jinja \
     trainer.val_freq=4 \
     trainer.save_freq=4 \

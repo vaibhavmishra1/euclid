@@ -3,6 +3,10 @@ model_name=$1
 num_samples=$2
 save_name=$3
 export VLLM_DISABLE_COMPILE_CACHE=1
+
+# Add project root to PYTHONPATH
+export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
+
 CUDA_VISIBLE_DEVICES=0 python question_generate/question_generate.py --model $model_name --suffix 0 --num_samples $num_samples --save_name $save_name &
 CUDA_VISIBLE_DEVICES=1 python question_generate/question_generate.py --model $model_name --suffix 1 --num_samples $num_samples --save_name $save_name &
 CUDA_VISIBLE_DEVICES=2 python question_generate/question_generate.py --model $model_name --suffix 2 --num_samples $num_samples --save_name $save_name &

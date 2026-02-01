@@ -3,6 +3,9 @@
 model_name=$1
 save_name=$2
 
+# Add project root to PYTHONPATH
+export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
+
 pids=()
 
 for i in {0..7}; do
