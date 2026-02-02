@@ -12,7 +12,7 @@
 #     4: Mode 3 + within-cluster uniqueness reward (full Rentropy)
 #
 # Example: 
-#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 4
+#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 1 > tempf.txt
 #   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 2  # Use mode 2
 
 Base_model=$1
@@ -65,9 +65,9 @@ find_latest_checkpoint() {
 }
 
 # Initialize first iteration with base model
-#bash scripts/questioner_train_rentropy.sh $Base_model $Base_model ${Model_abbr}_questioner_v1 $Diversity_mode
-QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
-bash scripts/solver_train.sh $Base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
+bash scripts/questioner_train_rentropy.sh $Base_model $Base_model ${Model_abbr}_questioner_v1 $Diversity_mode
+# QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
+# bash scripts/solver_train.sh $Base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
 
 # for i in {2..5}; do
 #     prev=$((i-1))
