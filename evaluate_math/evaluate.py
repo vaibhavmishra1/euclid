@@ -2,12 +2,11 @@
 Evaluate math models on the MATH dataset using vLLM.
 
 Usage:
-    python -m tree.euclid.evaluate_math.evaluate \
-        --model Qwen/Qwen2.5-3B \
-        --dataset-config number_theory \
+    python3 -m euclid.evaluate_math.evaluate \
+        --model vibhuiitj/qwen3-4b-base-variant1-feb2-solver \
+        --all-configs \
         --split test \
-        --limit 100 \
-        --output results_number_theory.jsonl
+        --output results_qwen3-4b-base.jsonl
 """
 
 from __future__ import annotations
@@ -131,8 +130,7 @@ def build_prompt(problem: str, few_shot: bool = False) -> str:
     """
     
     # IMPORTANT: require \\boxed{} so answer extraction is comparable across models.
-    prompt = f"""You are a careful mathematical problem solver.
-Please reason step by step and put your final answer inside \\boxed{{}}.
+    prompt = f"""Please reason step by step, and put your final answer within  \\boxed{{}}.
 
 Problem:
 {problem}
@@ -237,6 +235,7 @@ def evaluate(
             level_stats[level]["correct"] += 1
         
         result = {
+            "dataset_config": dataset_config,
             "problem": example_data["problem"],
             "level": level,
             "ground_truth": gt_answer,
@@ -312,6 +311,11 @@ def parse_args() -> argparse.Namespace:
         help="MATH dataset config (default: number_theory)",
     )
     parser.add_argument(
+        "--all-configs",
+        action="store_true",
+        help="Evaluate on all dataset configs",
+    )
+    parser.add_argument(
         "--split",
         default="test",
         choices=["train", "test"],
@@ -358,17 +362,59 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     
-    evaluate(
-        model_name=args.model,
-        dataset_config=args.dataset_config,
-        split=args.split,
-        output_path=Path(args.output),
-        limit=args.limit or None,
-        few_shot=args.few_shot,
-        tensor_parallel_size=args.tensor_parallel_size,
-        max_tokens=args.max_tokens,
-        temperature=args.temperature,
-    )
+    all_configs = [
+        "algebra",
+        "counting_and_probability",
+        "geometry",
+        "intermediate_algebra",
+        "number_theory",
+        "prealgebra",
+        "precalculus",
+    ]
+    
+    configs_to_eval = all_configs if args.all_configs else [args.dataset_config]
+    all_summaries = []
+    
+    for config in configs_to_eval:
+        output_path = Path(args.output) if not args.all_configs else Path(args.output).with_name(f"{Path(args.output).stem}_{config}{Path(args.output).suffix}")
+        summary = evaluate(
+            model_name=args.model,
+            dataset_config=config,
+            split=args.split,
+            output_path=output_path,
+            limit=args.limit or None,
+            few_shot=args.few_shot,
+            tensor_parallel_size=args.tensor_parallel_size,
+            max_tokens=args.max_tokens,
+            temperature=args.temperature,
+        )
+        all_summaries.append(summary)
+    
+    if args.all_configs:
+        # Aggregate results
+        total_correct = sum(s["correct"] for s in all_summaries)
+        total_examples = sum(s["total"] for s in all_summaries)
+        overall_accuracy = total_correct / total_examples if total_examples > 0 else 0
+        
+        combined_summary = {
+            "model": args.model,
+            "split": args.split,
+            "configs": {s["dataset"].split("/")[-1]: {"accuracy": s["accuracy"], "correct": s["correct"], "total": s["total"]} for s in all_summaries},
+            "overall": {
+                "total": total_examples,
+                "correct": total_correct,
+                "accuracy": overall_accuracy,
+            }
+        }
+        
+        combined_path = Path(args.output).with_suffix(".all_configs.summary.json")
+        with combined_path.open("w", encoding="utf-8") as f:
+            json.dump(combined_summary, f, indent=2)
+        
+        print(f"\n{'='*50}")
+        print(f"Overall Accuracy (All Configs): {total_correct}/{total_examples} = {overall_accuracy:.2%}")
+        print(f"{'='*50}")
+        print(f"\nCombined summary saved to {combined_path}")
 
 
 if __name__ == "__main__":

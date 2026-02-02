@@ -1,216 +1,141 @@
 {
-  "model": "Qwen/Qwen3-0.6B-Base",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
-  "split": "test",
-  "total": 540,
-  "correct": 193,
-  "accuracy": 0.3574074074074074,
-  "level_stats": {
-    "Level 2": {
-      "correct": 59,
-      "total": 92
-    },
-    "Level 4": {
-      "correct": 42,
-      "total": 142
-    },
-    "Level 5": {
-      "correct": 17,
-      "total": 154
-    },
-    "Level 1": {
-      "correct": 22,
-      "total": 30
-    },
-    "Level 3": {
-      "correct": 53,
-      "total": 122
-    }
-  }
-}
-
-{
-  "model": "Qwen/Qwen3-1.7B-Base",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
-  "split": "test",
-  "total": 540,
-  "correct": 296,
-  "accuracy": 0.5481481481481482,
-  "level_stats": {
-    "Level 2": {
-      "correct": 71,
-      "total": 92
-    },
-    "Level 4": {
-      "correct": 76,
-      "total": 142
-    },
-    "Level 5": {
-      "correct": 54,
-      "total": 154
-    },
-    "Level 1": {
-      "correct": 25,
-      "total": 30
-    },
-    "Level 3": {
-      "correct": 70,
-      "total": 122
-    }
-  }
-}
-
-{
   "model": "Qwen/Qwen3-4B-Base",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
   "split": "test",
-  "total": 540,
-  "correct": 374,
-  "accuracy": 0.6925925925925925,
-  "level_stats": {
-    "Level 2": {
-      "correct": 81,
-      "total": 92
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8264532434709352,
+      "correct": 981,
+      "total": 1187
     },
-    "Level 4": {
-      "correct": 97,
-      "total": 142
+    "counting_and_probability": {
+      "accuracy": 0.5527426160337553,
+      "correct": 262,
+      "total": 474
     },
-    "Level 5": {
-      "correct": 83,
-      "total": 154
+    "geometry": {
+      "accuracy": 0.5177453027139874,
+      "correct": 248,
+      "total": 479
     },
-    "Level 1": {
-      "correct": 29,
-      "total": 30
+    "intermediate_algebra": {
+      "accuracy": 0.5293466223698782,
+      "correct": 478,
+      "total": 903
     },
-    "Level 3": {
-      "correct": 84,
-      "total": 122
+    "number_theory": {
+      "accuracy": 0.7240740740740741,
+      "correct": 391,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7106773823191733,
+      "correct": 619,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5091575091575091,
+      "correct": 278,
+      "total": 546
     }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3257,
+    "accuracy": 0.6514
   }
 }
 
 {
-  "model": "Qwen/Qwen3-8B-Base",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb2-questioner",
   "split": "test",
-  "total": 540,
-  "correct": 400,
-  "accuracy": 0.7407407407407407,
-  "level_stats": {
-    "Level 2": {
-      "correct": 84,
-      "total": 92
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8348778433024431,
+      "correct": 991,
+      "total": 1187
     },
-    "Level 4": {
-      "correct": 105,
-      "total": 142
+    "counting_and_probability": {
+      "accuracy": 0.5675105485232067,
+      "correct": 269,
+      "total": 474
     },
-    "Level 5": {
-      "correct": 91,
-      "total": 154
+    "geometry": {
+      "accuracy": 0.5135699373695198,
+      "correct": 246,
+      "total": 479
     },
-    "Level 1": {
-      "correct": 27,
-      "total": 30
+    "intermediate_algebra": {
+      "accuracy": 0.5238095238095238,
+      "correct": 473,
+      "total": 903
     },
-    "Level 3": {
-      "correct": 93,
-      "total": 122
+    "number_theory": {
+      "accuracy": 0.7111111111111111,
+      "correct": 384,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7175660160734788,
+      "correct": 625,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5091575091575091,
+      "correct": 278,
+      "total": 546
     }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3266,
+    "accuracy": 0.6532
   }
 }
 
-{
-  "model": "vibhuiitj/Qwen3-1.7B-Base-sft-expv1_0",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
-  "split": "test",
-  "total": 540,
-  "correct": 304,
-  "accuracy": 0.562962962962963,
-  "level_stats": {
-    "Level 2": {
-      "correct": 76,
-      "total": 92
-    },
-    "Level 4": {
-      "correct": 78,
-      "total": 142
-    },
-    "Level 5": {
-      "correct": 48,
-      "total": 154
-    },
-    "Level 1": {
-      "correct": 27,
-      "total": 30
-    },
-    "Level 3": {
-      "correct": 75,
-      "total": 122
-    }
-  }
-}
 
 {
-  "model": "vibhuiitj/Qwen3-1.7B-Base-sft-expv1_0-accepted",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb2-solver",
   "split": "test",
-  "total": 540,
-  "correct": 294,
-  "accuracy": 0.5444444444444444,
-  "level_stats": {
-    "Level 2": {
-      "correct": 76,
-      "total": 92
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8702611625947767,
+      "correct": 1033,
+      "total": 1187
     },
-    "Level 4": {
-      "correct": 75,
-      "total": 142
+    "counting_and_probability": {
+      "accuracy": 0.6371308016877637,
+      "correct": 302,
+      "total": 474
     },
-    "Level 5": {
-      "correct": 43,
-      "total": 154
+    "geometry": {
+      "accuracy": 0.5678496868475992,
+      "correct": 272,
+      "total": 479
     },
-    "Level 1": {
-      "correct": 26,
-      "total": 30
+    "intermediate_algebra": {
+      "accuracy": 0.5426356589147286,
+      "correct": 490,
+      "total": 903
     },
-    "Level 3": {
-      "correct": 74,
-      "total": 122
+    "number_theory": {
+      "accuracy": 0.7481481481481481,
+      "correct": 404,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.78300803673938,
+      "correct": 682,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5366300366300366,
+      "correct": 293,
+      "total": 546
     }
-  }
-}
-
-{
-  "model": "vibhuiitj/Qwen3-1.7B-Base-grpo-expv1_1",
-  "dataset": "EleutherAI/hendrycks_math/number_theory",
-  "split": "test",
-  "total": 540,
-  "correct": 297,
-  "accuracy": 0.55,
-  "level_stats": {
-    "Level 2": {
-      "correct": 70,
-      "total": 92
-    },
-    "Level 4": {
-      "correct": 81,
-      "total": 142
-    },
-    "Level 5": {
-      "correct": 51,
-      "total": 154
-    },
-    "Level 1": {
-      "correct": 24,
-      "total": 30
-    },
-    "Level 3": {
-      "correct": 71,
-      "total": 122
-    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3476,
+    "accuracy": 0.6952
   }
 }
