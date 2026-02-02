@@ -34,6 +34,12 @@ import sys
 RENTROPY_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, RENTROPY_ROOT)
 
+# Set CUDA_VISIBLE_DEVICES for embedding model BEFORE importing torch/ClusterAssigner
+# GPU 7 is reserved for embedding model computation (GPUs 4,5,6 are used by vLLM servers)
+# This must be set before any CUDA initialization
+EMBEDDING_GPU = os.getenv("RENTROPY_EMBEDDING_GPU", "7")
+os.environ['CUDA_VISIBLE_DEVICES'] = EMBEDDING_GPU
+
 from cluster_space.cluster_assigner import ClusterAssigner
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/apdcephfs_sh2/share_300000800/user/chengchuang")
@@ -117,13 +123,14 @@ def split_list(lst, n=4):
 os.environ["NO_PROXY"] = "0.0.0.0,127.0.0.1"
 
 # Number of vLLM servers (set via env var for smoke test flexibility)
-NUM_VLLM_SERVERS = int(os.getenv("RENTROPY_NUM_SERVERS", "4"))
+# Default is 3 because GPU 7 is reserved for embedding model
+NUM_VLLM_SERVERS = int(os.getenv("RENTROPY_NUM_SERVERS", "3"))
 
 def fetch(index, filepath):
     """Call vLLM server to process a batch."""
     port = 5000 + index
     try:
-        response = requests.get(f"http://0.0.0.0:{port}/hello?name={filepath}", timeout=1200)
+        response = requests.get(f"http://0.0.0.0:{port}/hello?name={filepath}", timeout=3000)  # 40 minutes
         print(f"[Server {port}] {response.status_code}")
         return True
     except requests.exceptions.RequestException as e:

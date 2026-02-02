@@ -54,7 +54,9 @@ echo "vLLM services started with RUN_ID=$RUN_ID"
 # Train Questioner with Rentropy reward function
 echo "Start training questioner with Rentropy: $questioner_model_path -> $save_path"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m verl.trainer.main \
+# Training uses GPUs 0,1,2,3; vLLM uses 4,5,6; embedding uses 7
+# Include GPU 7 in visible devices so embedding model can access it
+CUDA_VISIBLE_DEVICES=0,1,2,3,7 python3 -m verl.trainer.main \
     config=examples/config.yaml \
     data.max_response_length=4096 \
     worker.actor.model.model_path=$questioner_model_path \

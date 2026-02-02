@@ -6,6 +6,7 @@ import numpy as np
 import os
 from typing import List, Tuple, Optional
 from collections import defaultdict
+import torch
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -39,8 +40,19 @@ class ClusterAssigner:
         print(f"[ClusterAssigner] Loaded {self.num_clusters} centroids from {centroids_path}")
         
         # Load embedding model
+        # CUDA_VISIBLE_DEVICES should be set by caller before importing this module
+        # to ensure we use the designated GPU (e.g., GPU 7)
         print(f"[ClusterAssigner] Loading embedding model: {embedding_model}")
-        self.embed_model = SentenceTransformer(embedding_model, trust_remote_code=True)
+        print(f"[ClusterAssigner] CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES', 'not set')}")
+        
+        if torch.cuda.is_available():
+            device = 'cuda:0'  # Use first visible GPU (should be the designated embedding GPU)
+            print(f"[ClusterAssigner] Using device: {device}")
+        else:
+            device = 'cpu'
+            print(f"[ClusterAssigner] CUDA not available, falling back to CPU")
+        
+        self.embed_model = SentenceTransformer(embedding_model, trust_remote_code=True, device=device)
         
         # Count tracking (EMA style)
         self.ema_decay = ema_decay
