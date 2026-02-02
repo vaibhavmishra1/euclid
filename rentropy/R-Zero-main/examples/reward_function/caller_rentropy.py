@@ -123,7 +123,7 @@ def fetch(index, filepath):
     """Call vLLM server to process a batch."""
     port = 5000 + index
     try:
-        response = requests.get(f"http://0.0.0.0:{port}/hello?name={filepath}", timeout=300)
+        response = requests.get(f"http://0.0.0.0:{port}/hello?name={filepath}", timeout=1200)
         print(f"[Server {port}] {response.status_code}")
         return True
     except requests.exceptions.RequestException as e:
