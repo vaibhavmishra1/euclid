@@ -6,7 +6,7 @@
 #   2: Mode 1 + reward for choosing a rare cluster
 #   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
 #   4: Mode 3 + within-cluster uniqueness reward
-diversity_mode: 4
+diversity_mode: 1
 
 # Path to cluster centroids (built by cluster_space/build_clusters.py)
 centroids_path: "cluster_space/cluster_data/centroids.npy"
@@ -46,7 +46,7 @@ scale_diversity_by_zpd: false
 # Higher values (0.5-1.0) give stronger diversity signal
 # Lower values (0.1-0.3) give weaker diversity signal
 # Default: 0.5 (balanced between base and diversity)
-lambda_weight: 0.5
+lambda_weight: 1.0
 
 # Use ZPD transformation for base score
 # When true: base_reward = min(base_score, 1 - base_score)  (peaks at 0.5)
