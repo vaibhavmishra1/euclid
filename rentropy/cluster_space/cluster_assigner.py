@@ -92,10 +92,12 @@ class ClusterAssigner:
         Higher reward for rare clusters.
         """
         probs = self.get_cluster_probabilities()
+        # Clip probabilities to prevent log(0) and ensure valid range
+        probs = np.clip(probs, 1e-8, 1.0)
         rewards = -np.log(probs[cluster_ids])
-        # Normalize to [0, 1] range (max possible is -log(alpha / (total + alpha*K)))
-        max_reward = -np.log(self.smoothing_alpha / self.total_count)
-        rewards = rewards / max_reward
+        # Use fixed max_reward based on minimum possible probability (always positive)
+        max_reward = -np.log(1e-8)  # = 18.4
+        rewards = np.clip(rewards / max_reward, 0.0, 1.0)
         return rewards
     
     def compute_batch_uniqueness_reward(self, cluster_ids: np.ndarray) -> np.ndarray:
@@ -138,10 +140,12 @@ class ClusterAssigner:
     
     def update_counts(self, cluster_ids: np.ndarray):
         """Update cluster counts with EMA."""
+        # Apply decay ONCE per batch, not per question (fixes reward explosion bug)
+        self.cluster_counts *= self.ema_decay
+        
         for cid in cluster_ids:
-            # EMA update
-            self.cluster_counts *= self.ema_decay
             self.cluster_counts[cid] += (1 - self.ema_decay)
+        
         self.total_count = np.sum(self.cluster_counts)
     
     def get_stats(self) -> dict:

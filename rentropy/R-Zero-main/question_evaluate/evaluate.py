@@ -33,7 +33,7 @@ from mathruler.grader import extract_boxed_content, grade_answer
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser(description="Evaluate generated questions using vLLM.")
 parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B-Base", help="Path to the model in Hugging Face format.")
-parser.add_argument("--num_samples", type=int, default=9, help="Number of candidate answers to generate per question (n).")
+parser.add_argument("--num_samples", type=int, default=4, help="Number of candidate answers to generate per question (n).")
 parser.add_argument("--suffix", type=str, default="0", help="A unique suffix for file naming, often the GPU index.")
 parser.add_argument("--save_name", type=str, required=True, help="A base name for input and output files.")
 args = parser.parse_args()
@@ -89,7 +89,7 @@ model = vllm.LLM(
     seed=int(args.suffix),
 )
 sample_params = vllm.SamplingParams(
-    max_tokens=4096,
+    max_tokens=2048,
     temperature=1.0,
     top_p=1.0,
     top_k=40,

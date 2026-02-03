@@ -23,22 +23,22 @@ echo "start train solver $experiment_name $solver_model_path $questioner_model_p
 
 export VLLM_DISABLE_COMPILE_CACHE=1
 echo 'start generate question'
-bash question_generate/question_generate.bash $questioner_model_path 1000 $experiment_name
+bash question_generate/question_generate.bash $questioner_model_path 500 $experiment_name
 echo 'start evaluate generated question'
 bash question_evaluate/evaluate.sh $solver_model_path $experiment_name
 echo 'start upload'
-python question_evaluate/upload.py --repo_name ${experiment_name} --max_score 0.85 --min_score 0.25 --experiment_name ${experiment_name}
+python question_evaluate/upload.py --repo_name ${experiment_name} --max_score 0.8 --min_score 0.3 --experiment_name ${experiment_name}
 echo 'start train'
 
 python3 -m verl.trainer.main \
     config=examples/config.yaml \
-    data.max_response_length=1024 \
+    data.max_response_length=2048 \
     worker.actor.model.model_path=$solver_model_path \
     trainer.experiment_name=${experiment_name} \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/${experiment_name}/ \
     data.train_files=${HUGGINGFACENAME}/${experiment_name}@train \
-    trainer.total_epochs=2 \
-    trainer.max_steps=2 \
+    trainer.total_epochs=10 \
+    trainer.max_steps=10 \
     data.format_prompt=./examples/format_prompt/solver.jinja \
     trainer.val_freq=4 \
     trainer.save_freq=2 \
