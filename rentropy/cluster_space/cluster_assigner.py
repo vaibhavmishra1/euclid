@@ -139,8 +139,17 @@ class ClusterAssigner:
         return rewards
     
     def update_counts(self, cluster_ids: np.ndarray):
-        """Update cluster counts with EMA."""
+        """Update cluster counts with EMA.
+        
+        Fixed: Only apply EMA decay when we actually have questions to update.
+        This prevents stale cluster distributions from decaying when no questions are generated.
+        """
+        if len(cluster_ids) == 0:
+            # No questions to update, don't decay (preserves current distribution)
+            return
+        
         # Apply decay ONCE per batch, not per question (fixes reward explosion bug)
+        # But only when we have actual questions to process
         self.cluster_counts *= self.ema_decay
         
         for cid in cluster_ids:

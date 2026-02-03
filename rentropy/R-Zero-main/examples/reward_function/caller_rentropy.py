@@ -62,11 +62,13 @@ def load_rentropy_config() -> dict:
         return {
             "diversity_mode": 1,
             "centroids_path": None,
-            "weights": {"rarity": 0.1, "batch_uniqueness": 0.05, "within_cluster_uniqueness": 0.05},
+            "weights": {"rarity": 0.5, "batch_uniqueness": 0.2, "within_cluster_uniqueness": 0.2},
             "majority_vote_threshold": 0.3,
             "ema_decay": 0.99,
             "smoothing_alpha": 1.0,
-            "scale_diversity_by_zpd": True,  # Scale diversity reward by ZPD score to prevent reward hacking
+            "scale_diversity_by_zpd": False,  # Changed default to False to avoid double scaling
+            "lambda_weight": 0.5,  # Weight for diversity reward in final score
+            "use_zpd_base_score": False,  # Use raw base_score instead of ZPD transformation
             "log_cluster_stats_freq": 1,  # Log cluster stats every N steps
         }
 
@@ -214,7 +216,9 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
     threshold = RENTROPY_CONFIG.get("majority_vote_threshold", 0.3)
     weights = RENTROPY_CONFIG.get("weights", {})
-    scale_by_zpd = RENTROPY_CONFIG.get("scale_diversity_by_zpd", True)  # NEW: default enabled
+    # Scale by ZPD is now optional - disabled by default to avoid double scaling
+    # When disabled, diversity rewards maintain their natural scale and are multiplied by lambda_weight
+    scale_by_zpd = RENTROPY_CONFIG.get("scale_diversity_by_zpd", False)  # Changed default to False
     
     n = len(questions)
     diversity_rewards = np.zeros(n)
@@ -379,16 +383,26 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
     diversity_rewards = compute_diversity_rewards(questions, base_scores)
     
     # Compute final scores
+    # Get lambda weight for diversity reward (controls strength of diversity signal)
+    lambda_weight = RENTROPY_CONFIG.get("lambda_weight", 0.5)  # Default 0.5 for stronger signal
+    use_zpd_base = RENTROPY_CONFIG.get("use_zpd_base_score", False)  # Option to use ZPD base score
+    
     scores = []
     for i in range(len(final_results)):
         base_score = final_results[i]["score"]
         has_valid_question = bool(final_results[i]['question'])
         
         if has_valid_question and base_score >= 0:
-            # ZPD-style score: min(score, 1-score) peaks at 0.5
-            zpd_score = min(base_score, 1 - base_score)
-            # Add diversity bonus
-            final_score = zpd_score + diversity_rewards[i]
+            if use_zpd_base:
+                # ZPD-style score: min(score, 1-score) peaks at 0.5
+                base_reward = min(base_score, 1 - base_score)
+            else:
+                # Use raw base_score for better scale matching with diversity rewards
+                base_reward = base_score
+            
+            # Add diversity bonus with lambda weight
+            # This ensures diversity signal is strong enough to affect training
+            final_score = base_reward + lambda_weight * diversity_rewards[i]
         else:
             final_score = -1
         

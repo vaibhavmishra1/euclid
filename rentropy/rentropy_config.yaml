@@ -15,13 +15,17 @@ centroids_path: "cluster_space/cluster_data/centroids.npy"
 embedding_model: "Qwen/Qwen3-Embedding-0.6B"
 
 # Reward weights (only applied when majority vote passes threshold)
+# Increased weights (5-10x) to make diversity signal stronger relative to base reward
 weights:
   # Weight for rarity reward (mode 2+)
-  rarity: 0.1
+  # Increased from 0.1 to 0.5 for stronger signal
+  rarity: 0.5
   # Weight for batch uniqueness reward (mode 3+)
-  batch_uniqueness: 0.05
+  # Increased from 0.05 to 0.2 for stronger signal
+  batch_uniqueness: 0.2
   # Weight for within-cluster uniqueness (mode 4)
-  within_cluster_uniqueness: 0.05
+  # Increased from 0.05 to 0.2 for stronger signal
+  within_cluster_uniqueness: 0.2
 
 # Majority voting threshold - diversity reward only applied if score >= this
 majority_vote_threshold: 0.3
@@ -32,7 +36,23 @@ majority_vote_threshold: 0.3
 #   - Easy questions (score=0.9): zpd=0.1, scale=0.2 → small bonus
 #   - Medium questions (score=0.5): zpd=0.5, scale=1.0 → full bonus
 #   - Hard questions (score=0.3): zpd=0.3, scale=0.6 → medium bonus
-scale_diversity_by_zpd: true
+# 
+# NOTE: Default changed to false to avoid double scaling. Diversity rewards are now
+# scaled by lambda_weight instead. Set to true if you want ZPD-based scaling.
+scale_diversity_by_zpd: false
+
+# Lambda weight for diversity reward (controls overall strength of diversity signal)
+# Final reward = base_score + lambda_weight * diversity_reward
+# Higher values (0.5-1.0) give stronger diversity signal
+# Lower values (0.1-0.3) give weaker diversity signal
+# Default: 0.5 (balanced between base and diversity)
+lambda_weight: 0.5
+
+# Use ZPD transformation for base score
+# When true: base_reward = min(base_score, 1 - base_score)  (peaks at 0.5)
+# When false: base_reward = base_score  (full range 0-1)
+# Default: false (use raw base_score for better scale matching)
+use_zpd_base_score: true
 
 # EMA decay for cluster count tracking
 ema_decay: 0.99
