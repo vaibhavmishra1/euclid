@@ -11,6 +11,9 @@
 #     2: Mode 1 + reward for choosing a rare cluster
 #     3: Mode 2 + reward for uniqueness from other n-1 questions in batch
 #     4: Mode 3 + within-cluster uniqueness reward (full Rentropy)
+#
+# Note: For warm start (loading previous cluster counts), set init_cluster_counts_path
+#       directly in rentropy_config.yaml
 
 solver_model_path=$1
 questioner_model_path=$2
@@ -36,7 +39,7 @@ if [ -f "$CONFIG_FILE" ]; then
     cp "$CONFIG_FILE" "${CONFIG_FILE}.bak" 2>/dev/null || true
     # Update diversity_mode in config
     sed -i.bak "s/^diversity_mode:.*/diversity_mode: $diversity_mode/" "$CONFIG_FILE"
-    echo "Updated rentropy_config.yaml with diversity_mode: $diversity_mode"
+    echo "Updated rentropy_config.yaml: diversity_mode=$diversity_mode"
 else
     echo "WARNING: rentropy_config.yaml not found at $CONFIG_FILE"
     echo "Diversity mode $diversity_mode will be ignored (using defaults)"

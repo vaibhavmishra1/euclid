@@ -4,6 +4,7 @@ This module is imported by the R-Zero reward function.
 """
 import numpy as np
 import os
+import json
 from typing import List, Tuple, Optional
 from collections import defaultdict
 import torch
@@ -23,6 +24,7 @@ class ClusterAssigner:
         embedding_model: str = "Qwen/Qwen3-Embedding-0.6B",
         ema_decay: float = 0.99,
         smoothing_alpha: float = 1.0,
+        init_counts_path: Optional[str] = None,
     ):
         """
         Args:
@@ -30,6 +32,8 @@ class ClusterAssigner:
             embedding_model: Sentence transformer model for embedding
             ema_decay: Decay factor for exponential moving average of counts
             smoothing_alpha: Smoothing constant for log-inverse-frequency reward
+            init_counts_path: Optional path to JSON file with previous cluster counts
+                             (e.g., cluster_stats_step_000006.json from previous iteration)
         """
         if SentenceTransformer is None:
             raise ImportError("Please install sentence-transformers: pip install sentence-transformers")
@@ -57,8 +61,56 @@ class ClusterAssigner:
         # Count tracking (EMA style)
         self.ema_decay = ema_decay
         self.smoothing_alpha = smoothing_alpha
-        self.cluster_counts = np.ones(self.num_clusters) * smoothing_alpha  # Initialize with smoothing
-        self.total_count = self.num_clusters * smoothing_alpha
+        
+        # Initialize cluster counts - either from previous log or uniform
+        if init_counts_path and os.path.exists(init_counts_path):
+            self._load_counts_from_log(init_counts_path)
+        else:
+            self.cluster_counts = np.ones(self.num_clusters) * smoothing_alpha
+            self.total_count = self.num_clusters * smoothing_alpha
+            print(f"[ClusterAssigner] Initialized uniform cluster counts (1/{self.num_clusters})")
+    
+    def _load_counts_from_log(self, log_path: str):
+        """Load cluster counts from a previous iteration's log file."""
+        try:
+            with open(log_path, 'r') as f:
+                log_data = json.load(f)
+            
+            cluster_counts = log_data.get("cluster_stats", {}).get("cluster_counts", None)
+            
+            if cluster_counts is None:
+                print(f"[ClusterAssigner] WARNING: No cluster_counts found in {log_path}")
+                self.cluster_counts = np.ones(self.num_clusters) * self.smoothing_alpha
+                self.total_count = self.num_clusters * self.smoothing_alpha
+                return
+            
+            self.cluster_counts = np.array(cluster_counts)
+            
+            # Verify size matches
+            if len(self.cluster_counts) != self.num_clusters:
+                print(f"[ClusterAssigner] WARNING: Cluster count size mismatch! "
+                      f"Expected {self.num_clusters}, got {len(self.cluster_counts)}")
+                print(f"[ClusterAssigner] Falling back to uniform initialization")
+                self.cluster_counts = np.ones(self.num_clusters) * self.smoothing_alpha
+            
+            self.total_count = np.sum(self.cluster_counts)
+            
+            # Print some stats about the loaded distribution
+            min_count = np.min(self.cluster_counts)
+            max_count = np.max(self.cluster_counts)
+            mean_count = np.mean(self.cluster_counts)
+            nonuniform = np.sum(self.cluster_counts > mean_count * 1.1)
+            
+            print(f"[ClusterAssigner] Loaded cluster counts from {log_path}")
+            print(f"[ClusterAssigner] Stats - min: {min_count:.4f}, max: {max_count:.4f}, "
+                  f"mean: {mean_count:.4f}, clusters above mean: {nonuniform}")
+            print(f"[ClusterAssigner] Total count: {self.total_count:.4f}")
+            
+        except Exception as e:
+            print(f"[ClusterAssigner] ERROR loading counts from {log_path}: {e}")
+            print(f"[ClusterAssigner] Falling back to uniform initialization")
+            self.cluster_counts = np.ones(self.num_clusters) * self.smoothing_alpha
+            self.total_count = self.num_clusters * self.smoothing_alpha
     
     def embed(self, questions: List[str]) -> np.ndarray:
         """Embed a list of questions."""
@@ -88,16 +140,30 @@ class ClusterAssigner:
     
     def compute_rarity_reward(self, cluster_ids: np.ndarray) -> np.ndarray:
         """
-        Compute rarity reward: -log(p(cluster))
-        Higher reward for rare clusters.
+        Compute rarity reward using exponential decay based on visit counts.
+        
+        Formula: reward = exp(-count / mean_count)
+        
+        This provides a MUCH stronger signal than the old -log(p)/18.4 approach:
+        - Old method: 5x visit difference → 0.09 reward difference (too weak!)
+        - New method: 5x visit difference → 0.54 reward difference (strong signal!)
+        
+        Properties:
+        - Rare clusters (count < mean): reward > 0.37 (e^-1)
+        - Average clusters (count = mean): reward = 0.37
+        - Popular clusters (count > mean): reward < 0.37
+        - Natural [0, 1] range without artificial normalization
         """
-        probs = self.get_cluster_probabilities()
-        # Clip probabilities to prevent log(0) and ensure valid range
-        probs = np.clip(probs, 1e-8, 1.0)
-        rewards = -np.log(probs[cluster_ids])
-        # Use fixed max_reward based on minimum possible probability (always positive)
-        max_reward = -np.log(1e-8)  # = 18.4
-        rewards = np.clip(rewards / max_reward, 0.0, 1.0)
+        counts = self.cluster_counts[cluster_ids]
+        mean_count = np.mean(self.cluster_counts)
+        
+        # Prevent division by zero
+        if mean_count < 1e-8:
+            mean_count = 1e-8
+        
+        # Exponential decay: rare clusters get high reward, popular get low
+        rewards = np.exp(-counts / mean_count)
+        
         return rewards
     
     def compute_batch_uniqueness_reward(self, cluster_ids: np.ndarray) -> np.ndarray:

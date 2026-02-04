@@ -6,7 +6,7 @@
 #   2: Mode 1 + reward for choosing a rare cluster
 #   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
 #   4: Mode 3 + within-cluster uniqueness reward
-diversity_mode: 1
+diversity_mode: 2
 
 # Path to cluster centroids (built by cluster_space/build_clusters.py)
 centroids_path: "cluster_space/cluster_data/centroids.npy"
@@ -14,18 +14,32 @@ centroids_path: "cluster_space/cluster_data/centroids.npy"
 # Embedding model for cluster assignment
 embedding_model: "Qwen/Qwen3-Embedding-0.6B"
 
+# ============================================================================
+# Warm Start: Initialize cluster counts from previous iteration
+# ============================================================================
+# Path to previous iteration's cluster log JSON file.
+# If set, cluster counts will be loaded from this file instead of uniform init.
+# This enables "warm start" where the rarity signal is informed by previous runs.
+#
+# Example paths:
+#   - "cluster_space/cluster_logs/cluster-logs-variant4-iter2/cluster_stats_step_000006.json"
+#   - null (or omit) for fresh uniform initialization
+#
+# The JSON file should have structure: {"cluster_stats": {"cluster_counts": [...]}}
+init_cluster_counts_path: null
+
 # Reward weights (only applied when majority vote passes threshold)
 # Increased weights (5-10x) to make diversity signal stronger relative to base reward
 weights:
   # Weight for rarity reward (mode 2+)
   # Increased from 0.1 to 0.5 for stronger signal
-  rarity: 0.5
+  rarity: 1.0
   # Weight for batch uniqueness reward (mode 3+)
   # Increased from 0.05 to 0.2 for stronger signal
-  batch_uniqueness: 0.2
+  batch_uniqueness: 0.0
   # Weight for within-cluster uniqueness (mode 4)
   # Increased from 0.05 to 0.2 for stronger signal
-  within_cluster_uniqueness: 0.2
+  within_cluster_uniqueness: 0.0
 
 # Majority voting threshold - diversity reward only applied if score >= this
 majority_vote_threshold: 0.3

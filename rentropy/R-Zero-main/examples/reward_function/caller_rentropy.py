@@ -86,6 +86,9 @@ def get_cluster_assigner() -> ClusterAssigner:
     
     Note: Creates cluster assigner for all modes (including mode 1) to enable
     logging of cluster statistics for comparison purposes.
+    
+    If init_cluster_counts_path is specified in config, cluster counts will be
+    initialized from the previous iteration's log file instead of uniform.
     """
     global _cluster_assigner
     if _cluster_assigner is None:
@@ -93,12 +96,18 @@ def get_cluster_assigner() -> ClusterAssigner:
         if centroids_path and not os.path.isabs(centroids_path):
             centroids_path = os.path.join(RENTROPY_ROOT, centroids_path)
         
+        # Get optional init counts path
+        init_counts_path = RENTROPY_CONFIG.get("init_cluster_counts_path")
+        if init_counts_path and not os.path.isabs(init_counts_path):
+            init_counts_path = os.path.join(RENTROPY_ROOT, init_counts_path)
+        
         if centroids_path and os.path.exists(centroids_path):
             _cluster_assigner = ClusterAssigner(
                 centroids_path=centroids_path,
                 embedding_model=RENTROPY_CONFIG.get("embedding_model", "Qwen/Qwen3-Embedding-0.6B"),
                 ema_decay=RENTROPY_CONFIG.get("ema_decay", 0.99),
                 smoothing_alpha=RENTROPY_CONFIG.get("smoothing_alpha", 1.0),
+                init_counts_path=init_counts_path,
             )
             mode = RENTROPY_CONFIG.get("diversity_mode", 1)
             if mode == 1:
@@ -345,16 +354,61 @@ def _log_cluster_stats(assigner: ClusterAssigner, cluster_ids: np.ndarray,
 # Main Reward Function
 # ============================================================================
 
+def compute_zpd_reward(base_score: float, diversity_reward: float, lambda_weight: float) -> float:
+    """
+    Compute final reward using ZPD-gated multiplicative formula with HARD CUTOFFS.
+    
+    Formula:
+        1. Hard cutoffs: score < 0.5 OR score > 0.9 → reward = 0 (prevents reward hacking!)
+        2. ZPD with peak at 0.75: zpd = max(0, 1 - |score - 0.75| / 0.4)
+        3. Gated multiplicative: final = zpd * (1 + lambda * diversity)
+    
+    This encourages:
+        - Questions with 50-90% solver success rate (sweet spot: ~75%)
+        - NO reward for trivial questions (score > 0.9) - prevents "easy + rare" exploit
+        - NO reward for impossible questions (score < 0.5)
+        - Diversity bonus is MULTIPLICATIVE, not additive (stronger signal)
+    
+    ZPD curve with hard cutoffs:
+        score ≤ 0.5 → reward = 0.0 (too hard, cutoff)
+        score = 0.6 → zpd = 0.625
+        score = 0.75 → zpd = 1.0 (peak - optimal difficulty!)
+        score = 0.9 → zpd = 0.625
+        score ≥ 0.9 → reward = 0.0 (too easy, cutoff - NO REWARD HACKING!)
+    
+    Example with λ=1.0, diversity=0.4:
+        score=0.5: final=0.0 (too hard)
+        score=0.75: final=1.0×(1+0.4)=1.4 (perfect!)
+        score=1.0: final=0.0 (too easy - exploit prevented!)
+    """
+    # 1. Hard cutoffs at BOTH ends - prevent reward hacking
+    # Too hard (< 0.5) OR too easy (> 0.9) get ZERO reward
+    if base_score < 0.3 or base_score > 0.9:
+        return 0.0
+    
+    # 2. ZPD with peak at 0.75 (optimal difficulty)
+    # Linear interpolation: 1.0 at 0.75, 0.0 at boundaries (0.5 and 1.0)
+    # But we cut off at 0.9, so effective range is [0.5, 0.9]
+    zpd = max(0.0, 1.0 - abs(base_score - 0.75) / 0.4)
+    
+    # 3. Gated multiplicative reward
+    # ZPD acts as a gate, diversity provides bonus
+    final = zpd * (1.0 + lambda_weight * diversity_reward)
+    
+    return final
+
+
 def compute_score(predicts: List[str], ground_truths: List[str], format_weight: float = 0.1, file_path: str = "") -> List[Dict[str, float]]:
     """
     Compute rewards with Rentropy diversity bonus.
     
     Returns dict with:
-        - overall: final score (ZPD-style base + diversity bonus)
+        - overall: final score (ZPD-gated multiplicative with diversity)
         - format: 1 if valid format, 0 otherwise
         - accuracy: diversity reward (for logging compatibility)
         - diversity: diversity reward bonus
         - base_score: original majority voting score
+        - zpd: ZPD value (peaks at 0.7)
     """
     results = []
     
@@ -382,10 +436,8 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
     # Compute diversity rewards
     diversity_rewards = compute_diversity_rewards(questions, base_scores)
     
-    # Compute final scores
-    # Get lambda weight for diversity reward (controls strength of diversity signal)
-    lambda_weight = RENTROPY_CONFIG.get("lambda_weight", 0.5)  # Default 0.5 for stronger signal
-    use_zpd_base = RENTROPY_CONFIG.get("use_zpd_base_score", False)  # Option to use ZPD base score
+    # Get lambda weight for diversity reward
+    lambda_weight = RENTROPY_CONFIG.get("lambda_weight", 1.0)
     
     scores = []
     for i in range(len(final_results)):
@@ -393,18 +445,16 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
         has_valid_question = bool(final_results[i]['question'])
         
         if has_valid_question and base_score >= 0:
-            if use_zpd_base:
-                # ZPD-style score: min(score, 1-score) peaks at 0.5
-                base_reward = min(base_score, 1 - base_score)
+            # Use new ZPD-gated multiplicative reward
+            final_score = compute_zpd_reward(base_score, diversity_rewards[i], lambda_weight)
+            # Compute ZPD for logging (matches the formula in compute_zpd_reward)
+            if base_score < 0.3 or base_score > 0.9:
+                zpd = 0.0
             else:
-                # Use raw base_score for better scale matching with diversity rewards
-                base_reward = base_score
-            
-            # Add diversity bonus with lambda weight
-            # This ensures diversity signal is strong enough to affect training
-            final_score = base_reward + lambda_weight * diversity_rewards[i]
+                zpd = max(0.0, 1.0 - abs(base_score - 0.75) / 0.4)
         else:
             final_score = -1
+            zpd = 0.0
         
         scores.append({
             "overall": final_score,
@@ -412,6 +462,7 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
             "accuracy": diversity_rewards[i],  # For logging compatibility
             "diversity": diversity_rewards[i],
             "base_score": base_score,
+            "zpd": zpd,
         })
     
     return scores
