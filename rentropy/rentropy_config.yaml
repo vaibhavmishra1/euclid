@@ -56,11 +56,15 @@ majority_vote_threshold: 0.3
 scale_diversity_by_zpd: false
 
 # Lambda weight for diversity reward (controls overall strength of diversity signal)
-# Final reward = base_score + lambda_weight * diversity_reward
-# Higher values (0.5-1.0) give stronger diversity signal
-# Lower values (0.1-0.3) give weaker diversity signal
-# Default: 0.5 (balanced between base and diversity)
-lambda_weight: 1.0
+# Final reward = zpd * (1 + lambda_weight * diversity_reward)
+# Based on analysis:
+#   λ=1.0: Popular clusters win (current problem: 29.3% top-10 concentration)
+#   λ=2.0: Crossover point (rare clusters barely win)
+#   λ=3.0: Safe choice (rare clusters +0.15 advantage, ~24-26% concentration)
+#   λ=5.0: RECOMMENDED (rare clusters +0.42 advantage, ~20-22% concentration)
+#   λ=7.0: Aggressive (rare clusters +0.69 advantage, <20% concentration)
+# Setting λ=5.0 for strong diversity signal while maintaining quality
+lambda_weight: 5.0
 
 # Use ZPD transformation for base score
 # When true: base_reward = min(base_score, 1 - base_score)  (peaks at 0.5)
