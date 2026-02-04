@@ -38,6 +38,41 @@ mkdir -p \
   "$STORAGE_PATH/models" \
   "$STORAGE_PATH/generated_question" \
   "$STORAGE_PATH/temp_results"
+
+# Set HuggingFace timeout environment variables to prevent hanging
+export HF_HUB_DOWNLOAD_TIMEOUT=600
+export HF_HUB_DOWNLOAD_TIMEOUT_STREAM=600
+
+# Pre-download models to avoid hanging during training
+echo "Pre-downloading models to avoid download issues during training..."
+echo "Downloading base model: $Base_model"
+
+# Check if model is already downloaded locally
+ORIGINAL_BASE_MODEL="$Base_model"
+MODEL_DIR="$STORAGE_PATH/models/$(echo $Base_model | tr '/' '_')"
+if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
+    echo "Model already exists at $MODEL_DIR, skipping download."
+    # Use local path if model is already downloaded (use absolute path)
+    Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
+    echo "Using local model path: $Base_model"
+else
+    echo "Model not found locally, downloading..."
+    python3 scripts/download_hf_model.py --repo-id "$ORIGINAL_BASE_MODEL" --max-retries 5 --timeout 600 || {
+        echo "ERROR: Failed to pre-download base model after 5 retries."
+        echo "Please check your network connection and HuggingFace token (if required)."
+        echo "You can also manually download the model using:"
+        echo "  python3 scripts/download_hf_model.py --repo-id \"$ORIGINAL_BASE_MODEL\" --max-retries 5 --timeout 600"
+        exit 1
+    }
+    # After successful download, use local path
+    if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
+        Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
+        echo "Using local model path: $Base_model"
+    else
+        echo "WARNING: Model download completed but local directory not found. Using original path: $ORIGINAL_BASE_MODEL"
+        Base_model="$ORIGINAL_BASE_MODEL"
+    fi
+fi
 # Check if cluster centroids exist
 
 
