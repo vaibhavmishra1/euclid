@@ -233,3 +233,204 @@
     "accuracy": 0.6386
   }
 }
+
+
+
+#####################################################################################################################
+#####################################################################################################################
+#####################################################################################################################
+############################################# ITERATION 2 ###########################################################
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb2-questioner-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8635214827295703,
+      "correct": 1025,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6645569620253164,
+      "correct": 315,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.5678496868475992,
+      "correct": 272,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5370985603543743,
+      "correct": 485,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.762962962962963,
+      "correct": 412,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7726750861079219,
+      "correct": 673,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5512820512820513,
+      "correct": 301,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3483,
+    "accuracy": 0.6966
+  }
+}
+
+
+
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb2-solver-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8711036225779275,
+      "correct": 1034,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6265822784810127,
+      "correct": 297,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.5615866388308977,
+      "correct": 269,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5370985603543743,
+      "correct": 485,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7537037037037037,
+      "correct": 407,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7818599311136625,
+      "correct": 681,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.532967032967033,
+      "correct": 291,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3464,
+    "accuracy": 0.6928
+  }
+}
+
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant4-feb4-questioner-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8652064026958719,
+      "correct": 1027,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6371308016877637,
+      "correct": 302,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.5615866388308977,
+      "correct": 269,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5559246954595792,
+      "correct": 502,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7574074074074074,
+      "correct": 409,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7715269804822044,
+      "correct": 672,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.532967032967033,
+      "correct": 291,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3472,
+    "accuracy": 0.6944
+  }
+}
+
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant4-feb4-solver-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8753159224936815,
+      "correct": 1039,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6329113924050633,
+      "correct": 300,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.5636743215031316,
+      "correct": 270,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5370985603543743,
+      "correct": 485,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.762962962962963,
+      "correct": 412,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7761194029850746,
+      "correct": 676,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5347985347985348,
+      "correct": 292,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3474,
+    "accuracy": 0.6948
+  }
+}
+
