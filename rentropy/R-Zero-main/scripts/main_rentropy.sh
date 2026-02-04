@@ -1,9 +1,10 @@
 #!/bin/bash
 # Rentropy: Main training loop with cluster-entropy diversity reward
-# Usage: bash scripts/main_rentropy.sh <base_model> <model_abbr> [diversity_mode]
+# Usage: bash scripts/main_rentropy.sh <questioner_base_model> <solver_base_model> <model_abbr> [diversity_mode]
 #
 # Arguments:
-#   base_model: Base model path (e.g., Qwen/Qwen3-4B-Base)
+#   questioner_base_model: Base model path for questioner (e.g., Qwen/Qwen3-4B-Base)
+#   solver_base_model: Base model path for solver (e.g., Qwen/Qwen3-4B-Base)
 #   model_abbr: Model abbreviation for naming experiments (e.g., qwen3-4b)
 #   diversity_mode: (optional) Diversity reward mode (1-4, default: 4)
 #     1: Vanilla majority voting reward only (R-Zero baseline)
@@ -12,12 +13,22 @@
 #     4: Mode 3 + within-cluster uniqueness reward (full Rentropy)
 #
 # Example: 
-#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 1 > tempf.txt
-#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 2  # Use mode 2
+#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base Qwen/Qwen3-4B-Base qwen3-4b 1 > tempf.txt
+#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base meta-llama/Llama-2-7b qwen3-4b 2  # Use mode 2 with different models
 
-Base_model=$1
-Model_abbr=$2
-Diversity_mode=${3:-4}  # Default to mode 4 (full Rentropy)
+Questioner_base_model=$1
+Solver_base_model=$2
+Model_abbr=$3
+Diversity_mode=${4:-4}  # Default to mode 4 (full Rentropy)
+
+# Validate required arguments
+if [ -z "$Questioner_base_model" ] || [ -z "$Solver_base_model" ] || [ -z "$Model_abbr" ]; then
+    echo "ERROR: Missing required arguments"
+    echo "Usage: bash scripts/main_rentropy.sh <questioner_base_model> <solver_base_model> <model_abbr> [diversity_mode]"
+    echo "Example: bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base meta-llama/Llama-2-7b qwen3-4b 4"
+    exit 1
+fi
+
 export HUGGINGFACENAME="vibhuiitj"
 export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
 export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
@@ -30,6 +41,8 @@ fi
 
 echo "Model_abbr: $Model_abbr"
 echo "Diversity Mode: $Diversity_mode"
+echo "Questioner Base Model: $Questioner_base_model"
+echo "Solver Base Model: $Solver_base_model"
 echo "Running Rentropy experiment with cluster-entropy diversity reward (mode $Diversity_mode)"
 echo "STORAGE_PATH: $STORAGE_PATH"
 echo "HUGGINGFACENAME: $HUGGINGFACENAME"
@@ -43,72 +56,87 @@ mkdir -p \
 export HF_HUB_DOWNLOAD_TIMEOUT=600
 export HF_HUB_DOWNLOAD_TIMEOUT_STREAM=600
 
+# Helper function to validate if model download is complete
+validate_model_download() {
+    local model_dir=$1
+    
+    # Check if config.json exists
+    if [ ! -f "$model_dir/config.json" ]; then
+        return 1
+    fi
+    
+    # Check if model weight files exist (either .safetensors or .bin files)
+    local weight_count=$(find "$model_dir" -maxdepth 1 \( -name "*.safetensors" -o -name "pytorch_model*.bin" \) 2>/dev/null | wc -l)
+    
+    if [ "$weight_count" -eq 0 ]; then
+        # No weight files found, check if there's an index file indicating sharded model
+        if [ -f "$model_dir/model.safetensors.index.json" ] || [ -f "$model_dir/pytorch_model.bin.index.json" ]; then
+            echo "WARNING: Found index file but no weight files. Model download is incomplete." >&2
+            return 1
+        fi
+        # For single-file models without index, should have at least one weight file
+        return 1
+    fi
+    
+    return 0
+}
+
+# Helper function to download and prepare a model
+download_and_prepare_model() {
+    local model_name=$1
+    local model_type=$2
+    
+    echo "Pre-downloading $model_type model: $model_name" >&2
+    
+    local original_model="$model_name"
+    local model_dir="$STORAGE_PATH/models/$(echo $model_name | tr '/' '_')"
+    
+    # Validate existing download
+    if [ -d "$model_dir" ]; then
+        if validate_model_download "$model_dir"; then
+            echo "$model_type model already exists at $model_dir, skipping download." >&2
+            local_model_path="$(realpath "$model_dir" 2>/dev/null || echo "$model_dir")"
+            echo "Using local $model_type model path: $local_model_path" >&2
+            echo "$local_model_path"
+            return 0
+        else
+            echo "WARNING: Incomplete model download detected at $model_dir. Cleaning up..." >&2
+            rm -rf "$model_dir"
+        fi
+    fi
+    
+    echo "$model_type model not found locally, downloading..." >&2
+    python3 scripts/download_hf_model.py --repo-id "$original_model" --max-retries 5 --timeout 600 >&2 || {
+        echo "ERROR: Failed to pre-download $model_type model after 5 retries." >&2
+        echo "Please check your network connection and HuggingFace token (if required)." >&2
+        echo "You can also manually download the model using:" >&2
+        echo "  python3 scripts/download_hf_model.py --repo-id \"$original_model\" --max-retries 5 --timeout 600" >&2
+        return 1
+    }
+    
+    # Validate the download was successful
+    if validate_model_download "$model_dir"; then
+        local_model_path="$(realpath "$model_dir" 2>/dev/null || echo "$model_dir")"
+        echo "Using local $model_type model path: $local_model_path" >&2
+        echo "$local_model_path"
+    else
+        echo "WARNING: $model_type model download completed but validation failed. Using original path: $original_model" >&2
+        echo "$original_model"
+    fi
+}
+
 # Pre-download models to avoid hanging during training
 echo "Pre-downloading models to avoid download issues during training..."
-echo "Downloading base model: $Base_model"
 
-# Check if model is already downloaded locally
-ORIGINAL_BASE_MODEL="$Base_model"
-MODEL_DIR="$STORAGE_PATH/models/$(echo $Base_model | tr '/' '_')"
-if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
-    echo "Model already exists at $MODEL_DIR, skipping download."
-    # Use local path if model is already downloaded (use absolute path)
-    Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
-    echo "Using local model path: $Base_model"
-else
-    echo "Model not found locally, downloading..."
-    python3 scripts/download_hf_model.py --repo-id "$ORIGINAL_BASE_MODEL" --max-retries 5 --timeout 600 || {
-        echo "ERROR: Failed to pre-download base model after 5 retries."
-        echo "Please check your network connection and HuggingFace token (if required)."
-        echo "You can also manually download the model using:"
-        echo "  python3 scripts/download_hf_model.py --repo-id \"$ORIGINAL_BASE_MODEL\" --max-retries 5 --timeout 600"
-        exit 1
-    }
-    # After successful download, use local path
-    if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
-        Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
-        echo "Using local model path: $Base_model"
-    else
-        echo "WARNING: Model download completed but local directory not found. Using original path: $ORIGINAL_BASE_MODEL"
-        Base_model="$ORIGINAL_BASE_MODEL"
-    fi
-fi
-# Check if cluster centroids exist
+# Download questioner base model
+Questioner_base_model=$(download_and_prepare_model "$Questioner_base_model" "Questioner") || exit 1
 
+# Download solver base model
+Solver_base_model=$(download_and_prepare_model "$Solver_base_model" "Solver") || exit 1
 
-export HF_HUB_DOWNLOAD_TIMEOUT=600
-export HF_HUB_DOWNLOAD_TIMEOUT_STREAM=600
-
-# Pre-download models to avoid hanging during training
-echo "Pre-downloading models to avoid download issues during training..."
-echo "Downloading base model: $Base_model"
-
-# Check if model is already downloaded locally
-ORIGINAL_BASE_MODEL="$Base_model"
-MODEL_DIR="$STORAGE_PATH/models/$(echo $Base_model | tr '/' '_')"
-if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
-    echo "Model already exists at $MODEL_DIR, skipping download."
-    # Use local path if model is already downloaded (use absolute path)
-    Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
-    echo "Using local model path: $Base_model"
-else
-    echo "Model not found locally, downloading..."
-    python3 scripts/download_hf_model.py --repo-id "$ORIGINAL_BASE_MODEL" --max-retries 5 --timeout 600 || {
-        echo "ERROR: Failed to pre-download base model after 5 retries."
-        echo "Please check your network connection and HuggingFace token (if required)."
-        echo "You can also manually download the model using:"
-        echo "  python3 scripts/download_hf_model.py --repo-id \"$ORIGINAL_BASE_MODEL\" --max-retries 5 --timeout 600"
-        exit 1
-    }
-    # After successful download, use local path
-    if [ -d "$MODEL_DIR" ] && [ -f "$MODEL_DIR/config.json" ]; then
-        Base_model="$(realpath "$MODEL_DIR" 2>/dev/null || echo "$MODEL_DIR")"
-        echo "Using local model path: $Base_model"
-    else
-        echo "WARNING: Model download completed but local directory not found. Using original path: $ORIGINAL_BASE_MODEL"
-        Base_model="$ORIGINAL_BASE_MODEL"
-    fi
-fi
+echo "Both models downloaded successfully."
+echo "Questioner model: $Questioner_base_model"
+echo "Solver model: $Solver_base_model"
 
 CENTROIDS_PATH="../cluster_space/cluster_data/centroids.npy"
 if [ ! -f "$CENTROIDS_PATH" ]; then
@@ -135,10 +163,10 @@ find_latest_checkpoint() {
     fi
 }
 
-# Initialize first iteration with base model
-# bash scripts/questioner_train_rentropy.sh $Base_model $Base_model ${Model_abbr}_questioner_v1 $Diversity_mode
+# Initialize first iteration with base models (separate for questioner and solver)
+# bash scripts/questioner_train_rentropy.sh $Solver_base_model $Questioner_base_model ${Model_abbr}_questioner_v1 $Diversity_mode
 QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
-bash scripts/solver_train.sh $Base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
+bash scripts/solver_train.sh $Solver_base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
 
 # for i in {2..5}; do
 #     prev=$((i-1))

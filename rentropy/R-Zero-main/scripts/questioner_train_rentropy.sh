@@ -3,8 +3,8 @@
 # Usage: bash scripts/questioner_train_rentropy.sh <solver_model> <questioner_model> <save_name> [diversity_mode]
 #
 # Arguments:
-#   solver_model: Path to solver model
-#   questioner_model: Path to questioner model (being trained)
+#   solver_model: Path to solver model (can be different from questioner_model)
+#   questioner_model: Path to questioner model (being trained, can be different from solver_model)
 #   save_name: Name for saving checkpoints
 #   diversity_mode: (optional) Diversity reward mode (1-4, default: 4)
 #     1: Vanilla majority voting reward only (R-Zero baseline)
@@ -14,6 +14,7 @@
 #
 # Note: For warm start (loading previous cluster counts), set init_cluster_counts_path
 #       directly in rentropy_config.yaml
+# Note: The solver_model and questioner_model can now be different base models
 
 solver_model_path=$1
 questioner_model_path=$2
@@ -29,8 +30,14 @@ if [[ ! "$diversity_mode" =~ ^[1-4]$ ]]; then
     exit 1
 fi
 
-echo "save_path: $save_path"
-echo "diversity_mode: $diversity_mode"
+echo "========================================="
+echo "Questioner Training Configuration"
+echo "========================================="
+echo "Solver model path: $solver_model_path"
+echo "Questioner model path: $questioner_model_path"
+echo "Save path: $save_path"
+echo "Diversity mode: $diversity_mode"
+echo "========================================="
 
 # Update rentropy config with the specified diversity mode
 CONFIG_FILE="../rentropy_config.yaml"

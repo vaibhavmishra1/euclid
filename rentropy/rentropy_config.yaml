@@ -22,11 +22,11 @@ embedding_model: "Qwen/Qwen3-Embedding-0.6B"
 # This enables "warm start" where the rarity signal is informed by previous runs.
 #
 # Example paths:
-#   - "cluster_space/cluster_logs/cluster-logs-variant4-iter2/cluster_stats_step_000006.json"
+#   - "cluster_space/cluster_logs/cluster_stats_step_000006.json"
 #   - null (or omit) for fresh uniform initialization
 #
 # The JSON file should have structure: {"cluster_stats": {"cluster_counts": [...]}}
-init_cluster_counts_path: null
+init_cluster_counts_path: "/workspace/euclid/rentropy/cluster_space/cluster_logs/cluster_stats_step_000006.json"
 
 # Reward weights (only applied when majority vote passes threshold)
 # Increased weights (5-10x) to make diversity signal stronger relative to base reward
