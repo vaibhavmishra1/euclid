@@ -8,7 +8,7 @@ Then average this across all questions for each model.
 
 Usage:
     python calculate_max_voting.py \
-        --solver_model vibhuiitj/qwen3-4b-base-variant2-feb5-solver-iter5 \
+        --solver_model vibhuiitj/qwen3-4b-base-variant2-feb5-solver-iter4 \
         --question_file1 storage/generated_question/variant1-feb5-questioner-iter3_0.json \
         --question_file2 storage/generated_question/variant2-feb5-questioner-iter5_0.json \
         --num_rollouts 4 \
@@ -26,6 +26,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from collections import Counter
 from tqdm import tqdm
+
+try:
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-interactive backend
+    import matplotlib.pyplot as plt
+    import numpy as np
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
+    print("Warning: matplotlib not available. Plots will not be generated.")
 
 # Lazy import vLLM to allow checking args first
 LLM = None
@@ -187,7 +197,12 @@ def calculate_max_voting_score(
         most_frequent_count = 0
     
     # Calculate max voting score
-    max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
+    # If the most frequent answer is empty, None, or invalid, set max voting score to 0
+    # After normalization, empty answers become "" (empty string)
+    if not most_frequent_answer or (isinstance(most_frequent_answer, str) and most_frequent_answer.strip() == ""):
+        max_voting_score = 0.0
+    else:
+        max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
     
     return {
         "max_voting_score": max_voting_score,
@@ -276,7 +291,12 @@ def process_questions_batch(
             most_frequent_answer = ""
             most_frequent_count = 0
         
-        max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
+        # If the most frequent answer is empty, None, or invalid, set max voting score to 0
+        # After normalization, empty answers become "" (empty string)
+        if not most_frequent_answer or (isinstance(most_frequent_answer, str) and most_frequent_answer.strip() == ""):
+            max_voting_score = 0.0
+        else:
+            max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
         
         results.append({
             "question_index": idx,
@@ -292,6 +312,163 @@ def process_questions_batch(
     return results
 
 
+def plot_comparison(
+    scores1: List[float],
+    scores2: List[float],
+    stats1: Dict[str, Any],
+    stats2: Dict[str, Any],
+    model1_name: str,
+    model2_name: str,
+    plot_path: Path
+) -> None:
+    """
+    Create a comparison plot showing both models' distributions side by side.
+    
+    Args:
+        scores1: Max voting scores for model 1
+        scores2: Max voting scores for model 2
+        stats1: Statistics for model 1
+        stats2: Statistics for model 2
+        model1_name: Name of model 1
+        model2_name: Name of model 2
+        plot_path: Path to save the plot
+    """
+    if not HAS_MATPLOTLIB:
+        return
+    
+    # Create histogram bins from 0.0 to 1.0
+    bins = np.linspace(0.0, 1.0, 21)  # 20 bins, each 0.05 wide
+    
+    # Create figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Plot Model 1
+    counts1, bin_edges1, patches1 = ax1.hist(
+        scores1,
+        bins=bins,
+        edgecolor='black',
+        alpha=0.7,
+        color='steelblue'
+    )
+    avg1 = stats1.get('average_max_voting_score', 0.0)
+    ax1.axvline(avg1, color='red', linestyle='--', linewidth=2, 
+                label=f'Average: {avg1:.3f}')
+    ax1.set_xlabel('Max Voting Score', fontsize=12)
+    ax1.set_ylabel('Number of Questions', fontsize=12)
+    ax1.set_title(f'{model1_name}\n'
+                 f'Total: {stats1.get("num_evaluated", 0)}, '
+                 f'Rollouts: {stats1.get("num_rollouts_per_question", 0)}',
+                 fontsize=13)
+    ax1.grid(True, alpha=0.3)
+    ax1.legend()
+    ax1.set_xlim(0.0, 1.0)
+    ax1.set_xticks(np.arange(0.0, 1.1, 0.1))
+    
+    # Plot Model 2
+    counts2, bin_edges2, patches2 = ax2.hist(
+        scores2,
+        bins=bins,
+        edgecolor='black',
+        alpha=0.7,
+        color='orange'
+    )
+    avg2 = stats2.get('average_max_voting_score', 0.0)
+    ax2.axvline(avg2, color='red', linestyle='--', linewidth=2, 
+                label=f'Average: {avg2:.3f}')
+    ax2.set_xlabel('Max Voting Score', fontsize=12)
+    ax2.set_ylabel('Number of Questions', fontsize=12)
+    ax2.set_title(f'{model2_name}\n'
+                 f'Total: {stats2.get("num_evaluated", 0)}, '
+                 f'Rollouts: {stats2.get("num_rollouts_per_question", 0)}',
+                 fontsize=13)
+    ax2.grid(True, alpha=0.3)
+    ax2.legend()
+    ax2.set_xlim(0.0, 1.0)
+    ax2.set_xticks(np.arange(0.0, 1.1, 0.1))
+    
+    # Set overall title
+    fig.suptitle('Max Voting Score Distribution Comparison', fontsize=16, fontweight='bold')
+    
+    plt.tight_layout()
+    
+    # Save plot
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"Comparison plot saved to {plot_path}")
+
+
+def plot_distribution(
+    max_voting_scores: List[float],
+    statistics: Dict[str, Any],
+    plot_path: Path,
+    model_name: str = "Model"
+) -> None:
+    """
+    Plot and save the distribution of max voting scores.
+    
+    Args:
+        max_voting_scores: List of max voting scores
+        statistics: Statistics dictionary
+        plot_path: Path to save the plot
+        model_name: Name of the model for the title
+    """
+    if not HAS_MATPLOTLIB:
+        return
+    
+    # Create histogram bins from 0.0 to 1.0
+    bins = np.linspace(0.0, 1.0, 21)  # 20 bins, each 0.05 wide
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Plot histogram
+    counts, bin_edges, patches = ax.hist(
+        max_voting_scores,
+        bins=bins,
+        edgecolor='black',
+        alpha=0.7,
+        color='steelblue'
+    )
+    
+    # Add vertical line for average
+    avg_score = statistics.get('average_max_voting_score', 0.0)
+    ax.axvline(avg_score, color='red', linestyle='--', linewidth=2, 
+               label=f'Average: {avg_score:.3f}')
+    
+    # Customize plot
+    ax.set_xlabel('Max Voting Score', fontsize=12)
+    ax.set_ylabel('Number of Questions', fontsize=12)
+    ax.set_title(f'Max Voting Score Distribution - {model_name}\n'
+                f'Total Questions: {statistics.get("num_evaluated", 0)}, '
+                f'Rollouts per Question: {statistics.get("num_rollouts_per_question", 0)}',
+                fontsize=13)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    
+    # Set x-axis limits and ticks
+    ax.set_xlim(0.0, 1.0)
+    ax.set_xticks(np.arange(0.0, 1.1, 0.1))
+    
+    # Add text box with statistics
+    stats_text = f'Mean: {avg_score:.3f}\n'
+    stats_text += f'Min: {statistics.get("min_max_voting_score", 0.0):.3f}\n'
+    stats_text += f'Max: {statistics.get("max_max_voting_score", 0.0):.3f}'
+    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+            fontsize=10, verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    plt.tight_layout()
+    
+    # Save plot
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"Distribution plot saved to {plot_path}")
+
+
 def evaluate_model_questions(
     questions: List[Dict[str, Any]],
     solver_model_name: str,
@@ -301,6 +478,7 @@ def evaluate_model_questions(
     max_tokens: int = 2048,
     temperature: float = 0.0,
     batch_size: int = 32,
+    model_name: str = None,
 ) -> Dict[str, Any]:
     """
     Evaluate all questions for a model and calculate average max voting score.
@@ -427,15 +605,19 @@ def evaluate_model_questions(
         "min_max_voting_score": min_max_voting,
         "max_max_voting_score": max_max_voting,
         "score_distribution": dict(score_distribution),
+        "max_voting_scores": max_voting_scores,  # Include raw scores for comparison plotting
     }
     
-    # Save detailed results
+    # Save detailed results (without raw scores list to keep file size manageable)
     print(f"\nSaving results to {output_path}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
+    # Create statistics copy without raw scores for saving
+    stats_for_save = {k: v for k, v in statistics.items() if k != 'max_voting_scores'}
+    
     with output_path.open("w", encoding="utf-8") as f:
         json.dump({
-            "statistics": statistics,
+            "statistics": stats_for_save,
             "results": results
         }, f, indent=2, ensure_ascii=False)
     
@@ -448,6 +630,12 @@ def evaluate_model_questions(
     print(f"  Min Max Voting Score: {statistics['min_max_voting_score']:.4f}")
     print(f"  Max Max Voting Score: {statistics['max_max_voting_score']:.4f}")
     print(f"{'='*60}")
+    
+    # Plot and save distribution
+    if HAS_MATPLOTLIB:
+        plot_path = output_path.with_suffix('.png')
+        display_name = model_name if model_name else Path(output_path.stem).stem.replace('max_voting_scores_', '')
+        plot_distribution(max_voting_scores, statistics, plot_path, model_name=display_name)
     
     return statistics
 
@@ -544,6 +732,7 @@ def main():
     print(f"\n{'='*60}")
     print("EVALUATING MODEL 1")
     print(f"{'='*60}")
+    model1_name = Path(args.question_file1).stem.replace('_0', '').replace('variant', 'Variant')
     stats1 = evaluate_model_questions(
         questions=questions1,
         solver_model_name=args.solver_model,
@@ -553,12 +742,14 @@ def main():
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         batch_size=args.batch_size,
+        model_name=model1_name,
     )
     
     # Evaluate Model 2
     print(f"\n{'='*60}")
     print("EVALUATING MODEL 2")
     print(f"{'='*60}")
+    model2_name = Path(args.question_file2).stem.replace('_0', '').replace('variant', 'Variant')
     stats2 = evaluate_model_questions(
         questions=questions2,
         solver_model_name=args.solver_model,
@@ -568,6 +759,7 @@ def main():
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         batch_size=args.batch_size,
+        model_name=model2_name,
     )
     
     # Comparison summary
@@ -610,6 +802,20 @@ def main():
         json.dump(combined_summary, f, indent=2, ensure_ascii=False)
     
     print(f"\nCombined summary saved to {summary_path}")
+    
+    # Create comparison plot
+    if HAS_MATPLOTLIB and 'max_voting_scores' in stats1 and 'max_voting_scores' in stats2:
+        comparison_plot_path = output_path.with_name(f"{output_path.stem}_comparison.png")
+        plot_comparison(
+            scores1=stats1['max_voting_scores'],
+            scores2=stats2['max_voting_scores'],
+            stats1=stats1,
+            stats2=stats2,
+            model1_name=model1_name,
+            model2_name=model2_name,
+            plot_path=comparison_plot_path
+        )
+    
     print(f"{'='*60}\n")
 
 
