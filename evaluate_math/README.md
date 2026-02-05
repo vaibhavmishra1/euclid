@@ -14,10 +14,10 @@ pip install vllm datasets tqdm
 
 ```bash
 python -m euclid.evaluate_math.evaluate \
-    --model vibhuiitj/Qwen3-1.7B-Base-grpo-expv1_1 \
+    --model vibhuiitj/qwen3-4b-base-variant1-feb5-solver-iter3 \
     --dataset-config number_theory \
-    --split test \
-    --output results_qwen3b_number_theory.jsonl
+    --split test 
+    
 ```
 
 ### With Few-Shot Prompting
