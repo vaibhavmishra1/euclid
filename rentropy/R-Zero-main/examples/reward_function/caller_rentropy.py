@@ -383,17 +383,14 @@ def compute_zpd_reward(base_score: float, diversity_reward: float, lambda_weight
     """
     # 1. Hard cutoffs at BOTH ends - prevent reward hacking
     # Too hard (< 0.5) OR too easy (> 0.9) get ZERO reward
+    mode = RENTROPY_CONFIG.get("diversity_mode", 1)
+    if mode == 1:
+        final = min(base_score, 1.0 - base_score)
+    
     if base_score < 0.3 or base_score > 0.9:
-        return 0.0
-    
-    # 2. ZPD with peak at 0.75 (optimal difficulty)
-    # Linear interpolation: 1.0 at 0.75, 0.0 at boundaries (0.5 and 1.0)
-    # But we cut off at 0.9, so effective range is [0.5, 0.9]
-    zpd = max(0.0, 1.0 - abs(base_score - 0.75) / 0.4)
-    
-    # 3. Gated multiplicative reward
-    # ZPD acts as a gate, diversity provides bonus
-    final = zpd * (1.0 + lambda_weight * diversity_reward)
+        final = 0.0
+    else:
+        final =  diversity_reward 
     
     return final
 
@@ -448,10 +445,8 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
             # Use new ZPD-gated multiplicative reward
             final_score = compute_zpd_reward(base_score, diversity_rewards[i], lambda_weight)
             # Compute ZPD for logging (matches the formula in compute_zpd_reward)
-            if base_score < 0.3 or base_score > 0.9:
-                zpd = 0.0
-            else:
-                zpd = max(0.0, 1.0 - abs(base_score - 0.75) / 0.4)
+            
+            zpd = min(base_score, 1.0 - base_score)
         else:
             final_score = -1
             zpd = 0.0
