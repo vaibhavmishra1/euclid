@@ -575,3 +575,98 @@
     "accuracy": 0.6964
   }
 }
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb5-solver-iter3",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8660488626790227,
+      "correct": 1028,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6286919831223629,
+      "correct": 298,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.5678496868475992,
+      "correct": 272,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5481727574750831,
+      "correct": 495,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7648148148148148,
+      "correct": 413,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7864523536165328,
+      "correct": 685,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5274725274725275,
+      "correct": 288,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3479,
+    "accuracy": 0.6958
+  }
+}
+
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant2-feb5-solver-iter5",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.8668913226621735,
+      "correct": 1029,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.6455696202531646,
+      "correct": 306,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.55741127348643,
+      "correct": 267,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5426356589147286,
+      "correct": 490,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7611111111111111,
+      "correct": 411,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.7876004592422503,
+      "correct": 686,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.5347985347985348,
+      "correct": 292,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3481,
+    "accuracy": 0.6962
+  }
+}
