@@ -386,6 +386,7 @@ def compute_zpd_reward(base_score: float, diversity_reward: float, lambda_weight
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
     if mode == 1:
         final = min(base_score, 1.0 - base_score)
+        return final
     
     if base_score < 0.3 or base_score > 0.9:
         final = 0.0
