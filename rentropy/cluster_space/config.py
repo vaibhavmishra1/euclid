@@ -13,7 +13,7 @@ class ClusterConfig:
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
     
     # Number of clusters
-    num_clusters: int = 2048
+    num_clusters: int = 128
     
     # Paths
     corpus_dir: str = "./corpus"  # Directory containing question files

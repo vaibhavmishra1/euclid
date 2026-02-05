@@ -53,8 +53,8 @@ python evaluate_questioner_models.py \
     --embedding_model Qwen/Qwen3-Embedding-0.6B \
     --storage_path /workspace/euclid/questioner_model_evaluation/storage \
     --save_name1 variant1-feb5-questioner-iter3 \
-    --save_name2 variant2-feb5-questioner-iter5 \
-    --skip_generation 
+    --save_name2 variant2-feb5-questioner-iter5 
+
 
 
 
