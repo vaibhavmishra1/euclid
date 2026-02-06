@@ -101,10 +101,10 @@ log_cluster_stats_freq: 1
 # Minimum solver success rate (questions must be challenging)
 # Lower = harder questions allowed
 # Recommended: 0.35 (35% solver success)
-mara_quality_min: 0.50
+mara_quality_min: 0.49
 
 # Maximum solver success rate (questions must not be too easy)
 # Higher = easier questions allowed
 # Recommended: 0.65 (65% solver success) - prevents reward hacking
 mara_quality_max: 0.99
-
+mara_diversity_min: 0.15

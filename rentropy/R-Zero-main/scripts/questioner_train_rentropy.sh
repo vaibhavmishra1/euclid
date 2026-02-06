@@ -66,7 +66,7 @@ echo "Start training questioner with Rentropy: $questioner_model_path -> $save_p
 
 # Training uses GPUs 0,1,2,3; vLLM uses 4,5,6; embedding uses 7
 # Include GPU 7 in visible devices so embedding model can access it
-CUDA_VISIBLE_DEVICES=0,1,2,3,7 python3 -m verl.trainer.main \
+CUDA_VISIBLE_DEVICES=0,1,7 python3 -m verl.trainer.main \
     config=examples/config.yaml \
     data.max_response_length=4096 \
     worker.actor.model.model_path=$questioner_model_path \
@@ -74,7 +74,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,7 python3 -m verl.trainer.main \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/$save_path \
     worker.reward.reward_function=./examples/reward_function/caller_rentropy.py:compute_score \
     trainer.val_freq=-1 \
-    trainer.n_gpus_per_node=4 \
+    trainer.n_gpus_per_node=2 \
     data.format_prompt=./examples/format_prompt/questioner.jinja \
     data.rollout_batch_size=512 \
     data.val_batch_size=1024 \
@@ -84,7 +84,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,7 python3 -m verl.trainer.main \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
     trainer.total_epochs=6 \
     trainer.max_steps=6 \
-    trainer.save_freq=6
+    trainer.save_freq=2
 
 sleep 5
 echo "Stopping vLLM service (PID: $VLLM_PID)..."
