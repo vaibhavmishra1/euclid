@@ -8,11 +8,13 @@
 #     http://www.apache.org/licenses/LICENSE-2.0
 
 """
-Rentropy reward function with 4 configurable diversity modes:
+Rentropy reward function with 5 configurable diversity modes:
   1: Vanilla majority voting reward only (R-Zero baseline)
   2: Mode 1 + reward for choosing a rare cluster
   3: Mode 2 + reward for uniqueness from other n-1 questions in batch
   4: Mode 3 + within-cluster uniqueness reward
+  5: MARA mode - Equal reward for ALL questions above quality+diversity thresholds
+     (prevents mode collapse by design - based on arXiv:2510.20817)
 """
 
 import regex as re
@@ -55,7 +57,16 @@ def load_rentropy_config() -> dict:
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         print(f"[Rentropy] Loaded config from {config_path}")
-        print(f"[Rentropy] Diversity mode: {config.get('diversity_mode', 1)}")
+        mode = config.get('diversity_mode', 1)
+        print(f"[Rentropy] Diversity mode: {mode}")
+        
+        # Print MARA settings if mode 5
+        if mode == 5:
+            print(f"[Rentropy] MARA MODE ENABLED (prevents mode collapse)")
+            print(f"[Rentropy]   Quality range: [{config.get('mara_quality_min', 0.35)}, {config.get('mara_quality_max', 0.65)}]")
+            print(f"[Rentropy]   Diversity threshold: {config.get('mara_diversity_min', 0.10)}")
+            print(f"[Rentropy]   Equal reward (1.0) for ALL qualifying questions!")
+        
         return config
     else:
         print(f"[Rentropy] Config not found at {config_path}, using defaults (mode 1)")
@@ -223,7 +234,7 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
         for comparison purposes.
     """
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
-    threshold = RENTROPY_CONFIG.get("majority_vote_threshold", 0.3)
+    threshold = RENTROPY_CONFIG.get("majority_vote_threshold", 0.5)
     weights = RENTROPY_CONFIG.get("weights", {})
     # Scale by ZPD is now optional - disabled by default to avoid double scaling
     # When disabled, diversity rewards maintain their natural scale and are multiplied by lambda_weight
@@ -255,6 +266,21 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
         assigner.update_counts(cluster_ids)
         # Log cluster statistics
         _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+        return diversity_rewards.tolist()
+    
+    # Mode 5 (MARA): Compute rarity for thresholding, then give equal reward to all qualifying
+    if mode == 5:
+        # Compute rarity rewards (used for MARA diversity threshold)
+        rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
+        for idx, valid_idx in enumerate(valid_indices):
+            diversity_rewards[valid_idx] = rarity_rewards[idx]
+        
+        # Update cluster counts for valid questions
+        assigner.update_counts(cluster_ids)
+        
+        # Log cluster statistics
+        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+        
         return diversity_rewards.tolist()
     
     # Compute ZPD scores for scaling (peaks at 0.5, penalizes too-easy and too-hard)
@@ -356,42 +382,62 @@ def _log_cluster_stats(assigner: ClusterAssigner, cluster_ids: np.ndarray,
 
 def compute_zpd_reward(base_score: float, diversity_reward: float, lambda_weight: float) -> float:
     """
-    Compute final reward using ZPD-gated multiplicative formula with HARD CUTOFFS.
+    Compute final reward based on diversity mode.
     
-    Formula:
-        1. Hard cutoffs: score < 0.5 OR score > 0.9 → reward = 0 (prevents reward hacking!)
-        2. ZPD with peak at 0.75: zpd = max(0, 1 - |score - 0.75| / 0.4)
-        3. Gated multiplicative: final = zpd * (1 + lambda * diversity)
+    Mode 1: Vanilla ZPD (R-Zero baseline)
+        final = min(base_score, 1 - base_score)
     
-    This encourages:
-        - Questions with 50-90% solver success rate (sweet spot: ~75%)
-        - NO reward for trivial questions (score > 0.9) - prevents "easy + rare" exploit
-        - NO reward for impossible questions (score < 0.5)
-        - Diversity bonus is MULTIPLICATIVE, not additive (stronger signal)
+    Mode 2-4: ZPD-gated multiplicative with diversity
+        final = zpd * (1 + lambda * diversity)
     
-    ZPD curve with hard cutoffs:
-        score ≤ 0.5 → reward = 0.0 (too hard, cutoff)
-        score = 0.6 → zpd = 0.625
-        score = 0.75 → zpd = 1.0 (peak - optimal difficulty!)
-        score = 0.9 → zpd = 0.625
-        score ≥ 0.9 → reward = 0.0 (too easy, cutoff - NO REWARD HACKING!)
+    Mode 5: MARA (Mode-Aware Reward Adjustment)
+        ALL questions above thresholds get EQUAL reward (prevents mode collapse!)
+        Based on arXiv:2510.20817 "KL-Regularized RL is Designed to Mode Collapse"
+        
+        Key insight: Instead of maximizing reward (→ single mode), maximize 
+        coverage of ALL modes above threshold (→ multimodal optimal policy)
+        
+        final = 1.0 if (quality_min <= base_score <= quality_max AND diversity >= diversity_min)
+        final = 0.0 otherwise
     
-    Example with λ=1.0, diversity=0.4:
-        score=0.5: final=0.0 (too hard)
-        score=0.75: final=1.0×(1+0.4)=1.4 (perfect!)
-        score=1.0: final=0.0 (too easy - exploit prevented!)
+    MARA thresholds (configurable in rentropy_config.yaml):
+        mara_quality_min: 0.35 (questions must be challenging)
+        mara_quality_max: 0.65 (questions must be solvable)
+        mara_diversity_min: 0.10 (questions must be moderately rare)
     """
-    # 1. Hard cutoffs at BOTH ends - prevent reward hacking
-    # Too hard (< 0.5) OR too easy (> 0.9) get ZERO reward
     mode = RENTROPY_CONFIG.get("diversity_mode", 1)
-    if mode == 1:
-        final = min(base_score, 1.0 - base_score)
-        return final
     
+    # Mode 1: Vanilla ZPD (R-Zero baseline)
+    if mode == 1:
+        return min(base_score, 1.0 - base_score)
+    
+    # Mode 5: MARA - Equal reward for all qualifying questions
+    if mode == 5:
+        # Get MARA thresholds from config
+        mara_quality_min = RENTROPY_CONFIG.get("mara_quality_min", 0.49)
+        mara_quality_max = RENTROPY_CONFIG.get("mara_quality_max", 0.99)
+        mara_diversity_min = RENTROPY_CONFIG.get("mara_diversity_min", 0.15)
+        
+        # MARA: Binary qualification - ALL qualifying questions get EQUAL reward
+        quality_ok = mara_quality_min <= base_score <= mara_quality_max
+        diversity_ok = diversity_reward >= mara_diversity_min
+        
+        # Equal reward for ALL qualifying questions (prevents mode collapse!)
+        if quality_ok and diversity_ok:
+            return 1.0
+        else:
+            return 0.0
+    
+    # Mode 2-4: ZPD-gated multiplicative reward
+    # Hard cutoffs at both ends
     if base_score < 0.3 or base_score > 0.9:
-        final = 0.0
-    else:
-        final =  diversity_reward 
+        return 0.0
+    
+    # ZPD with peak at 0.75
+    zpd = max(0.0, 1.0 - abs(base_score - 0.75) / 0.4)
+    
+    # Gated multiplicative: diversity provides bonus on top of quality
+    final = zpd * (1.0 + lambda_weight * diversity_reward)
     
     return final
 

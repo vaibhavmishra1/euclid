@@ -1,12 +1,15 @@
 # Rentropy Configuration
 # This file controls the diversity reward settings for the Rentropy experiment.
 
-# Diversity reward mode (1-4):
+# Diversity reward mode (1-5):
 #   1: Vanilla majority voting reward only (R-Zero baseline)
 #   2: Mode 1 + reward for choosing a rare cluster
 #   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
 #   4: Mode 3 + within-cluster uniqueness reward
-diversity_mode: 2
+#   5: MARA mode - Equal reward for ALL questions above quality+diversity thresholds
+#      (prevents mode collapse by design - based on arXiv:2510.20817)
+#      RECOMMENDED: Use this mode to break through accuracy plateaus
+diversity_mode: 5
 
 # Path to cluster centroids (built by cluster_space/build_clusters.py)
 centroids_path: "cluster_space/cluster_data/centroids.npy"
@@ -42,7 +45,7 @@ weights:
   within_cluster_uniqueness: 0.0
 
 # Majority voting threshold - diversity reward only applied if score >= this
-majority_vote_threshold: 0.3
+majority_vote_threshold: 0.5
 
 # Scale diversity reward by ZPD score (Zone of Proximal Development)
 # When true: diversity_reward *= (min(score, 1-score) / 0.5)
@@ -81,3 +84,27 @@ smoothing_alpha: 1.0
 # Logging frequency for cluster statistics (log every N reward computations)
 # Set to 1 to log every step, higher values reduce logging overhead
 log_cluster_stats_freq: 1
+
+# ============================================================================
+# MARA Configuration (Mode 5)
+# ============================================================================
+# MARA (Mode-Aware Reward Adjustment) prevents mode collapse by giving
+# EQUAL reward to ALL questions that pass quality and diversity thresholds.
+# 
+# Key insight from arXiv:2510.20817: Instead of optimizing for the HIGHEST
+# reward (which converges to single mode), optimize for COVERAGE of all modes
+# above threshold (which preserves multimodality).
+#
+# The optimal policy under MARA puts equal probability mass over ALL 
+# high-quality, diverse questions rather than concentrating on a few.
+
+# Minimum solver success rate (questions must be challenging)
+# Lower = harder questions allowed
+# Recommended: 0.35 (35% solver success)
+mara_quality_min: 0.50
+
+# Maximum solver success rate (questions must not be too easy)
+# Higher = easier questions allowed
+# Recommended: 0.65 (65% solver success) - prevents reward hacking
+mara_quality_max: 0.99
+
