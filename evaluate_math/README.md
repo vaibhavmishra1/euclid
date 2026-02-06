@@ -39,7 +39,11 @@ python -m tree.euclid.evaluate_math.evaluate \
     --limit 100 \
     --output results_qwen3b_number_theory_100.jsonl
 ```
-
+python -m tree.euclid.evaluate_math.evaluate \
+    --model Qwen/Qwen3-4B-Base \
+    --dataset-config number_theory \
+    --limit 100 \
+    --output results_qwen3b_number_theory_100.jsonl
 ### Multi-GPU Evaluation
 
 ```bash
@@ -63,6 +67,8 @@ python -m tree.euclid.evaluate_math.evaluate \
 | `--tensor-parallel-size` | `1` | Number of GPUs |
 | `--max-tokens` | `2048` | Max generation tokens |
 | `--temperature` | `0.0` | Sampling temperature |
+| `--grader` | `simple` | Answer grader: `simple` (normalize + numeric eval) or `mathruler` (semantic equivalence via MathRuler) |
+| `--grader-timeout-s` | `10` | Timeout for MathRuler grading (seconds). Only used with `--grader mathruler` |
 
 ## Dataset Configs
 

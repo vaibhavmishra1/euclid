@@ -10,9 +10,15 @@ import sys
 import json
 import argparse
 import numpy as np
+import gc
+import torch
+import time
 from collections import Counter
 from typing import List, Dict
 from pathlib import Path
+
+# Set environment variable to help with memory fragmentation
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "rentropy" / "cluster_space"))
@@ -233,6 +239,39 @@ def assign_clusters_to_questions(
     return cluster_ids
 
 
+def save_questions_with_clusters(
+    questions: List[Dict],
+    cluster_ids: np.ndarray,
+    storage_path: str,
+    save_name: str
+) -> None:
+    """
+    Save questions with their assigned cluster IDs to a single JSON file.
+    
+    Args:
+        questions: List of question dictionaries
+        cluster_ids: Array of cluster IDs (one per question)
+        storage_path: Base storage path
+        save_name: Save name prefix for output file
+    """
+    output_dir = Path(storage_path) / "generated_question_with_clusters"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Add cluster IDs to questions
+    questions_with_clusters = []
+    for i, (question, cluster_id) in enumerate(zip(questions, cluster_ids)):
+        question_copy = question.copy()
+        question_copy["cluster_id"] = int(cluster_id)
+        questions_with_clusters.append(question_copy)
+    
+    # Save to single file
+    output_file = output_dir / f"{save_name}_with_clusters.json"
+    with open(output_file, 'w') as f:
+        json.dump(questions_with_clusters, f, indent=2)
+    
+    print(f"Saved {len(questions_with_clusters)} questions with cluster IDs to: {output_file}")
+
+
 def compute_cluster_statistics(cluster_ids: np.ndarray, model_name: str) -> Dict:
     """
     Compute detailed statistics about cluster distribution.
@@ -435,6 +474,29 @@ def main():
             num_gpus=args.num_gpus,
             storage_path=storage_path
         )
+        
+        # Free GPU memory after generation
+        print("\nFreeing GPU memory...")
+        gc.collect()
+        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            for i in range(torch.cuda.device_count()):
+                with torch.cuda.device(i):
+                    torch.cuda.empty_cache()
+                    torch.cuda.synchronize()
+        
+        # Wait a bit for memory to be fully released
+        print("Waiting for GPU memory to be released...")
+        time.sleep(5)
+        
+        # Print memory stats
+        if torch.cuda.is_available():
+            for i in range(torch.cuda.device_count()):
+                free_mem = torch.cuda.mem_get_info(i)[0] / (1024**3)
+                total_mem = torch.cuda.mem_get_info(i)[1] / (1024**3)
+                print(f"GPU {i}: {free_mem:.2f} GiB free / {total_mem:.2f} GiB total")
+        
+        print("GPU memory cleanup completed.")
     else:
         print("Skipping question generation (--skip_generation flag set)")
     
@@ -469,6 +531,11 @@ def main():
         embedding_model=args.embedding_model,
         use_local_files=args.use_local_files
     )
+    
+    # Save questions with cluster IDs
+    print("\nSaving questions with cluster IDs...")
+    save_questions_with_clusters(questions1, cluster_ids1, storage_path, args.save_name1)
+    save_questions_with_clusters(questions2, cluster_ids2, storage_path, args.save_name2)
     
     # Step 4: Compute and print statistics
     print("\n" + "="*80)

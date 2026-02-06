@@ -114,6 +114,39 @@ def assign_clusters_to_questions(
     return cluster_ids
 
 
+def save_questions_with_clusters(
+    questions: List[Dict],
+    cluster_ids: np.ndarray,
+    storage_path: str,
+    save_name: str
+) -> None:
+    """
+    Save questions with their assigned cluster IDs to a single JSON file.
+    
+    Args:
+        questions: List of question dictionaries
+        cluster_ids: Array of cluster IDs (one per question)
+        storage_path: Base storage path
+        save_name: Save name prefix for output file
+    """
+    output_dir = Path(storage_path) / "generated_question_with_clusters"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Add cluster IDs to questions
+    questions_with_clusters = []
+    for i, (question, cluster_id) in enumerate(zip(questions, cluster_ids)):
+        question_copy = question.copy()
+        question_copy["cluster_id"] = int(cluster_id)
+        questions_with_clusters.append(question_copy)
+    
+    # Save to single file
+    output_file = output_dir / f"{save_name}_with_clusters.json"
+    with open(output_file, 'w') as f:
+        json.dump(questions_with_clusters, f, indent=2)
+    
+    print(f"Saved {len(questions_with_clusters)} questions with cluster IDs to: {output_file}")
+
+
 def compute_cluster_statistics(cluster_ids: np.ndarray, model_name: str) -> Dict:
     """Compute detailed statistics about cluster distribution."""
     cluster_counts = Counter(cluster_ids)
@@ -294,6 +327,11 @@ def main():
         embedding_model=args.embedding_model,
         use_local_files=args.use_local_files
     )
+    
+    # Save questions with cluster IDs
+    print("\nSaving questions with cluster IDs...")
+    save_questions_with_clusters(questions1, cluster_ids1, storage_path, args.save_name1)
+    save_questions_with_clusters(questions2, cluster_ids2, storage_path, args.save_name2)
     
     # Compute statistics
     print("\n" + "="*80)

@@ -45,15 +45,15 @@ python evaluate_questioner_models.py \
     --save_name2 model2_eval
 ```
 python evaluate_questioner_models.py \
-    --model1 vibhuiitj/qwen3-4b-base-variant1-feb5-questioner-iter3 \
+    --model1 Qwen/Qwen3-4B-Base \
     --model2 vibhuiitj/qwen3-4b-base-variant2-feb5-questioner-iter5 \
-    --num_samples 10000 \
+    --num_samples 1000 \
     --num_gpus 1 \
     --centroids_path /workspace/euclid/rentropy/cluster_space/cluster_data/centroids.npy \
     --embedding_model Qwen/Qwen3-Embedding-0.6B \
     --storage_path /workspace/euclid/questioner_model_evaluation/storage \
-    --save_name1 variant1-feb5-questioner-iter3 \
-    --save_name2 variant2-feb5-questioner-iter5 
+    --save_name1 qwen_original \
+    --save_name2 variant2-feb5-questioner-iter5_2
 
 
 
@@ -95,7 +95,13 @@ The script prints detailed statistics to stdout including:
 - Top 10 and bottom 10 clusters by frequency
 - Comparison summary between the two models
 
-Statistics are also saved to `results/cluster_statistics.json` for further analysis.
+### Saved Files
+
+1. **Cluster Statistics**: `results/cluster_statistics.json` - Detailed statistical analysis
+2. **Questions with Clusters**: `{STORAGE_PATH}/generated_question_with_clusters/{save_name}_with_clusters.json`
+   - Contains all generated questions with their assigned cluster IDs
+   - Each question includes a `cluster_id` field indicating which cluster it belongs to
+   - Useful for analyzing specific clusters or filtering questions by cluster
 
 ## How It Works
 
@@ -105,6 +111,7 @@ Statistics are also saved to `results/cluster_statistics.json` for further analy
    - Each question is embedded using Qwen 0.6B embedding model
    - Embeddings are compared to pre-computed cluster centroids (1024 clusters)
    - Each question is assigned to the nearest cluster (highest cosine similarity)
+   - Questions are saved with their cluster IDs for future analysis
 
 3. **Statistics Computation**:
    - Counts how many questions fall into each cluster
@@ -115,6 +122,8 @@ Statistics are also saved to `results/cluster_statistics.json` for further analy
 4. **Comparison**: Compares the two models on metrics like cluster coverage, diversity (entropy), and distribution characteristics.
 
 ## Example Output
+
+### Console Output
 
 ```
 ================================================================================
@@ -142,6 +151,27 @@ Top 10 Most Frequent Clusters:
   Cluster   42:   234 questions (2.34%)
   Cluster  128:   189 questions (1.89%)
   ...
+```
+
+### Saved Questions with Clusters
+
+The script saves questions with their cluster IDs in this format:
+
+```json
+[
+  {
+    "question": "What is the sum of all integers from 1 to 100?",
+    "answer": "5050",
+    "score": 0.95,
+    "cluster_id": 42
+  },
+  {
+    "question": "Find the derivative of x^2 + 3x + 2",
+    "answer": "2x + 3",
+    "score": 0.87,
+    "cluster_id": 128
+  }
+]
 ```
 
 ## Alternative: Using Bash Script for Generation

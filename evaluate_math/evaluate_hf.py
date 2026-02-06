@@ -75,8 +75,8 @@ def normalize_answer(answer: str) -> str:
     return answer.lower()
 
 
-def answers_match(predicted: str, ground_truth: str) -> bool:
-    """Check if the predicted answer matches the ground truth."""
+def answers_match_simple(predicted: str, ground_truth: str) -> bool:
+    """Check if the predicted answer matches the ground truth (simple normalize + eval fallback)."""
     pred_norm = normalize_answer(predicted)
     gt_norm = normalize_answer(ground_truth)
     
@@ -92,6 +92,54 @@ def answers_match(predicted: str, ground_truth: str) -> bool:
         pass
     
     return False
+
+
+def make_answers_matcher(grader: str, timeout_s: int = 10):
+    """
+    Build an answer-matching function.
+
+    - simple: string normalize + unsafe numeric eval fallback (existing behavior)
+    - mathruler: semantic equivalence via mathruler.grader.grade_answer (timeout protected)
+    """
+    if grader == "simple":
+        return answers_match_simple
+
+    if grader != "mathruler":
+        raise ValueError(f"Unknown grader: {grader}")
+
+    try:
+        import stopit
+        from mathruler.grader import grade_answer
+    except ImportError as e:
+        raise RuntimeError(
+            "MathRuler grader requested but dependencies are missing. "
+            "Install `mathruler` and `stopit`, or run with `--grader simple`."
+        ) from e
+
+    @stopit.threading_timeoutable(default="TIMED_OUT")
+    def grade_answer_with_timeout(a: str, b: str):
+        return grade_answer(a, b)
+
+    def answers_match_mathruler(predicted: str, ground_truth: str) -> bool:
+        pred = predicted or ""
+        gt = ground_truth or ""
+
+        if normalize_answer(pred) == normalize_answer(gt):
+            return True
+
+        try:
+            m1 = grade_answer_with_timeout(pred, gt, timeout=timeout_s)
+            if m1 != "TIMED_OUT" and m1:
+                return True
+            m2 = grade_answer_with_timeout(gt, pred, timeout=timeout_s)
+            if m2 != "TIMED_OUT" and m2:
+                return True
+        except Exception:
+            return answers_match_simple(pred, gt)
+
+        return False
+
+    return answers_match_mathruler
 
 
 # --------------------------------------------------------------------------- #
@@ -152,6 +200,8 @@ def evaluate(
     max_tokens: int,
     temperature: float,
     device: str,
+    grader: str,
+    grader_timeout_s: int,
 ) -> Dict[str, Any]:
     """Run evaluation on the MATH dataset."""
     
@@ -195,6 +245,8 @@ def evaluate(
         model = model.to(device)
     
     model.eval()
+
+    answers_match = make_answers_matcher(grader=grader, timeout_s=grader_timeout_s)
     
     # Set pad token if not set
     if tokenizer.pad_token is None:
@@ -372,6 +424,19 @@ def parse_args() -> argparse.Namespace:
         choices=["auto", "cuda", "mps", "cpu"],
         help="Device to use (default: auto)",
     )
+    parser.add_argument(
+        "--grader",
+        type=str,
+        default="simple",
+        choices=["simple", "mathruler"],
+        help="Answer grader to use (default: simple). mathruler = semantic equivalence via MathRuler.",
+    )
+    parser.add_argument(
+        "--grader-timeout-s",
+        type=int,
+        default=10,
+        help="Timeout in seconds for MathRuler grading (default: 10). Only used with --grader mathruler.",
+    )
     
     return parser.parse_args()
 
@@ -389,6 +454,8 @@ def main() -> None:
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         device=args.device,
+        grader=args.grader,
+        grader_timeout_s=args.grader_timeout_s,
     )
 
 

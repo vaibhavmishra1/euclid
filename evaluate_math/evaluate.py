@@ -2,8 +2,8 @@
 Evaluate math models on the MATH dataset using vLLM.
 
 Usage:
-    python3 -m euclid.evaluate_math.evaluate \
-        --model vibhuiitj/qwen3-4b-base-variant1-feb2-solver \
+    python3 -m evaluate_math.evaluate \
+        --model vibhuiitj/qwen3-4b-base-variant2-feb5-solver-iter4 \
         --all-configs \
         --split test \
         --output results_qwen3-4b-base.jsonl
@@ -98,7 +98,7 @@ def normalize_answer(answer: str) -> str:
     return answer.lower()
 
 
-def answers_match(predicted: str, ground_truth: str) -> bool:
+def answers_match_simple(predicted: str, ground_truth: str) -> bool:
     """
     Check if the predicted answer matches the ground truth.
     """
@@ -118,6 +118,56 @@ def answers_match(predicted: str, ground_truth: str) -> bool:
         pass
     
     return False
+
+
+def make_answers_matcher(grader: str, timeout_s: int = 10):
+    """
+    Build an answer-matching function.
+
+    - simple: string normalize + unsafe numeric eval fallback (existing behavior)
+    - mathruler: semantic equivalence via mathruler.grader.grade_answer (timeout protected)
+    """
+    if grader == "simple":
+        return answers_match_simple
+
+    if grader != "mathruler":
+        raise ValueError(f"Unknown grader: {grader}")
+
+    try:
+        import stopit
+        from mathruler.grader import grade_answer
+    except ImportError as e:
+        raise RuntimeError(
+            "MathRuler grader requested but dependencies are missing. "
+            "Install `mathruler` and `stopit`, or run with `--grader simple`."
+        ) from e
+
+    @stopit.threading_timeoutable(default="TIMED_OUT")
+    def grade_answer_with_timeout(a: str, b: str):
+        return grade_answer(a, b)
+
+    def answers_match_mathruler(predicted: str, ground_truth: str) -> bool:
+        pred = predicted or ""
+        gt = ground_truth or ""
+
+        # Cheap exact match after normalization first
+        if normalize_answer(pred) == normalize_answer(gt):
+            return True
+
+        try:
+            m1 = grade_answer_with_timeout(pred, gt, timeout=timeout_s)
+            if m1 != "TIMED_OUT" and m1:
+                return True
+            m2 = grade_answer_with_timeout(gt, pred, timeout=timeout_s)
+            if m2 != "TIMED_OUT" and m2:
+                return True
+        except Exception:
+            # If MathRuler fails, fall back to simple matcher
+            return answers_match_simple(pred, gt)
+
+        return False
+
+    return answers_match_mathruler
 
 
 # --------------------------------------------------------------------------- #
@@ -143,15 +193,17 @@ Problem:
 # --------------------------------------------------------------------------- #
 
 def evaluate(
+    llm: Any,
     model_name: str,
     dataset_config: str,
     split: str,
     output_path: Path,
     limit: Optional[int],
     few_shot: bool,
-    tensor_parallel_size: int,
     max_tokens: int,
     temperature: float,
+    grader: str,
+    grader_timeout_s: int,
 ) -> Dict[str, Any]:
     """
     Run evaluation on the MATH dataset.
@@ -167,20 +219,14 @@ def evaluate(
     
     print(f"Loaded {len(ds)} examples")
     
-    # Initialize vLLM
-    print(f"Loading model: {model_name}")
-    llm = LLM(
-        model=model_name,
-        tensor_parallel_size=tensor_parallel_size,
-        trust_remote_code=True,
-        max_model_len=4096,
-    )
-    
+    # vLLM model is initialized outside so we can reuse one engine across configs
     sampling_params = SamplingParams(
         temperature=temperature,
         max_tokens=max_tokens,
         stop=["Problem:", "---", "\n\nProblem"],
     )
+
+    answers_match = make_answers_matcher(grader=grader, timeout_s=grader_timeout_s)
     
     # Build prompts
     prompts = []
@@ -344,6 +390,12 @@ def parse_args() -> argparse.Namespace:
         help="Number of GPUs for tensor parallelism",
     )
     parser.add_argument(
+        "--gpu-mem-util",
+        type=float,
+        default=0.85,
+        help="vLLM gpu_memory_utilization (default: 0.85). Lower if you hit OOM / low free memory errors.",
+    )
+    parser.add_argument(
         "--max-tokens",
         type=int,
         default=2048,
@@ -354,6 +406,19 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Sampling temperature (0 = greedy)",
+    )
+    parser.add_argument(
+        "--grader",
+        type=str,
+        default="mathruler",
+        choices=["simple", "mathruler"],
+        help="Answer grader to use (default: simple). mathruler = semantic equivalence via MathRuler.",
+    )
+    parser.add_argument(
+        "--grader-timeout-s",
+        type=int,
+        default=10,
+        help="Timeout in seconds for MathRuler grading (default: 10). Only used with --grader mathruler.",
     )
     
     return parser.parse_args()
@@ -374,19 +439,32 @@ def main() -> None:
     
     configs_to_eval = all_configs if args.all_configs else [args.dataset_config]
     all_summaries = []
+
+    # Create ONE vLLM engine for the whole run to avoid GPU memory fragmentation/leaks
+    load_vllm()
+    print(f"Loading model once: {args.model}")
+    llm = LLM(
+        model=args.model,
+        tensor_parallel_size=args.tensor_parallel_size,
+        trust_remote_code=True,
+        max_model_len=4096,
+        gpu_memory_utilization=args.gpu_mem_util,
+    )
     
     for config in configs_to_eval:
         output_path = Path(args.output) if not args.all_configs else Path(args.output).with_name(f"{Path(args.output).stem}_{config}{Path(args.output).suffix}")
         summary = evaluate(
+            llm=llm,
             model_name=args.model,
             dataset_config=config,
             split=args.split,
             output_path=output_path,
             limit=args.limit or None,
             few_shot=args.few_shot,
-            tensor_parallel_size=args.tensor_parallel_size,
             max_tokens=args.max_tokens,
             temperature=args.temperature,
+            grader=args.grader,
+            grader_timeout_s=args.grader_timeout_s,
         )
         all_summaries.append(summary)
     

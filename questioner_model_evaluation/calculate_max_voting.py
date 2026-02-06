@@ -8,10 +8,10 @@ Then average this across all questions for each model.
 
 Usage:
     python calculate_max_voting.py \
-        --solver_model vibhuiitj/qwen3-4b-base-variant2-feb5-solver-iter4 \
-        --question_file1 storage/generated_question/variant1-feb5-questioner-iter3_0.json \
-        --question_file2 storage/generated_question/variant2-feb5-questioner-iter5_0.json \
-        --num_rollouts 4 \
+        --solver_model vibhuiitj/qwen3-4b-base-variant1-feb2-solver \
+        --question_file1 /workspace/euclid/questioner_model_evaluation/storage/generated_question_with_clusters/qwen_original_with_clusters.json \
+        --question_file2 /workspace/euclid/questioner_model_evaluation/storage/generated_question_with_clusters/variant2-feb5-questioner-iter5_2_with_clusters.json \
+        --num_rollouts 8 \
         --output results/max_voting_scores.json \
         --limit 1000 \
         --batch-size 512
@@ -26,6 +26,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from collections import Counter
 from tqdm import tqdm
+from transformers import AutoTokenizer
+import stopit
+from mathruler.grader import grade_answer
 
 try:
     import matplotlib
@@ -49,6 +52,64 @@ def load_vllm():
         from vllm import LLM as _LLM, SamplingParams as _SamplingParams
         LLM = _LLM
         SamplingParams = _SamplingParams
+
+
+# --------------------------------------------------------------------------- #
+# Answer equivalence (borrowed from R-Zero's question_evaluate/evaluate.py)
+# --------------------------------------------------------------------------- #
+
+@stopit.threading_timeoutable(default="TIMED_OUT")
+def grade_answer_with_timeout(res1: str, res2: str):
+    return grade_answer(res1, res2)
+
+
+def build_equivalence_answer_counts(answers: List[str], timeout_s: int = 10) -> Dict[str, int]:
+    """
+    Build an answer->count dict, grouping mathematically equivalent answers together.
+    Uses cheap checks first, then mathruler.grader.grade_answer with a timeout (both directions).
+    """
+    answer_counts: Dict[str, int] = {}
+
+    for ans in answers:
+        # Keep empty answers as a distinct bucket (won't match anything else)
+        if ans is None:
+            ans = ""
+        if ans == "":
+            answer_counts[""] = answer_counts.get("", 0) + 1
+            continue
+
+        matched = False
+        for existing in list(answer_counts.keys()):
+            if existing == "":
+                continue
+
+            # Cheap comparisons first
+            if ans == existing or ("no " in ans.lower() and "no " in existing.lower()):
+                answer_counts[existing] += 1
+                matched = True
+                break
+
+            # Expensive semantic equivalence (both directions), protected by timeout
+            try:
+                m1 = grade_answer_with_timeout(ans, existing, timeout=timeout_s)
+                if m1 != "TIMED_OUT" and m1:
+                    answer_counts[existing] += 1
+                    matched = True
+                    break
+
+                m2 = grade_answer_with_timeout(existing, ans, timeout=timeout_s)
+                if m2 != "TIMED_OUT" and m2:
+                    answer_counts[existing] += 1
+                    matched = True
+                    break
+            except Exception:
+                # If the grader fails unexpectedly, fall back to treating as different
+                pass
+
+        if not matched:
+            answer_counts[ans] = answer_counts.get(ans, 0) + 1
+
+    return answer_counts
 
 
 # --------------------------------------------------------------------------- #
@@ -119,7 +180,9 @@ def build_prompt(problem: str) -> str:
     """
     Build the prompt for the solver model.
     """
-    prompt = f"""Please reason step by step, and put your final answer within  \\boxed{{}}.
+    prompt = f"""Please reason step by step, and put your final answer within \\boxed{{}}.
+
+If the question is invalid/ill-posed, or if you cannot find a solution, output exactly \\boxed{{nan}} as your final answer.
 
 Problem:
 {problem}
@@ -187,11 +250,12 @@ def calculate_max_voting_score(
     answers = all_answers
     
     # Count answer frequencies
-    answer_counts = Counter(answers)
+    answer_counts = build_equivalence_answer_counts(answers)
     
     # Find most frequent answer
     if len(answer_counts) > 0:
-        most_frequent_answer, most_frequent_count = answer_counts.most_common(1)[0]
+        most_frequent_answer = max(answer_counts, key=answer_counts.get)
+        most_frequent_count = answer_counts[most_frequent_answer]
     else:
         most_frequent_answer = ""
         most_frequent_count = 0
@@ -200,6 +264,9 @@ def calculate_max_voting_score(
     # If the most frequent answer is empty, None, or invalid, set max voting score to 0
     # After normalization, empty answers become "" (empty string)
     if not most_frequent_answer or (isinstance(most_frequent_answer, str) and most_frequent_answer.strip() == ""):
+        max_voting_score = 0.0
+    elif isinstance(most_frequent_answer, str) and most_frequent_answer.strip().lower() == "nan":
+        # Treat majority 'nan' as an invalid/unsolved question signal
         max_voting_score = 0.0
     else:
         max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
@@ -283,10 +350,11 @@ def process_questions_batch(
             continue
         
         answers = answers_by_question[idx]
-        answer_counts = Counter(answers)
+        answer_counts = build_equivalence_answer_counts(answers)
         
         if len(answer_counts) > 0:
-            most_frequent_answer, most_frequent_count = answer_counts.most_common(1)[0]
+            most_frequent_answer = max(answer_counts, key=answer_counts.get)
+            most_frequent_count = answer_counts[most_frequent_answer]
         else:
             most_frequent_answer = ""
             most_frequent_count = 0
@@ -294,6 +362,9 @@ def process_questions_batch(
         # If the most frequent answer is empty, None, or invalid, set max voting score to 0
         # After normalization, empty answers become "" (empty string)
         if not most_frequent_answer or (isinstance(most_frequent_answer, str) and most_frequent_answer.strip() == ""):
+            max_voting_score = 0.0
+        elif isinstance(most_frequent_answer, str) and most_frequent_answer.strip().lower() == "nan":
+            # Treat majority 'nan' as an invalid/unsolved question signal
             max_voting_score = 0.0
         else:
             max_voting_score = most_frequent_count / num_rollouts if num_rollouts > 0 else 0.0
@@ -475,8 +546,8 @@ def evaluate_model_questions(
     num_rollouts: int,
     output_path: Path,
     tensor_parallel_size: int = 1,
-    max_tokens: int = 2048,
-    temperature: float = 0.0,
+    max_tokens: int = 4096,
+    temperature: float = 1.0,
     batch_size: int = 32,
     model_name: str = None,
 ) -> Dict[str, Any]:
@@ -503,13 +574,17 @@ def evaluate_model_questions(
         model=solver_model_name,
         tensor_parallel_size=tensor_parallel_size,
         trust_remote_code=True,
-        max_model_len=4096,
+        max_model_len=32768,  # Qwen3 supports 32K context
     )
+
+    tokenizer = AutoTokenizer.from_pretrained(solver_model_name)
     
     sampling_params = SamplingParams(
         temperature=temperature,
         max_tokens=max_tokens,
-        stop=["Problem:", "---", "\n\nProblem"],
+        top_p=1.0,
+        top_k=40,
+        stop_token_ids=[tokenizer.eos_token_id],
     )
     
     print(f"Evaluating {len(questions)} questions with {num_rollouts} rollouts each...")
@@ -683,13 +758,13 @@ def main():
     parser.add_argument(
         "--max-tokens",
         type=int,
-        default=2048,
+        default=4096,
         help="Max tokens to generate (default: 2048)"
     )
     parser.add_argument(
         "--temperature",
         type=float,
-        default=0.0,
+        default=1.0,
         help="Sampling temperature (0 = greedy, default: 0.0)"
     )
     parser.add_argument(
@@ -737,7 +812,7 @@ def main():
         questions=questions1,
         solver_model_name=args.solver_model,
         num_rollouts=args.num_rollouts,
-        output_path=output_path.with_name(f"{output_path.stem}_model1{output_path.suffix}"),
+        output_path=output_path.with_name(f"{output_path.stem}_{model1_name}_{output_path.suffix}"),
         tensor_parallel_size=args.tensor_parallel_size,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
@@ -754,7 +829,7 @@ def main():
         questions=questions2,
         solver_model_name=args.solver_model,
         num_rollouts=args.num_rollouts,
-        output_path=output_path.with_name(f"{output_path.stem}_model2{output_path.suffix}"),
+        output_path=output_path.with_name(f"{output_path.stem}_{model2_name}_{output_path.suffix}"),
         tensor_parallel_size=args.tensor_parallel_size,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
