@@ -34,7 +34,7 @@ export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
 export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
 
 # Validate diversity mode
-if [[ ! "$Diversity_mode" =~ ^[1-4]$ ]]; then
+if [[ ! "$Diversity_mode" =~ ^[1-5]$ ]]; then
     echo "ERROR: diversity_mode must be 1, 2, 3, or 4. Got: $Diversity_mode"
     exit 1
 fi

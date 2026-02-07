@@ -92,6 +92,9 @@ _cluster_assigner = None
 # Global step counter for logging
 _global_step_counter = 0
 
+# Global variable to store last reward distribution
+_last_reward_distribution = None
+
 def get_cluster_assigner() -> ClusterAssigner:
     """Get or create the cluster assigner instance.
     
@@ -264,8 +267,8 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     if mode == 1:
         # Update cluster counts for tracking (but no reward)
         assigner.update_counts(cluster_ids)
-        # Log cluster statistics
-        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+        # Log cluster statistics (reward_distribution will be added later in compute_score)
+        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions, reward_distribution=None)
         return diversity_rewards.tolist()
     
     # Mode 5 (MARA): Compute rarity for thresholding, then give equal reward to all qualifying
@@ -278,8 +281,8 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
         # Update cluster counts for valid questions
         assigner.update_counts(cluster_ids)
         
-        # Log cluster statistics
-        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+        # Log cluster statistics (reward_distribution will be added later in compute_score)
+        _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions, reward_distribution=None)
         
         return diversity_rewards.tolist()
     
@@ -318,16 +321,20 @@ def compute_diversity_rewards(questions: List[str], base_scores: List[float]) ->
     # Update cluster counts for valid questions
     assigner.update_counts(cluster_ids)
     
-    # Log cluster statistics
-    _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions)
+    # Log cluster statistics (reward_distribution will be added later in compute_score)
+    _log_cluster_stats(assigner, cluster_ids, valid_base_scores, valid_questions, reward_distribution=None)
     
     return diversity_rewards.tolist()
 
 def _log_cluster_stats(assigner: ClusterAssigner, cluster_ids: np.ndarray, 
-                       base_scores: list, questions: list):
+                       base_scores: list, questions: list, reward_distribution: dict = None):
     """Log cluster statistics to file for later analysis."""
-    global _global_step_counter
+    global _global_step_counter, _last_reward_distribution
     _global_step_counter += 1
+    
+    # Use the global reward distribution if not provided
+    if reward_distribution is None:
+        reward_distribution = _last_reward_distribution
     
     # Only log periodically to avoid too many files
     log_freq = RENTROPY_CONFIG.get("log_cluster_stats_freq", 1)
@@ -369,12 +376,24 @@ def _log_cluster_stats(assigner: ClusterAssigner, cluster_ids: np.ndarray,
         "batch_cluster_avg_scores": cluster_avg_scores,
     }
     
+    # Add reward distribution if provided
+    if reward_distribution:
+        log_entry["reward_distribution"] = reward_distribution
+    
     # Save to JSON file
     log_file = os.path.join(log_dir, f"cluster_stats_step_{_global_step_counter:06d}.json")
     with open(log_file, 'w') as f:
         json.dump(log_entry, f, indent=2)
     
     print(f"[Rentropy] Logged cluster stats to {log_file}")
+    
+    # Print reward distribution summary to console
+    if reward_distribution:
+        print(f"[Rentropy] Reward Distribution: "
+              f"reward=1.0: {reward_distribution.get('reward_1', 0)}, "
+              f"reward=0.0: {reward_distribution.get('reward_0', 0)}, "
+              f"reward=-1.0: {reward_distribution.get('reward_neg1', 0)}, "
+              f"other: {reward_distribution.get('reward_other', 0)}")
 
 # ============================================================================
 # Main Reward Function
@@ -483,6 +502,15 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
     # Get lambda weight for diversity reward
     lambda_weight = RENTROPY_CONFIG.get("lambda_weight", 1.0)
     
+    # Track reward distribution
+    reward_counts = {
+        "reward_1": 0,      # Questions with reward = 1.0
+        "reward_0": 0,      # Questions with reward = 0.0
+        "reward_neg1": 0,   # Questions with reward = -1.0
+        "reward_other": 0,  # Questions with other rewards
+        "total": len(final_results)
+    }
+    
     scores = []
     for i in range(len(final_results)):
         base_score = final_results[i]["score"]
@@ -498,6 +526,16 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
             final_score = -1
             zpd = 0.0
         
+        # Count reward distribution
+        if abs(final_score - 1.0) < 1e-6:
+            reward_counts["reward_1"] += 1
+        elif abs(final_score - 0.0) < 1e-6:
+            reward_counts["reward_0"] += 1
+        elif abs(final_score - (-1.0)) < 1e-6:
+            reward_counts["reward_neg1"] += 1
+        else:
+            reward_counts["reward_other"] += 1
+        
         scores.append({
             "overall": final_score,
             "format": 1 if has_valid_question else 0,
@@ -506,5 +544,18 @@ def compute_score(predicts: List[str], ground_truths: List[str], format_weight: 
             "base_score": base_score,
             "zpd": zpd,
         })
+    
+    # Log reward distribution to console (every batch)
+    print(f"[Rentropy] Reward Distribution - "
+          f"Batch size: {reward_counts['total']}, "
+          f"reward=1.0: {reward_counts['reward_1']} ({100*reward_counts['reward_1']/reward_counts['total']:.1f}%), "
+          f"reward=0.0: {reward_counts['reward_0']} ({100*reward_counts['reward_0']/reward_counts['total']:.1f}%), "
+          f"reward=-1.0: {reward_counts['reward_neg1']} ({100*reward_counts['reward_neg1']/reward_counts['total']:.1f}%), "
+          f"other: {reward_counts['reward_other']} ({100*reward_counts['reward_other']/reward_counts['total']:.1f}%)")
+    
+    # Add reward distribution to next cluster stats log
+    # We'll pass it through the logging mechanism by storing it globally
+    global _last_reward_distribution
+    _last_reward_distribution = reward_counts
     
     return scores
