@@ -190,3 +190,49 @@
   }
 }
 
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant5-feb7-solver-iter1",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.932603201347936,
+      "correct": 1107,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.7447257383966245,
+      "correct": 353,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.6283924843423799,
+      "correct": 301,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5692137320044297,
+      "correct": 514,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7796296296296297,
+      "correct": 421,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.8817451205510907,
+      "correct": 768,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.6190476190476191,
+      "correct": 338,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3802,
+    "accuracy": 0.7604
+  }
+}
