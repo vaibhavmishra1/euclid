@@ -29,7 +29,7 @@ embedding_model: "Qwen/Qwen3-Embedding-0.6B"
 #   - null (or omit) for fresh uniform initialization
 #
 # The JSON file should have structure: {"cluster_stats": {"cluster_counts": [...]}}
-init_cluster_counts_path: "/workspace/euclid/rentropy/cluster_space/cluster_logs/cluster_stats_step_000006.json"
+init_cluster_counts_path: "/workspace/euclid/rentropy/R-Zero-main/storage/cluster_logs/cluster_stats_step_000010.json"
 
 # Reward weights (only applied when majority vote passes threshold)
 # Increased weights (5-10x) to make diversity signal stronger relative to base reward

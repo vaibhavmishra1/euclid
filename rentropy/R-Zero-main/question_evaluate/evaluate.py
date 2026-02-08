@@ -33,7 +33,7 @@ from mathruler.grader import extract_boxed_content, grade_answer
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser(description="Evaluate generated questions using vLLM.")
 parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B-Base", help="Path to the model in Hugging Face format.")
-parser.add_argument("--num_samples", type=int, default=4, help="Number of candidate answers to generate per question (n).")
+parser.add_argument("--num_samples", type=int, default=8, help="Number of candidate answers to generate per question (n).")
 parser.add_argument("--suffix", type=str, default="0", help="A unique suffix for file naming, often the GPU index.")
 parser.add_argument("--save_name", type=str, required=True, help="A base name for input and output files.")
 args = parser.parse_args()
@@ -77,6 +77,8 @@ if not correct_data:
 
 questions = [item["question"] for item in correct_data]
 answers = [item["answer"] for item in correct_data]
+# Preserve diversity scores from input data
+diversity_scores = [item.get("diversity_score", 0.0) for item in correct_data]
 print(f"[{args.suffix}] Found {len(questions)} questions to process.")
 
 # 2. Initialize Model and Tokenizer
@@ -112,11 +114,12 @@ print(f"[{args.suffix}] Generation complete.")
 # 4. Process and Grade Responses
 results_all = []
 print(f"[{args.suffix}] Grading responses...")
-for response, golden_answer, question in zip(responses, answers, questions):
+for response, golden_answer, question, diversity_score in zip(responses, answers, questions, diversity_scores):
     try:
-        # Extract the boxed content from all generated samples
-        results = [extract_boxed_content(output.text) for output in response.outputs]
-        results = [res for res in results if res] # Filter out None/empty results
+        # Extract all generated samples (raw) and boxed content
+        rollouts = [output.text for output in response.outputs]
+        results = [extract_boxed_content(text) for text in rollouts]
+        results = [res for res in results if res]  # Filter out None/empty results
 
         if not results:
             print(f"[{args.suffix}] WARNING: No valid boxed answers found for question: '{question[:50]}...'")
@@ -173,7 +176,9 @@ for response, golden_answer, question in zip(responses, answers, questions):
             "question": question,
             "answer": majority_answer,
             "score": score,
-            'results': results
+            "diversity_score": diversity_score,  # Preserve diversity score from input
+            "results": results,
+            "rollouts": rollouts,
         })
 
     except Exception as e:

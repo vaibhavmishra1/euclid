@@ -25,6 +25,7 @@ class ClusterAssigner:
         ema_decay: float = 0.99,
         smoothing_alpha: float = 1.0,
         init_counts_path: Optional[str] = None,
+        device: Optional[str] = None,
     ):
         """
         Args:
@@ -49,8 +50,9 @@ class ClusterAssigner:
         print(f"[ClusterAssigner] Loading embedding model: {embedding_model}")
         print(f"[ClusterAssigner] CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES', 'not set')}")
         
-        if torch.cuda.is_available():
+        if device is None and torch.cuda.is_available():
             device = 'cuda:0'  # Use first visible GPU (should be the designated embedding GPU)
+        if device is not None and torch.cuda.is_available():
             print(f"[ClusterAssigner] Using device: {device}")
         else:
             device = 'cpu'

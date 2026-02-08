@@ -8,7 +8,7 @@ export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
 
 pids=()
 
-for i in {0..7}; do
+for i in {0..6}; do
   CUDA_VISIBLE_DEVICES=$i python question_evaluate/evaluate.py --model $model_name --suffix $i --save_name $save_name &
   pids[$i]=$!
 done
@@ -16,7 +16,7 @@ done
 wait ${pids[0]}
 echo "Task 0 finished."
 
-timeout_duration=3600
+timeout_duration=6000
 
 (
   sleep $timeout_duration

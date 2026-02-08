@@ -82,9 +82,9 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,7 python3 -m verl.trainer.main \
     worker.actor.global_batch_size=16 \
     worker.actor.micro_batch_size_per_device_for_update=2 \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
-    trainer.total_epochs=6 \
-    trainer.max_steps=6 \
-    trainer.save_freq=2
+    trainer.total_epochs=10 \
+    trainer.max_steps=10 \
+    trainer.save_freq=5
 
 sleep 5
 echo "Stopping vLLM service (PID: $VLLM_PID)..."
