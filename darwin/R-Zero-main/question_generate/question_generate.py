@@ -73,7 +73,6 @@ def load_rentropy_config() -> dict:
         return config
     else:
         return {
-            "diversity_mode": 1,
             "centroids_path": None,
             "weights": {"rarity": 0.5, "batch_uniqueness": 0.2, "within_cluster_uniqueness": 0.2},
         }
@@ -94,9 +93,6 @@ def compute_diversity_score_readonly(question: str, assigner, config: dict) -> f
     if not question or not question.strip():
         return 0.0
     
-    mode = config.get("diversity_mode", 1)
-    if mode == 1:
-        return 0.0
     
     weights = config.get("weights", {})
     
@@ -106,32 +102,11 @@ def compute_diversity_score_readonly(question: str, assigner, config: dict) -> f
         return 0.0
     
     diversity_score = 0.0
-    
-    # Mode 5 (MARA): Only rarity reward (no batch/within-cluster components)
-    if mode == 5:
-        rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
-        diversity_score = rarity_rewards[0]  # Mode 5 uses raw rarity, not weighted
-        return diversity_score
-    
-    # Mode 2+: Rarity reward
-    if mode >= 2:
-        rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
-        rarity_weight = weights.get("rarity", 0.5)
-        diversity_score += rarity_weight * rarity_rewards[0]
-    
-    # Mode 3+: Batch uniqueness (for single question, this is always 1.0)
-    if mode >= 3:
-        # For single question evaluation, batch uniqueness doesn't apply
-        # But we can still compute it as 1.0 (no other questions in batch)
-        batch_weight = weights.get("batch_uniqueness", 0.2)
-        diversity_score += batch_weight * 1.0
-    
-    # Mode 4: Within-cluster uniqueness
-    if mode >= 4:
-        within_cluster_rewards = assigner.compute_within_cluster_uniqueness([question], cluster_ids)
-        within_weight = weights.get("within_cluster_uniqueness", 0.2)
-        diversity_score += within_weight * within_cluster_rewards[0]
-    
+
+    rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
+    rarity_weight = weights.get("rarity", 1.0)
+    diversity_score += rarity_weight * rarity_rewards[0]
+
     return diversity_score
 
 def main(args):

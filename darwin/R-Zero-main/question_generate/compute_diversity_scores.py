@@ -22,7 +22,6 @@ def load_rentropy_config() -> dict:
         with open(config_path, "r") as f:
             return json.loads(json.dumps(__import__("yaml").safe_load(f)))
     return {
-        "diversity_mode": 1,
         "centroids_path": None,
         "weights": {"rarity": 0.5, "batch_uniqueness": 0.2, "within_cluster_uniqueness": 0.2},
     }
@@ -31,25 +30,14 @@ def load_rentropy_config() -> dict:
 def compute_diversity_score_readonly(question: str, assigner: ClusterAssigner, config: dict) -> float:
     if not question or not question.strip():
         return 0.0
-    mode = config.get("diversity_mode", 1)
-    if mode == 1:
-        return 0.0
     weights = config.get("weights", {})
     cluster_ids = assigner.assign_clusters([question])
     if len(cluster_ids) == 0:
         return 0.0
     diversity_score = 0.0
-    if mode == 5:
-        rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
-        return float(rarity_rewards[0])
-    if mode >= 2:
-        rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
-        diversity_score += weights.get("rarity", 0.5) * rarity_rewards[0]
-    if mode >= 3:
-        diversity_score += weights.get("batch_uniqueness", 0.2) * 1.0
-    if mode >= 4:
-        within_cluster_rewards = assigner.compute_within_cluster_uniqueness([question], cluster_ids)
-        diversity_score += weights.get("within_cluster_uniqueness", 0.2) * within_cluster_rewards[0]
+    rarity_rewards = assigner.compute_rarity_reward(cluster_ids)
+    diversity_score += weights.get("rarity", 1.0) * rarity_rewards[0]
+
     return float(diversity_score)
 
 

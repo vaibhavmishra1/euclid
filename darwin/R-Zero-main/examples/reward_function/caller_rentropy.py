@@ -50,7 +50,7 @@ def load_rentropy_config() -> dict:
             "ema_decay": 0.99,
             "smoothing_alpha": 1.0,
             "scale_diversity_by_zpd": False,  # Changed default to False to avoid double scaling
-            "lambda_weight": 0.5,  # Weight for diversity reward in final score
+            "lambda_weight": 5.0,  # Weight for diversity reward in final score
             "use_zpd_base_score": False,  # Use raw base_score instead of ZPD transformation
             "log_cluster_stats_freq": 1,  # Log cluster stats every N steps
         }

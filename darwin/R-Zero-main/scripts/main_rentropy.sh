@@ -1,30 +1,11 @@
-#!/bin/bash
-# Rentropy: Main training loop with cluster-entropy diversity reward
-# Usage: bash scripts/main_rentropy.sh <questioner_base_model> <solver_base_model> <model_abbr> [diversity_mode]
-#
-# Arguments:
-#   questioner_base_model: Base model path for questioner (e.g., Qwen/Qwen3-4B-Base)
-#   solver_base_model: Base model path for solver (e.g., Qwen/Qwen3-4B-Base)
-#   model_abbr: Model abbreviation for naming experiments (e.g., qwen3-4b)
-#   diversity_mode: (optional) Diversity reward mode (1-4, default: 4)
-#     1: Vanilla majority voting reward only (R-Zero baseline)
-#     2: Mode 1 + reward for choosing a rare cluster
-#     3: Mode 2 + reward for uniqueness from other n-1 questions in batch
-#     4: Mode 3 + within-cluster uniqueness reward (full Rentropy)
-#
-# Example: 
-#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base Qwen/Qwen3-4B-Base qwen3-4b 1 > tempf.txt
-#   bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base meta-llama/Llama-2-7b qwen3-4b 2  # Use mode 2 with different models
 
 Questioner_base_model=$1
 Solver_base_model=$2
 Model_abbr=$3
-Diversity_mode=${4:-4}  # Default to mode 4 (full Rentropy)
-
 # Validate required arguments
 if [ -z "$Questioner_base_model" ] || [ -z "$Solver_base_model" ] || [ -z "$Model_abbr" ]; then
     echo "ERROR: Missing required arguments"
-    echo "Usage: bash scripts/main_rentropy.sh <questioner_base_model> <solver_base_model> <model_abbr> [diversity_mode]"
+    echo "Usage: bash scripts/main_rentropy.sh <questioner_base_model> <solver_base_model> <model_abbr> "
     echo "Example: bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base meta-llama/Llama-2-7b qwen3-4b 4"
     exit 1
 fi
@@ -33,17 +14,11 @@ export HUGGINGFACENAME="vibhuiitj"
 export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
 export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
 
-# Validate diversity mode
-if [[ ! "$Diversity_mode" =~ ^[1-5]$ ]]; then
-    echo "ERROR: diversity_mode must be 1, 2, 3, or 4. Got: $Diversity_mode"
-    exit 1
-fi
 
 echo "Model_abbr: $Model_abbr"
-echo "Diversity Mode: $Diversity_mode"
 echo "Questioner Base Model: $Questioner_base_model"
 echo "Solver Base Model: $Solver_base_model"
-echo "Running Rentropy experiment with cluster-entropy diversity reward (mode $Diversity_mode)"
+echo "Running Rentropy experiment with cluster-entropy diversity reward"
 echo "STORAGE_PATH: $STORAGE_PATH"
 echo "HUGGINGFACENAME: $HUGGINGFACENAME"
 mkdir -p \
@@ -164,7 +139,7 @@ find_latest_checkpoint() {
 }
 
 # Initialize first iteration with base models (separate for questioner and solver)
-#bash scripts/questioner_train_rentropy.sh $Solver_base_model $Questioner_base_model ${Model_abbr}_questioner_v1 $Diversity_mode
+#bash scripts/questioner_train_rentropy.sh $Solver_base_model $Questioner_base_model ${Model_abbr}_questioner_v1 
 QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
 bash scripts/solver_train.sh $Solver_base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
 
@@ -177,8 +152,7 @@ bash scripts/solver_train.sh $Solver_base_model "$QUESTIONER_V1_CHECKPOINT" ${Mo
 #     bash scripts/questioner_train_rentropy.sh \
 #         "$SOLVER_PREV_CHECKPOINT" \
 #         "$QUESTIONER_PREV_CHECKPOINT" \
-#         ${Model_abbr}_questioner_v${i} \
-#         $Diversity_mode
+#         ${Model_abbr}_questioner_v${i} 
 
 #     # Train solver
 #     SOLVER_PREV_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_solver_v${prev}")
