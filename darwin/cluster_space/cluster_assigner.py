@@ -68,22 +68,22 @@ class ClusterAssigner:
         if init_counts_path and os.path.exists(init_counts_path):
             self._load_counts_from_log(init_counts_path)
         else:
-            self.cluster_counts = np.ones(self.num_clusters) * smoothing_alpha
-            self.total_count = self.num_clusters * smoothing_alpha
+            self.cluster_counts = np.ones(self.num_clusters, dtype=np.float64) * smoothing_alpha
+            self.total_count = float(self.num_clusters * smoothing_alpha)
             print(f"[ClusterAssigner] Initialized uniform cluster counts (1/{self.num_clusters})")
     
     def _load_counts_from_log(self, log_path: str):
         """Load cluster counts from a numpy file containing cluster frequencies."""
         try:
-            # Load cluster counts from numpy file
-            self.cluster_counts = np.load(log_path)
+            # Load cluster counts from numpy file (ensure float dtype)
+            self.cluster_counts = np.load(log_path).astype(np.float64)
             
             # Verify size matches
             if len(self.cluster_counts) != self.num_clusters:
                 print(f"[ClusterAssigner] WARNING: Cluster count size mismatch! "
                       f"Expected {self.num_clusters}, got {len(self.cluster_counts)}")
                 print(f"[ClusterAssigner] Falling back to uniform initialization")
-                self.cluster_counts = np.ones(self.num_clusters) * self.smoothing_alpha
+                self.cluster_counts = np.ones(self.num_clusters, dtype=np.float64) * self.smoothing_alpha
             
             self.total_count = np.sum(self.cluster_counts)
             
@@ -101,8 +101,8 @@ class ClusterAssigner:
         except Exception as e:
             print(f"[ClusterAssigner] ERROR loading counts from {log_path}: {e}")
             print(f"[ClusterAssigner] Falling back to uniform initialization")
-            self.cluster_counts = np.ones(self.num_clusters) * self.smoothing_alpha
-            self.total_count = self.num_clusters * self.smoothing_alpha
+            self.cluster_counts = np.ones(self.num_clusters, dtype=np.float64) * self.smoothing_alpha
+            self.total_count = float(self.num_clusters * self.smoothing_alpha)
     
     def embed(self, questions: List[str]) -> np.ndarray:
         """Embed a list of questions."""

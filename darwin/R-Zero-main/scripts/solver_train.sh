@@ -1,7 +1,8 @@
 solver_model_path=$1
 questioner_model_path=$2
 experiment_name=$3
-
+export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
+export HUGGINGFACENAME="vibhuiitj"
 # Add project root to PYTHONPATH
 export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
 
@@ -24,8 +25,8 @@ echo "start train solver $experiment_name $solver_model_path $questioner_model_p
 export VLLM_DISABLE_COMPILE_CACHE=1
 
 
-# echo 'start generate question'
-# bash question_generate/question_generate.bash $questioner_model_path 2000 $experiment_name
+echo 'start generate question'
+bash question_generate/question_generate.bash $questioner_model_path 2000 $experiment_name
 
 
 # echo 'start compute diversity scores'
