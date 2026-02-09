@@ -1,12 +1,13 @@
 import numpy as np
 from datasets import load_dataset
-from vllm import LLM
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from huggingface_hub import hf_hub_download
 
 # Load questions dataset
 print("Loading questions dataset...")
 questions_ds = load_dataset("vibhuiitj/variant2-iter4_solver_v1", split="train")
+print("Dataset keys:", questions_ds.features.keys())
 
 # Load centroids from huggingface hub
 print("Loading centroids...")
@@ -16,16 +17,15 @@ print(f"Loaded {len(centroids)} cluster centroids")
 
 # Initialize embedding model
 print("Loading embedding model...")
-llm = LLM(model="Qwen/Qwen3-Embedding-0.6B", task="embed")
+model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
 
 # Extract questions
-questions = [item['question'] for item in questions_ds]
+questions = [item['problem'] for item in questions_ds]
 print(f"Total questions: {len(questions)}")
 
 # Generate embeddings
 print("Generating embeddings...")
-embeddings = llm.encode(questions)
-embeddings = np.array([emb.outputs.embedding for emb in embeddings])
+embeddings = model.encode(questions, convert_to_numpy=True, normalize_embeddings=True)
 print(f"Generated embeddings shape: {embeddings.shape}")
 
 # Find cluster assignments using cosine similarity
