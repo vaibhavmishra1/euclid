@@ -11,8 +11,8 @@ if [ -z "$Questioner_base_model" ] || [ -z "$Solver_base_model" ] || [ -z "$Mode
 fi
 
 export HUGGINGFACENAME="vibhuiitj"
-export STORAGE_PATH="/workspace/euclid/rentropy/R-Zero-main/storage"
-export PYTHONPATH="/workspace/euclid/rentropy/R-Zero-main:$PYTHONPATH"
+export STORAGE_PATH="/workspace/euclid/darwin/R-Zero-main/storage"
+export PYTHONPATH="/workspace/euclid/darwin/R-Zero-main:$PYTHONPATH"
 
 
 echo "Model_abbr: $Model_abbr"
@@ -139,9 +139,9 @@ find_latest_checkpoint() {
 }
 
 # Initialize first iteration with base models (separate for questioner and solver)
-bash scripts/questioner_train_rentropy.sh $Solver_base_model $Questioner_base_model ${Model_abbr}_questioner_v1 
-# QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
-# bash scripts/solver_train.sh $Solver_base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
+#bash scripts/questioner_train_rentropy.sh $Solver_base_model $Questioner_base_model ${Model_abbr}_questioner_v1 
+QUESTIONER_V1_CHECKPOINT=$(find_latest_checkpoint "${STORAGE_PATH}/models/${Model_abbr}_questioner_v1")
+bash scripts/solver_train.sh $Solver_base_model "$QUESTIONER_V1_CHECKPOINT" ${Model_abbr}_solver_v1
 
 # for i in {2..5}; do
 #     prev=$((i-1))
