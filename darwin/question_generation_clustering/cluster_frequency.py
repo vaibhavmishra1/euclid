@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download
 
 # Load questions dataset
 print("Loading questions dataset...")
-questions_ds = load_dataset("vibhuiitj/variant2-iter4_solver_v1", split="train")
+questions_ds = load_dataset("vibhuiitj/variant2-iter3_solver_v1", split="train")
 print("Dataset keys:", questions_ds.features.keys())
 
 # Load centroids from huggingface hub

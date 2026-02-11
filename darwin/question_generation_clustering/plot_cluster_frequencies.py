@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load cluster frequencies
-cluster_freq = np.load("cluster_frequencies.npy")
+cluster_freq = np.load("/workspace/euclid/darwin/question_generation_clustering/cluster_frequencies_darwin_iter2.npy")
 
 # Create the plot
 plt.figure(figsize=(12, 6))
