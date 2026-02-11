@@ -17,6 +17,11 @@ find_latest_checkpoint() {
     fi
     echo "${checkpoint_dir}/global_step_${latest_step}/actor"
 }
+mkdir -p \
+  "$STORAGE_PATH/evaluation" \
+  "$STORAGE_PATH/models" \
+  "$STORAGE_PATH/generated_question" \
+  "$STORAGE_PATH/temp_results"
 
 echo $STORAGE_PATH
 

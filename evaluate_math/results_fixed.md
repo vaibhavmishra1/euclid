@@ -284,3 +284,50 @@
     "accuracy": 0.7598
   }
 }
+
+{
+  "model": "vibhuiitj/balanced_solver_darwin-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.9267059814658803,
+      "correct": 1100,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.7320675105485233,
+      "correct": 347,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.6388308977035491,
+      "correct": 306,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5669988925802879,
+      "correct": 512,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7944444444444444,
+      "correct": 429,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.878300803673938,
+      "correct": 765,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.6135531135531136,
+      "correct": 335,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3794,
+    "accuracy": 0.7588
+  }
+}
