@@ -4,18 +4,20 @@ Curate a balanced solver training dataset from multiple questioner iterations.
 
 Given k datasets from different questioner models, this script:
 1. Pools all questions from all input HuggingFace datasets
-2. Embeds them using a sentence transformer
-3. Clusters into N clusters (K-Means)
-4. For each cluster, selects top-quality questions closest to target score
+2. Loads pre-computed cluster centroids (from your existing cluster space)
+3. Embeds all questions using a sentence transformer
+4. Assigns each question to the nearest cluster centroid
+5. For each cluster, selects top-quality questions closest to target score
    with within-cluster diversity (MMR-style selection)
-5. Deduplicates near-duplicate questions (cosine similarity > threshold)
-6. Uploads a balanced dataset to HuggingFace
+6. Deduplicates near-duplicate questions (cosine similarity > threshold)
+7. Uploads a balanced dataset to HuggingFace
 
 Usage:
     python question_generate/curate_balanced_dataset.py \
         --datasets vibhuiitj/variant2-iter3_solver_v1 vibhuiitj/variant2-iter3_solver_v2 \
         --output_repo vibhuiitj/balanced_solver_v3 \
-        --num_clusters 128 \
+        --centroids_dataset vibhuiitj/math_clusters_new \
+        --centroids_file centroids.npy \
         --max_per_cluster 100 \
         --target_score 0.75 \
         --min_score 0.3 \
@@ -24,7 +26,8 @@ Usage:
     # You can also load from local JSON files:
     python question_generate/curate_balanced_dataset.py \
         --local_files /path/to/results_0.json /path/to/results_1.json \
-        --output_repo vibhuiitj/balanced_solver_v3
+        --output_repo vibhuiitj/balanced_solver_v3 \
+        --centroids_dataset vibhuiitj/math_clusters_new
 
     # Dry run (no upload, just save locally):
     python question_generate/curate_balanced_dataset.py \
@@ -55,10 +58,11 @@ try:
 except ImportError:
     SentenceTransformer = None
 
-try:
-    from sklearn.cluster import KMeans
-except ImportError:
-    KMeans = None
+# Note: sklearn is not needed since we use pre-computed centroids
+# try:
+#     from sklearn.cluster import KMeans
+# except ImportError:
+#     KMeans = None
 
 try:
     from huggingface_hub import login as hf_login
@@ -245,48 +249,97 @@ def embed_questions(
 
 
 # ===========================================================================
-# 3. CLUSTERING
+# 3. CLUSTER ASSIGNMENT (using pre-computed centroids)
 # ===========================================================================
 
-def cluster_questions(
-    embeddings: np.ndarray,
-    num_clusters: int = 128,
-    random_state: int = 42,
-) -> Tuple[np.ndarray, np.ndarray]:
+def load_centroids_from_hf(centroids_dataset: str, centroids_file: str = "centroids.npy") -> np.ndarray:
     """
-    Cluster question embeddings with K-Means.
+    Load pre-computed cluster centroids from a HuggingFace dataset.
+
+    Args:
+        centroids_dataset: HF dataset name (e.g. "vibhuiitj/math_clusters_new")
+        centroids_file: filename within the dataset (default: "centroids.npy")
 
     Returns:
-        (labels, centroids) where labels is (N,) int array
-        and centroids is (num_clusters, dim) array.
+        numpy array of shape (num_clusters, embedding_dim)
     """
-    if KMeans is None:
-        raise ImportError("scikit-learn not installed. pip install scikit-learn")
+    print(f"[Centroids] Loading centroids from {centroids_dataset}/{centroids_file}")
+    
+    try:
+        # Load the dataset
+        ds = load_dataset(centroids_dataset, split="train")
+        
+        # Try to find the centroids file in the dataset
+        # HF datasets with numpy files typically store them in a 'file' column or similar
+        if centroids_file in ds.column_names:
+            centroids = np.array(ds[centroids_file][0])
+        elif "centroids" in ds.column_names:
+            centroids = np.array(ds["centroids"][0])
+        else:
+            # If not in columns, try downloading the file directly from the repo
+            from huggingface_hub import hf_hub_download
+            centroids_path = hf_hub_download(
+                repo_id=centroids_dataset,
+                filename=centroids_file,
+                repo_type="dataset"
+            )
+            centroids = np.load(centroids_path)
+    
+    except Exception as e:
+        print(f"[Centroids] ERROR: Could not load centroids from {centroids_dataset}: {e}")
+        print(f"[Centroids] Trying direct file download...")
+        
+        # Fallback: try direct download
+        try:
+            from huggingface_hub import hf_hub_download
+            centroids_path = hf_hub_download(
+                repo_id=centroids_dataset,
+                filename=centroids_file,
+                repo_type="dataset"
+            )
+            centroids = np.load(centroids_path)
+        except Exception as e2:
+            raise RuntimeError(f"Failed to load centroids from {centroids_dataset}: {e2}")
+    
+    print(f"[Centroids] Loaded {centroids.shape[0]} centroids with dimension {centroids.shape[1]}")
+    return centroids
 
-    actual_clusters = min(num_clusters, len(embeddings))
-    if actual_clusters < num_clusters:
-        print(f"[Cluster] WARNING: Only {len(embeddings)} questions, reducing clusters to {actual_clusters}")
 
-    print(f"[Cluster] Running K-Means with {actual_clusters} clusters...")
-    kmeans = KMeans(
-        n_clusters=actual_clusters,
-        n_init=10,
-        max_iter=300,
-        random_state=random_state,
-        verbose=0,
-    )
-    kmeans.fit(embeddings)
-    print(f"[Cluster] K-Means inertia: {kmeans.inertia_:.4f}")
+def assign_to_clusters(
+    embeddings: np.ndarray,
+    centroids: np.ndarray,
+) -> np.ndarray:
+    """
+    Assign question embeddings to nearest cluster centroids.
 
-    labels = kmeans.labels_
-    centroids = kmeans.cluster_centers_
+    Args:
+        embeddings: Question embeddings (N, dim), L2-normalized
+        centroids: Cluster centroids (K, dim), should be L2-normalized
 
+    Returns:
+        labels: (N,) int array of cluster IDs
+    """
+    print(f"[Cluster] Assigning {len(embeddings)} questions to {len(centroids)} clusters...")
+    
+    # Normalize centroids if not already (for cosine similarity)
+    centroid_norms = np.linalg.norm(centroids, axis=1, keepdims=True)
+    centroids_normalized = centroids / (centroid_norms + 1e-12)
+    
+    # Compute cosine similarity: higher = closer
+    # embeddings are already normalized, so dot product = cosine similarity
+    similarities = embeddings @ centroids_normalized.T  # (N, K)
+    
+    # Assign to nearest (most similar) centroid
+    labels = np.argmax(similarities, axis=1)
+    
     # Print cluster distribution stats
     unique, counts = np.unique(labels, return_counts=True)
     print(f"[Cluster] Cluster sizes — min: {counts.min()}, max: {counts.max()}, "
           f"mean: {counts.mean():.1f}, median: {np.median(counts):.1f}")
+    print(f"[Cluster] Assigned clusters: {len(unique)}/{len(centroids)} "
+          f"({len(centroids) - len(unique)} empty)")
 
-    return labels, centroids
+    return labels
 
 
 # ===========================================================================
@@ -439,7 +492,8 @@ def mmr_select(
 
 def curate_balanced_dataset(
     questions: List[Dict],
-    num_clusters: int = 128,
+    centroids_dataset: str,
+    centroids_file: str = "centroids.npy",
     max_per_cluster: int = 100,
     min_score: float = 0.3,
     max_score: float = 0.9,
@@ -452,11 +506,12 @@ def curate_balanced_dataset(
     source_bonus: float = 0.1,
 ) -> Tuple[List[Dict], Dict]:
     """
-    Full curation pipeline: embed → cluster → dedup → select.
+    Full curation pipeline: embed → assign to pre-computed clusters → dedup → select.
 
     Args:
         questions:       pooled list of question dicts
-        num_clusters:    number of K-Means clusters
+        centroids_dataset: HF dataset with pre-computed cluster centroids
+        centroids_file:  filename of centroids within the dataset (default: "centroids.npy")
         max_per_cluster: max questions to keep per cluster
         min_score:       minimum majority voting score
         max_score:       maximum majority voting score
@@ -486,9 +541,15 @@ def curate_balanced_dataset(
         print("[ERROR] No questions passed the score filter!")
         return [], {"error": "No questions passed score filter"}
 
-    # ---- Step 1: Embed ----
+    # ---- Step 1: Load pre-computed centroids ----
     print(f"\n{'='*60}")
-    print("[Step 1] Embedding questions")
+    print("[Step 1] Loading pre-computed cluster centroids")
+    centroids = load_centroids_from_hf(centroids_dataset, centroids_file)
+    num_clusters = len(centroids)
+
+    # ---- Step 2: Embed ----
+    print(f"\n{'='*60}")
+    print("[Step 2] Embedding questions")
     problem_texts = [q["problem"] for q in questions]
     embeddings = embed_questions(
         problem_texts,
@@ -497,18 +558,18 @@ def curate_balanced_dataset(
         device=embedding_device,
     )
 
-    # ---- Step 2: Cluster ----
+    # ---- Step 3: Assign to clusters ----
     print(f"\n{'='*60}")
-    print("[Step 2] Clustering")
-    labels, centroids = cluster_questions(embeddings, num_clusters=num_clusters)
+    print("[Step 3] Assigning to pre-computed clusters")
+    labels = assign_to_clusters(embeddings, centroids)
 
     # Assign cluster IDs to questions
     for i, q in enumerate(questions):
         q["cluster_id"] = int(labels[i])
 
-    # ---- Step 3: Per-cluster processing ----
+    # ---- Step 4: Per-cluster processing ----
     print(f"\n{'='*60}")
-    print("[Step 3] Per-cluster deduplication + MMR selection")
+    print("[Step 4] Per-cluster deduplication + MMR selection")
 
     # Group indices by cluster
     cluster_to_indices: Dict[int, List[int]] = defaultdict(list)
@@ -683,20 +744,23 @@ def parse_args():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # From HuggingFace datasets:
+  # From HuggingFace datasets (using pre-computed centroids):
   python curate_balanced_dataset.py \\
       --datasets vibhuiitj/variant2-iter3_solver_v1 vibhuiitj/variant2-iter3_solver_v2 \\
-      --output_repo vibhuiitj/balanced_solver_v3
+      --output_repo vibhuiitj/balanced_solver_v3 \\
+      --centroids_dataset vibhuiitj/math_clusters_new
 
   # From local JSON files:
   python curate_balanced_dataset.py \\
       --local_files results_0.json results_1.json \\
-      --output_repo vibhuiitj/balanced_solver_v3
+      --output_repo vibhuiitj/balanced_solver_v3 \\
+      --centroids_dataset vibhuiitj/math_clusters_new
 
   # Dry run (save locally, no upload):
   python curate_balanced_dataset.py \\
       --datasets vibhuiitj/variant2-iter3_solver_v1 \\
-      --output_dir ./balanced_output --dry_run
+      --output_dir ./balanced_output --dry_run \\
+      --centroids_dataset vibhuiitj/math_clusters_new
         """,
     )
 
@@ -717,8 +781,10 @@ Examples:
 
     # Clustering
     cluster_group = parser.add_argument_group("Clustering")
-    cluster_group.add_argument("--num_clusters", type=int, default=128,
-                               help="Number of K-Means clusters (default: 128)")
+    cluster_group.add_argument("--centroids_dataset", type=str, default="vibhuiitj/math_clusters_new",
+                               help="HuggingFace dataset with pre-computed centroids (default: vibhuiitj/math_clusters_new)")
+    cluster_group.add_argument("--centroids_file", type=str, default="centroids.npy",
+                               help="Filename of centroids within the dataset (default: centroids.npy)")
     cluster_group.add_argument("--max_per_cluster", type=int, default=100,
                                help="Maximum questions per cluster (default: 100)")
 
@@ -808,7 +874,8 @@ def main():
     # ---- Curate ----
     selected_questions, stats = curate_balanced_dataset(
         all_questions,
-        num_clusters=args.num_clusters,
+        centroids_dataset=args.centroids_dataset,
+        centroids_file=args.centroids_file,
         max_per_cluster=args.max_per_cluster,
         min_score=args.min_score,
         max_score=args.max_score,
