@@ -205,5 +205,6 @@ xgrammar==0.1.19
 xxhash==3.5.0
 yarl==1.20.1
 zipp==3.23.0
-stopit
+stopit==1.1.2
 sentence-transformers
+setuptools<70.0.0
