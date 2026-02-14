@@ -3,18 +3,19 @@
 Balanced cluster-aware question generation from multiple models.
 
 This script:
-1. Loads n questioner models
-2. Iteratively generates questions from each model (100 per model per iteration)
+1. Loads one questioner model at a time (memory efficient)
+2. For each model, runs iterations generating questions (100 per iteration)
 3. Classifies questions into clusters
-4. Maintains cluster frequency balance: max 20 questions per cluster
-5. Stops when all clusters have 20 questions OR max 50 iterations reached
+4. Maintains cluster frequency balance: max questions per cluster
+5. Clears GPU memory before loading the next model
+6. Stops when all clusters are filled OR max iterations per model reached
 
 Usage:
     python balanced_cluster_generation.py \
-        --models vibhuiitj/qwen3-4b-questioner-v1 vibhuiitj/qwen3-4b-questioner-v2 \
+        --models vibhuiitj/darwin_iter2_questioner vibhuiitj/qwen3-4b-base-variant1-feb2-questioner-iter2 \
         --centroids_dataset vibhuiitj/math_clusters_new \
-        --output_file balanced_questions.json \
-        --max_per_cluster 20 \
+        --output_file balanced_questions_darwin_iter2.json \
+        --max_per_cluster 100 \
         --questions_per_model 100 \
         --max_iterations 50
 """
@@ -97,40 +98,41 @@ def assign_to_cluster(embeddings: np.ndarray, centroids: np.ndarray) -> np.ndarr
 # QUESTION GENERATION
 # ===========================================================================
 
-def load_models(model_names: List[str], device: str = "cuda:0") -> List[Tuple]:
-    """Load multiple questioner models."""
-    models = []
-    print(f"\n[Models] Loading {len(model_names)} models on {device}")
+def load_single_model(model_name: str, device: str = "cuda:0") -> Tuple:
+    """Load a single questioner model."""
+    print(f"\n[Model] Loading {model_name} on {device}")
     
-    for model_name in model_names:
-        print(f"  Loading {model_name}...")
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                trust_remote_code=True,
-                torch_dtype=torch.bfloat16,
-                device_map=device
-            )
-            model.eval()
-            
-            if tokenizer.pad_token is None:
-                tokenizer.pad_token = tokenizer.eos_token
-            if tokenizer.pad_token_id is None:
-                tokenizer.pad_token_id = tokenizer.eos_token_id
-            
-            models.append((model, tokenizer, model_name))
-            print(f"    ✓ Loaded")
-        except Exception as e:
-            print(f"    ✗ Failed: {e}")
-            continue
-    
-    if not models:
-        print("[ERROR] No models loaded successfully!")
-        sys.exit(1)
-    
-    print(f"[Models] {len(models)} models ready\n")
-    return models
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+            torch_dtype=torch.bfloat16,
+            device_map=device
+        )
+        model.eval()
+        
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        if tokenizer.pad_token_id is None:
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+        
+        print(f"  ✓ Model loaded successfully\n")
+        return model, tokenizer, model_name
+    except Exception as e:
+        print(f"  ✗ Failed to load model: {e}")
+        return None
+
+
+def clear_gpu_memory():
+    """Clear GPU memory and cache."""
+    print("\n[Cleanup] Clearing GPU memory...")
+    import gc
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    print("  ✓ GPU memory cleared\n")
 
 
 def generate_questions_from_model(
@@ -139,7 +141,7 @@ def generate_questions_from_model(
     model_name: str,
     num_questions: int = 100,
     temperature: float = 1.0,
-    max_tokens: int = 4096,
+    max_tokens: int = 2048,
 ) -> List[Dict]:
     """Generate questions from a single model."""
     
@@ -180,12 +182,13 @@ def generate_questions_from_model(
         prompt = "system: " + system_prompt + '\n' + "user: " + user_prompt
     
     # Generate in batches
-    batch_size = 10
+    batch_size = 50
     all_questions = []
     
     print(f"    Generating {num_questions} questions from {os.path.basename(model_name)}...")
     
-    for batch_start in range(0, num_questions, batch_size):
+    from tqdm import tqdm
+    for batch_start in tqdm(range(0, num_questions, batch_size), desc="    Batch progress"):
         batch_end = min(batch_start + batch_size, num_questions)
         batch_count = batch_end - batch_start
         
@@ -287,88 +290,110 @@ def main():
     print(f"[Embedding] Loading {args.embedding_model} on {args.embedding_device}")
     embed_model = SentenceTransformer(args.embedding_model, trust_remote_code=True, device=args.embedding_device)
     
-    # Load generation models
-    models = load_models(args.models, device=args.device)
-    
     # Storage for selected questions
     selected_questions = []
     
-    # Main loop
+    # Main loop - iterate over models
     print(f"\n{'='*70}")
     print(f"STARTING BALANCED GENERATION")
     print(f"  Target: {args.max_per_cluster} questions × {num_clusters} clusters = {args.max_per_cluster * num_clusters} total")
-    print(f"  Max iterations: {args.max_iterations}")
+    print(f"  Max iterations per model: {args.max_iterations}")
+    print(f"  Total models: {len(args.models)}")
     print(f"{'='*70}\n")
     
-    for iteration in range(args.max_iterations):
-        print(f"\n[Iteration {iteration + 1}/{args.max_iterations}]")
+    freq_file = args.output_file.replace('.json', '_frequencies.npy')
+    
+    # Iterate over each model
+    for model_idx, model_name in enumerate(args.models):
+        print(f"\n{'='*70}")
+        print(f"PROCESSING MODEL {model_idx + 1}/{len(args.models)}: {model_name}")
+        print(f"{'='*70}\n")
         
-        # Check stopping condition
+        # Check if we're already done
         min_freq = cluster_freq.min()
         if min_freq >= args.max_per_cluster:
-            print(f"\n✓ All clusters have {args.max_per_cluster}+ questions. Stopping.")
+            print(f"✓ All clusters already have {args.max_per_cluster}+ questions. Skipping remaining models.")
             break
         
-        # Status
-        filled_clusters = (cluster_freq >= args.max_per_cluster).sum()
-        print(f"  Progress: {filled_clusters}/{num_clusters} clusters filled")
-        print(f"  Current distribution - min: {cluster_freq.min()}, max: {cluster_freq.max()}, mean: {cluster_freq.mean():.1f}")
+        # Load the current model
+        model_tuple = load_single_model(model_name, device=args.device)
+        if model_tuple is None:
+            print(f"⚠ Skipping model {model_name} due to loading error")
+            continue
         
-        # Generate from all models
-        iteration_questions = []
-        for model, tokenizer, model_name in models:
-            questions = generate_questions_from_model(
+        model, tokenizer, _ = model_tuple
+        
+        # Run iterations for this model
+        for iteration in range(args.max_iterations):
+            print(f"\n[Model {model_idx + 1}/{len(args.models)}, Iteration {iteration + 1}/{args.max_iterations}]")
+            
+            # Check stopping condition for this model
+            min_freq = cluster_freq.min()
+            if min_freq >= args.max_per_cluster:
+                print(f"\n✓ All clusters have {args.max_per_cluster}+ questions. Moving to next model.")
+                break
+            
+            # Status
+            filled_clusters = (cluster_freq >= args.max_per_cluster).sum()
+            print(f"  Progress: {filled_clusters}/{num_clusters} clusters filled")
+            print(f"  Current distribution - min: {cluster_freq.min()}, max: {cluster_freq.max()}, mean: {cluster_freq.mean():.1f}")
+            
+            # Generate questions from current model
+            iteration_questions = generate_questions_from_model(
                 model, tokenizer, model_name,
                 num_questions=args.questions_per_model,
             )
-            iteration_questions.extend(questions)
-        
-        print(f"  Total generated: {len(iteration_questions)} questions")
-        
-        if not iteration_questions:
-            print("  ⚠ No questions generated, skipping iteration")
-            continue
-        
-        # Embed and classify
-        print(f"  Embedding and classifying...")
-        problem_texts = [q["problem"] for q in iteration_questions]
-        embeddings = embed_model.encode(
-            problem_texts,
-            batch_size=256,
-            show_progress_bar=False,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-        )
-        
-        labels = assign_to_cluster(embeddings, centroids)
-        
-        # Assign cluster IDs
-        for q, label in zip(iteration_questions, labels):
-            q["cluster_id"] = int(label)
-        
-        # Select questions to add (respecting cluster limits)
-        added_count = 0
-        cluster_added = defaultdict(int)
-        
-        for question in iteration_questions:
-            cid = question["cluster_id"]
             
-            # Check if cluster still needs questions
-            if cluster_freq[cid] < args.max_per_cluster:
-                selected_questions.append(question)
-                cluster_freq[cid] += 1
-                cluster_added[cid] += 1
-                added_count += 1
-        
-        print(f"  Added: {added_count} questions ({len(cluster_added)} clusters)")
-        
-        # Save checkpoint
-        with open(args.output_file, 'w') as f:
-            json.dump(selected_questions, f, indent=2)
-        
-        # Save frequency array
-        freq_file = args.output_file.replace('.json', '_frequencies.npy')
-        np.save(freq_file, cluster_freq)
+            print(f"  Total generated: {len(iteration_questions)} questions")
+            
+            if not iteration_questions:
+                print("  ⚠ No questions generated, skipping iteration")
+                continue
+            
+            # Embed and classify
+            print(f"  Embedding and classifying...")
+            problem_texts = [q["problem"] for q in iteration_questions]
+            embeddings = embed_model.encode(
+                problem_texts,
+                batch_size=256,
+                show_progress_bar=False,
+                convert_to_numpy=True,
+                normalize_embeddings=True,
+            )
+            
+            labels = assign_to_cluster(embeddings, centroids)
+            
+            # Assign cluster IDs
+            for q, label in zip(iteration_questions, labels):
+                q["cluster_id"] = int(label)
+            
+            # Select questions to add (respecting cluster limits)
+            added_count = 0
+            cluster_added = defaultdict(int)
+            
+            for question in iteration_questions:
+                cid = question["cluster_id"]
+                
+                # Check if cluster still needs questions
+                if cluster_freq[cid] < args.max_per_cluster:
+                    selected_questions.append(question)
+                    cluster_freq[cid] += 1
+                    cluster_added[cid] += 1
+                    added_count += 1
+            
+            print(f"  Added: {added_count} questions ({len(cluster_added)} clusters)")
+            
+            # Save checkpoint
+            with open(args.output_file, 'w') as f:
+                json.dump(selected_questions, f, indent=2)
+            
+            # Save frequency array
+            np.save(freq_file, cluster_freq)
+            print(cluster_freq)
+        # Clean up model and clear GPU memory before next model
+        del model
+        del tokenizer
+        clear_gpu_memory()
     
     # Final summary
     print(f"\n{'='*70}")
