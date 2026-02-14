@@ -331,3 +331,50 @@
     "accuracy": 0.7588
   }
 }
+
+{
+  "model": "vibhuiitj/qwen3-4b-base-variant1-feb2-solver-iter2",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.9292333614153327,
+      "correct": 1103,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.7341772151898734,
+      "correct": 348,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.6200417536534447,
+      "correct": 297,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5769656699889258,
+      "correct": 521,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7833333333333333,
+      "correct": 423,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.8794489092996556,
+      "correct": 766,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.6098901098901099,
+      "correct": 333,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3791,
+    "accuracy": 0.7582
+  }
+}
