@@ -62,7 +62,7 @@ class SFTConfig:
     per_device_eval_batch_size: int = 2
     gradient_accumulation_steps: int = 8
     learning_rate: float = 2e-5
-    warmup_ratio: float = 0.1
+    warmup_steps: int = 30  # ~10% of typical steps; replaces deprecated warmup_ratio
     weight_decay: float = 0.01
     max_grad_norm: float = 1.0
     
@@ -71,7 +71,7 @@ class SFTConfig:
     save_steps: int = 100
     save_total_limit: int = 3
     eval_steps: int = 100
-    evaluation_strategy: str = "steps"
+    eval_strategy: str = "steps"  # Renamed from evaluation_strategy in newer transformers
     
     # System configuration
     bf16: bool = True
@@ -175,8 +175,8 @@ def tokenize_function(examples, tokenizer, max_seq_length):
         padding=False,
         return_tensors=None,
     )
-    # For causal LM, labels are the same as input_ids
-    outputs['labels'] = outputs['input_ids'].copy()
+    # DataCollatorForLanguageModeling will create labels from input_ids
+    # and properly pad + mask them with -100
     return outputs
 
 
@@ -202,7 +202,7 @@ def setup_model_and_tokenizer(config: SFTConfig):
     # Load model
     model = AutoModelForCausalLM.from_pretrained(
         config.model_name,
-        torch_dtype=torch.bfloat16 if config.bf16 else torch.float16,
+        dtype=torch.bfloat16 if config.bf16 else torch.float16,
         trust_remote_code=config.trust_remote_code,
         attn_implementation="flash_attention_2" if config.use_flash_attention else "sdpa",
         device_map="auto",
@@ -309,14 +309,14 @@ def main():
         per_device_eval_batch_size=config.per_device_eval_batch_size,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
         learning_rate=config.learning_rate,
-        warmup_ratio=config.warmup_ratio,
+        warmup_steps=config.warmup_steps,
         weight_decay=config.weight_decay,
         max_grad_norm=config.max_grad_norm,
         logging_steps=config.logging_steps,
         save_steps=config.save_steps,
         save_total_limit=config.save_total_limit,
         eval_steps=config.eval_steps,
-        evaluation_strategy=config.evaluation_strategy,
+        eval_strategy=config.eval_strategy,
         bf16=config.bf16,
         fp16=config.fp16,
         gradient_checkpointing=config.gradient_checkpointing,
@@ -324,7 +324,6 @@ def main():
         lr_scheduler_type=config.lr_scheduler_type,
         report_to="none",
         logging_first_step=True,
-        save_safetensors=True,
         dataloader_num_workers=4,
         remove_unused_columns=True,
         ddp_find_unused_parameters=False if config.gradient_checkpointing else None,
@@ -337,7 +336,7 @@ def main():
         train_dataset=tokenized_dataset['train'],
         eval_dataset=tokenized_dataset['test'],
         data_collator=data_collator,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
     )
     
     # Train
