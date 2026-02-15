@@ -378,3 +378,96 @@
     "accuracy": 0.7582
   }
 }
+{
+  "model": "vibhuiitj/darwin_iter2_dataset_verified_matched",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.941027801179444,
+      "correct": 1117,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.7341772151898734,
+      "correct": 348,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.6388308977035491,
+      "correct": 306,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.5692137320044297,
+      "correct": 514,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7888888888888889,
+      "correct": 426,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.8805970149253731,
+      "correct": 767,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.6245421245421245,
+      "correct": 341,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3819,
+    "accuracy": 0.7638
+  }
+}
+
+{
+  "model": "vibhuiitj/darwin_iter2_solver_all",
+  "split": "test",
+  "configs": {
+    "algebra": {
+      "accuracy": 0.9351305812973884,
+      "correct": 1110,
+      "total": 1187
+    },
+    "counting_and_probability": {
+      "accuracy": 0.740506329113924,
+      "correct": 351,
+      "total": 474
+    },
+    "geometry": {
+      "accuracy": 0.6388308977035491,
+      "correct": 306,
+      "total": 479
+    },
+    "intermediate_algebra": {
+      "accuracy": 0.584717607973422,
+      "correct": 528,
+      "total": 903
+    },
+    "number_theory": {
+      "accuracy": 0.7870370370370371,
+      "correct": 425,
+      "total": 540
+    },
+    "prealgebra": {
+      "accuracy": 0.8874856486796785,
+      "correct": 773,
+      "total": 871
+    },
+    "precalculus": {
+      "accuracy": 0.6391941391941391,
+      "correct": 349,
+      "total": 546
+    }
+  },
+  "overall": {
+    "total": 5000,
+    "correct": 3842,
+    "accuracy": 0.7684
+  }
+}
