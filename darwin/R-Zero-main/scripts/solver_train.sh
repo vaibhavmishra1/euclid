@@ -48,21 +48,26 @@ echo 'start train'
 
 python3 -m verl.trainer.main \
     config=examples/config.yaml \
-    data.max_response_length=2048 \
+    data.max_response_length=4096 \
     worker.actor.model.model_path=$solver_model_path \
     trainer.experiment_name=${experiment_name} \
     trainer.save_checkpoint_path=${STORAGE_PATH}/models/${experiment_name}/ \
     data.train_files=${HUGGINGFACENAME}/${experiment_name}@train \
     trainer.total_epochs=10 \
-    trainer.max_steps=10 \
+    trainer.max_steps=50 \
     data.format_prompt=./examples/format_prompt/solver.jinja \
-    trainer.val_freq=4 \
+    trainer.val_freq=2 \
     trainer.save_freq=5 \
     worker.rollout.n=8 \
     trainer.n_gpus_per_node=8 \
     worker.actor.global_batch_size=128 \
     worker.actor.micro_batch_size_per_device_for_update=4 \
-    worker.actor.micro_batch_size_per_device_for_experience=16 
+    worker.actor.micro_batch_size_per_device_for_experience=16 \
+    worker.actor.ppo_epochs=2 \
+    algorithm.kl_coef=1.0e-4 \
+    worker.actor.optim.lr_warmup_ratio=0.1 \
+    worker.actor.optim.warmup_style=cosine \
+    worker.actor.optim.min_lr_ratio=0.1 
 
 echo "merging model"
 # Find the latest checkpoint dynamically instead of hardcoding global_step_15

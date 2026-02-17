@@ -200,6 +200,41 @@ def get_constant_schedule_with_warmup(
     return LambdaLR(optimizer, lr_lambda, last_epoch)
 
 
+def get_cosine_schedule_with_warmup(
+    optimizer: torch.optim.Optimizer,
+    num_warmup_steps: int,
+    num_training_steps: int,
+    min_lr_ratio: float = 0.0,
+    last_epoch: int = -1,
+) -> torch.optim.lr_scheduler.LRScheduler:
+    """Get cosine lr schedule with linear warmup.
+
+    The learning rate linearly increases from 0 to peak during warmup,
+    then follows a cosine decay to min_lr_ratio * peak_lr.
+
+    Args:
+        optimizer: The optimizer to schedule.
+        num_warmup_steps: Number of warmup steps (linear ramp).
+        num_training_steps: Total number of training steps.
+        min_lr_ratio: Minimum LR as a fraction of peak LR (default 0.0).
+        last_epoch: The index of the last epoch (default -1).
+    """
+    import math
+
+    def lr_lambda(current_step: int) -> float:
+        # Linear warmup
+        if current_step < num_warmup_steps:
+            return float(current_step) / float(max(1, num_warmup_steps))
+        # Cosine decay after warmup
+        progress = float(current_step - num_warmup_steps) / float(
+            max(1, num_training_steps - num_warmup_steps)
+        )
+        cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+        return max(min_lr_ratio, min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay)
+
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
+
+
 # https://github.com/meta-llama/llama-cookbook/blob/v0.0.5/src/llama_cookbook/policies/anyprecision_optimizer.py
 class AnyPrecisionAdamW(torch.optim.Optimizer):
     def __init__(

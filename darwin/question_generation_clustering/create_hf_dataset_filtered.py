@@ -9,8 +9,8 @@ from datasets import Dataset
 from huggingface_hub import login
 
 # Configuration
-INPUT_FILE = "balanced_questions__darwin_iter2_openai_validated_2.json"
-DATASET_NAME = "darwin_iter2_dataset"
+INPUT_FILE = "balanced_questions_darwin_iter3_evaluated.json"
+DATASET_NAME = "darwin_iter3_dataset"
 HF_USERNAME = "vibhuiitj"
 HF_TOKEN = os.getenv("HF_TOKEN", "")  # Set via environment variable
 MIN_SCORE = 0.5

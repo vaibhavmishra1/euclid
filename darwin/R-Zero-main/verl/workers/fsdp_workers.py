@@ -55,7 +55,7 @@ from ..utils.dataset import process_image
 from ..utils.model_utils import print_gpu_memory_usage, print_model_size
 from ..utils.tokenizer import get_processor, get_tokenizer
 from ..utils.torch_dtypes import PrecisionType
-from ..utils.torch_functional import AnyPrecisionAdamW, get_constant_schedule_with_warmup
+from ..utils.torch_functional import AnyPrecisionAdamW, get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 from .config import ActorConfig, CriticConfig, FSDPConfig, ModelConfig, OptimConfig, RefConfig, WorkerConfig
 from .rollout import vLLMRollout
 from .sharding_manager import FSDPVLLMShardingManager
@@ -301,9 +301,25 @@ class FSDPWorker(Worker):
                 raise NotImplementedError(f"Optimizer {optim_config.strategy} not supported.")
 
             num_warmup_steps = int(optim_config.lr_warmup_ratio * optim_config.training_steps)
-            self.lr_scheduler = get_constant_schedule_with_warmup(
-                optimizer=self.optimizer, num_warmup_steps=num_warmup_steps
-            )
+            if getattr(optim_config, 'warmup_style', 'constant') == 'cosine':
+                min_lr_ratio = getattr(optim_config, 'min_lr_ratio', None) or 0.0
+                self.lr_scheduler = get_cosine_schedule_with_warmup(
+                    optimizer=self.optimizer,
+                    num_warmup_steps=num_warmup_steps,
+                    num_training_steps=optim_config.training_steps,
+                    min_lr_ratio=min_lr_ratio,
+                )
+                self.print_rank0(
+                    f"Using cosine LR schedule: warmup={num_warmup_steps} steps, "
+                    f"total={optim_config.training_steps} steps, min_lr_ratio={min_lr_ratio}"
+                )
+            else:
+                self.lr_scheduler = get_constant_schedule_with_warmup(
+                    optimizer=self.optimizer, num_warmup_steps=num_warmup_steps
+                )
+                self.print_rank0(
+                    f"Using constant LR schedule with warmup={num_warmup_steps} steps"
+                )
             print_gpu_memory_usage("After optimizer init")
         else:
             self.optimizer, self.lr_scheduler = None, None
