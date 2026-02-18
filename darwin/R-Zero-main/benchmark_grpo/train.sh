@@ -3,19 +3,22 @@ set -euo pipefail
 
 # ============================================================================
 # GRPO Training: vibhuiitj/darwin_iter3_try3_solver_step10
-# Datasets:      ALL benchmarks (Math500, GSM8K, AMC23, Minerva, OlympiadBench,
-#                AIME2024/2025, MMLU-Pro, BBEH, SuperGPQA, GPQA Diamond)
+# Datasets:      Math500, GSM8K, AMC23, Minerva, OlympiadBench, AIME2024/2025
 # Hardware:      8x A100 80GB
 #
 # Usage:
-#   bash benchmark_grpo/train.sh
+#   bash benchmark_grpo/train.sh [model_path]
+#
+# Args:
+#   model_path  - HuggingFace model path (default: vibhuiitj/darwin_iter3_try3_solver_step10)
 #
 # This script will:
 #   1. Prepare the dataset (download all benchmarks + merge) if not already done
 #   2. Run GRPO training using the verl framework
-#   3. Merge the final checkpoint into a HuggingFace-compatible model
-#   4. Run evaluation on standard math benchmarks
+#   3. Run evaluation on standard math benchmarks
 # ============================================================================
+
+MODEL_PATH="${1:-vibhuiitj/darwin_iter3_try3_solver_step10}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -24,17 +27,6 @@ cd "$PROJECT_ROOT"
 
 export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
 export VLLM_DISABLE_COMPILE_CACHE=1
-
-# Helper function to find latest checkpoint path
-find_latest_checkpoint() {
-    local checkpoint_dir="$1"
-    local latest_step=$(ls -d ${checkpoint_dir}/global_step_* 2>/dev/null | sed 's/.*global_step_//' | sort -n | tail -1)
-    if [ -z "$latest_step" ]; then
-        echo "ERROR: No checkpoint found in ${checkpoint_dir}" >&2
-        return 1
-    fi
-    echo "${checkpoint_dir}/global_step_${latest_step}/actor"
-}
 
 # ======================== Step 1: Prepare Dataset ========================
 if [ ! -f "$SCRIPT_DIR/data/train.parquet" ]; then
@@ -50,7 +42,7 @@ fi
 echo ""
 echo "============================================"
 echo "Step 2: Starting GRPO training"
-echo "  Model:    vibhuiitj/darwin_iter3_try3_solver_step10"
+echo "  Model:    $MODEL_PATH"
 echo "  Datasets: All benchmarks (merged)"
 echo "  GPUs:     8x A100 80GB"
 echo "  Rollouts: 8 per question"
@@ -59,40 +51,24 @@ echo "============================================"
 echo ""
 
 python3 -m verl.trainer.main \
-    config=benchmark_grpo/config.yaml
+    config=benchmark_grpo/config.yaml \
+    worker.actor.model.model_path="$MODEL_PATH"
 
 echo ""
 echo "============================================"
 echo "Step 2: GRPO training complete"
 echo "============================================"
 
-# ======================== Step 3: Merge Checkpoint ========================
+# ======================== Step 3: Evaluate ========================
 echo ""
 echo "============================================"
-echo "Step 3: Merging model checkpoint"
+echo "Step 3: Running evaluation on $MODEL_PATH"
 echo "============================================"
 
-LATEST_CHECKPOINT=$(find_latest_checkpoint "$SCRIPT_DIR/checkpoints/darwin_all_benchmarks_grpo")
-if [ $? -eq 0 ]; then
-    echo "Found checkpoint at: $LATEST_CHECKPOINT"
-    python scripts/model_merger.py --local_dir "$LATEST_CHECKPOINT"
-    MERGED_MODEL="${LATEST_CHECKPOINT}/huggingface"
-    echo "Merged model saved to: $MERGED_MODEL"
-else
-    echo "ERROR: Could not find checkpoint"
-    exit 1
-fi
-
-# ======================== Step 4: Evaluate ========================
-echo ""
-echo "============================================"
-echo "Step 4: Running evaluation"
-echo "============================================"
-
-bash evaluation/evaluate.bash "$MERGED_MODEL"
+bash evaluation/evaluate.bash "$MODEL_PATH"
 
 echo ""
 echo "============================================"
 echo "All done!"
-echo "  Merged model: $MERGED_MODEL"
+echo "  Model: $MODEL_PATH"
 echo "============================================"

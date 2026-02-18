@@ -209,7 +209,7 @@ def compute_score(
     predicts: List[str],
     ground_truths: List[str],
     format_weight: float = 0.05,
-    process_weight: float = 0.15,
+    process_weight: float = 0.0,
 ) -> List[Dict[str, float]]:
     """Compute rewards for GRPO training.
 
@@ -239,7 +239,7 @@ def compute_score(
 
         acc_score = accuracy_reward(predict, ground_truth)
         fmt_score = format_reward(predict)
-        proc_score = process_reward(predict)
+        proc_score = 0
 
         overall = (
             accuracy_weight * acc_score

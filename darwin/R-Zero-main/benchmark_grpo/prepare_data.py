@@ -121,65 +121,6 @@ def load_aime2025():
     ]
 
 
-def load_mmlu_pro():
-    """MMLU-Pro — multiple choice (format question with options)."""
-    print("  Loading MMLU-Pro...")
-    dataset = load_dataset("TIGER-Lab/MMLU-Pro", split="test")
-    results = []
-    for row in dataset:
-        question = row["question"] + "\n\nOptions:\n"
-        for i, opt in enumerate(row["options"]):
-            question += f"{chr(65 + i)}. {opt}\n"
-        results.append({"question": question, "answer": str(row["answer"]), "source": "mmlu_pro"})
-    return results
-
-
-def load_bbeh():
-    """BBEH — text answers."""
-    print("  Loading BBEH...")
-    dataset = load_dataset("MrLight/bbeh-eval", split="train")
-    return [
-        {"question": row["question"], "answer": str(row["answer"]), "source": "bbeh"}
-        for row in dataset
-    ]
-
-
-def load_supergpqa():
-    """SuperGPQA — multiple choice (format question with options)."""
-    print("  Loading SuperGPQA...")
-    dataset = load_dataset("m-a-p/SuperGPQA")["train"]
-    results = []
-    for row in dataset:
-        question = row["question"] + "\n\nOptions:\n"
-        for i, opt in enumerate(row["options"]):
-            question += f"{chr(65 + i)}. {opt}\n"
-        results.append({"question": question, "answer": str(row["answer_letter"]), "source": "supergpqa"})
-    return results
-
-
-def load_gpqa():
-    """GPQA Diamond — multiple choice (randomize option order)."""
-    print("  Loading GPQA Diamond...")
-    dataset = load_dataset("Idavidrein/gpqa", "gpqa_diamond")["train"]
-    results = []
-    for row in dataset:
-        options = [
-            row["Correct Answer"],
-            row["Incorrect Answer 1"],
-            row["Incorrect Answer 2"],
-            row["Incorrect Answer 3"],
-        ]
-        random.shuffle(options)
-        correct_index = options.index(row["Correct Answer"])
-        correct_letter = chr(65 + correct_index)
-
-        question = row["Question"] + "\n\nOptions:\n"
-        for i, opt in enumerate(options):
-            question += f"{chr(65 + i)}. {opt}\n"
-
-        results.append({"question": question, "answer": correct_letter, "source": "gpqa"})
-    return results
-
 
 # All dataset loaders in order
 DATASET_LOADERS = [
@@ -189,11 +130,7 @@ DATASET_LOADERS = [
     ("Minerva Math", load_minerva),
     ("OlympiadBench", load_olympiad),
     ("AIME 2024", load_aime2024),
-    ("AIME 2025", load_aime2025),
-    ("MMLU-Pro", load_mmlu_pro),
-    ("BBEH", load_bbeh),
-    ("SuperGPQA", load_supergpqa),
-    ("GPQA Diamond", load_gpqa),
+    ("AIME 2025", load_aime2025)
 ]
 
 # Small datasets get repeated to avoid being drowned out during training
@@ -202,7 +139,6 @@ REPEAT_FACTOR = {
     "aime2024": 8,   # ~30 problems -> ~240
     "aime2025": 8,   # ~30 problems -> ~240
     "amc23": 4,      # ~40 problems -> ~160
-    "gpqa": 2,       # ~198 problems -> ~396
 }
 
 
