@@ -45,10 +45,28 @@ MATH_PATTERNS = {
 }
 
 
-def extract_think_block(predict: str) -> str:
-    """Extract the content inside <think>...</think> tags."""
-    match = re.search(r'<think>(.*?)</think>', predict, re.DOTALL)
-    return match.group(1).strip() if match else ""
+def extract_reasoning(predict: str) -> str:
+    """Extract the reasoning portion of the output.
+
+    Tries in order:
+    1. Content inside <think>...</think> tags (if present)
+    2. Everything before the last \\boxed{...} occurrence
+    3. The entire output as fallback
+    """
+    # Try <think> tags first
+    think_match = re.search(r'<think>(.*?)</think>', predict, re.DOTALL)
+    if think_match:
+        return think_match.group(1).strip()
+
+    # Otherwise, use everything before the last \boxed{} as reasoning
+    boxed_match = re.search(r'\\boxed\{', predict)
+    if boxed_match:
+        reasoning = predict[:boxed_match.start()].strip()
+        if reasoning:
+            return reasoning
+
+    # Fallback: entire output
+    return predict.strip()
 
 
 def count_reasoning_steps(think_content: str) -> int:
@@ -186,15 +204,18 @@ def process_reward(predict: str) -> float:
     This is a heuristic PRM that evaluates the structure and quality
     of mathematical reasoning without needing a separate trained model.
 
+    Works on the full output — uses <think> block if present, otherwise
+    uses everything before \\boxed{} as the reasoning portion.
+
     Returns a score in [0.0, 1.0].
     """
-    think_content = extract_think_block(predict)
+    reasoning = extract_reasoning(predict)
 
-    if not think_content:
+    if not reasoning:
         return 0.0
 
     # Compute component scores
-    quality = compute_step_quality(think_content)
+    quality = compute_step_quality(reasoning)
 
     # Weighted combination of quality components
     raw_quality = (
@@ -205,8 +226,8 @@ def process_reward(predict: str) -> float:
     )
 
     # Apply length and repetition penalties
-    length_mult = compute_length_penalty(think_content)
-    rep_mult = compute_repetition_penalty(think_content)
+    length_mult = compute_length_penalty(reasoning)
+    rep_mult = compute_repetition_penalty(reasoning)
 
     return raw_quality * length_mult * rep_mult
 
@@ -216,9 +237,27 @@ def process_reward(predict: str) -> float:
 # ============================================================================
 
 def format_reward(predict: str) -> float:
-    pattern = re.compile(r"<think>.*</think>.*\\boxed\{.*\}.*", re.DOTALL)
-    format_match = re.fullmatch(pattern, predict)
-    return 1.0 if format_match else 0.0
+    """Check if the output has proper format: reasoning followed by \\boxed{answer}.
+
+    Awards 1.0 if:
+      - Output contains \\boxed{...} with a non-empty answer
+      - There is some reasoning text before the boxed answer (not just the answer alone)
+    Awards 0.5 if:
+      - Output contains \\boxed{...} but with minimal/no reasoning before it
+    Awards 0.0 if:
+      - No \\boxed{...} found at all
+    """
+    # Check for \boxed{...} with non-empty content
+    boxed_match = re.search(r'\\boxed\{.+\}', predict, re.DOTALL)
+    if not boxed_match:
+        return 0.0
+
+    # Check if there's meaningful reasoning before the boxed answer
+    reasoning_before = predict[:boxed_match.start()].strip()
+    if len(reasoning_before.split()) >= 20:
+        return 1.0  # Good: has reasoning + boxed answer
+    else:
+        return 0.5  # Has boxed answer but minimal reasoning
 
 
 def accuracy_reward(predict: str, ground_truth: str) -> float:
@@ -243,13 +282,11 @@ def compute_score(
 
     The overall reward combines three components:
         1. Accuracy reward (0 or 1): Did the model get the right answer?
-        2. Format reward (0 or 1): Did the model use <think> + \\boxed{} format?
+        2. Format reward (0, 0.5, or 1): Does the output have \\boxed{} with reasoning?
         3. Process reward (0 to 1): How good is the reasoning quality?
 
-    The key insight: when accuracy=0, the process reward still provides
-    a non-zero gradient signal for good reasoning attempts. This prevents
-    the "dead advantage" problem where all wrong answers get identical
-    zero reward regardless of reasoning quality.
+    Process and format rewards work on the FULL output — no <think> tags needed.
+    Reasoning is extracted as everything before the last \\boxed{}.
 
     Weights:
         overall = (1 - format_weight - process_weight) * accuracy
@@ -257,14 +294,11 @@ def compute_score(
                 + process_weight * process_reward
 
     With defaults (format=0.05, process=0.15):
-        - Correct answer with good reasoning: 0.80 + 0.05 + 0.15 = 1.0
-        - Correct answer with poor reasoning: 0.80 + 0.05 + ~0.05 ≈ 0.90
-        - Wrong answer with excellent reasoning: 0.0 + 0.05 + 0.15 = 0.20
-        - Wrong answer with poor reasoning: 0.0 + 0.05 + ~0.02 = 0.07
-        - No <think> block at all: 0.0 + 0.0 + 0.0 = 0.0
-
-    This creates a meaningful reward gradient even among wrong answers,
-    helping the model learn good reasoning patterns.
+        - Correct + good reasoning + boxed: 0.80 + 0.05 + ~0.15 = ~1.0
+        - Correct + poor reasoning: 0.80 + 0.025 + ~0.03 ≈ 0.86
+        - Wrong + excellent reasoning: 0.0 + 0.05 + ~0.15 = ~0.20
+        - Wrong + poor reasoning: 0.0 + 0.025 + ~0.02 ≈ 0.05
+        - No boxed answer at all: 0.0 + 0.0 + ~0.02 = ~0.02
     """
     accuracy_weight = 1.0 - format_weight - process_weight
     scores = []
