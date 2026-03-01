@@ -1,0 +1,41 @@
+# ExpV1_1: GRPO Training Requirements
+# 
+# Core dependencies for GRPO training with TRL + vLLM
+
+# TRL (Transformers Reinforcement Learning)
+# GRPO support added in v0.9.0+, vLLM integration in v0.12.0+
+trl>=0.12.0
+
+# Transformers
+transformers>=4.40.0
+
+# vLLM (for fast rollout generation)
+# Pin to TRL-supported versions (0.10.2–0.12.0)
+vllm==0.12.0
+
+# PyTorch (install separately based on your CUDA version)
+# torch>=2.0.0
+
+# Datasets
+datasets>=2.14.0
+
+# Accelerate (for distributed training)
+accelerate>=0.25.0
+
+# PEFT (optional, for LoRA)
+peft>=0.7.0
+
+# Jinja2 (for prompt templates)
+jinja2>=3.0.0
+
+# YAML config
+pyyaml>=6.0
+
+# Math verification (optional, for better answer matching)
+# math-verify
+
+# Weights & Biases (optional, for logging)
+# wandb
+
+# DeepSpeed (optional, for memory optimization)
+# deepspeed>=0.12.0

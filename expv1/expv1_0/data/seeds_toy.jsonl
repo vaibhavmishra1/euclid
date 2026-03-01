@@ -1,0 +1,6 @@
+{"problem_id":"toy-1","problem":"Let x be a real number such that x^2 - 5x + 6 = 0. What is x? Give all solutions.","answer":"2, 3","domain":"algebra"}
+{"problem_id":"toy-2","problem":"How many integers n satisfy 1 \\le n \\le 100 and n is divisible by 6?","answer":"16","domain":"number_theory"}
+{"problem_id":"toy-3","problem":"A triangle has side lengths 3, 4, and 5. What is its area?","answer":"6","domain":"geometry"}
+{"problem_id":"toy-4","problem":"Compute the sum \\sum_{k=1}^{10} k.","answer":"55","domain":"prealgebra"}
+{"problem_id":"toy-5","problem":"A fair coin is flipped 3 times. What is the probability of getting exactly 2 heads?","answer":"3/8","domain":"counting_and_probability"}
+

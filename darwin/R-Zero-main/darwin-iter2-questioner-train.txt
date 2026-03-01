@@ -1,0 +1,1329 @@
+Model_abbr: darwin_iter2_questioner
+Questioner Base Model: vibhuiitj/qwen3-4b-base-variant1-feb2-solver-iter2
+Solver Base Model: vibhuiitj/qwen3-4b-base-variant1-feb2-solver-iter2
+Running Rentropy experiment with cluster-entropy diversity reward
+STORAGE_PATH: /workspace/euclid/darwin/R-Zero-main/storage
+HUGGINGFACENAME: vibhuiitj
+Pre-downloading models to avoid download issues during training...
+Both models downloaded successfully.
+Questioner model: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+Solver model: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+=========================================
+Questioner Training Configuration
+=========================================
+Solver model path: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+Questioner model path: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+Save path: darwin_iter2_questioner_questioner_v1
+=========================================
+RUN_ID=1770967833106307803
+vLLM services started with RUN_ID=1770967833106307803
+Start training questioner with Rentropy: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2 -> darwin_iter2_questioner_questioner_v1
+INFO 02-13 07:30:37 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-13 07:30:37 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-13 07:30:37 [__init__.py:244] Automatically detected platform cuda.
+[init] Loading model...
+INFO 02-13 07:30:39 [__init__.py:244] Automatically detected platform cuda.
+[init] Loading model...
+[init] Loading model...
+INFO 02-13 07:30:48 [config.py:823] This model supports multiple tasks: {'reward', 'generate', 'embed', 'classify', 'score'}. Defaulting to 'generate'.
+INFO 02-13 07:30:48 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-13 07:30:49 [config.py:823] This model supports multiple tasks: {'embed', 'score', 'classify', 'reward', 'generate'}. Defaulting to 'generate'.
+INFO 02-13 07:30:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-13 07:30:49 [config.py:823] This model supports multiple tasks: {'generate', 'score', 'reward', 'classify', 'embed'}. Defaulting to 'generate'.
+[36m(pid=11323)[0m WARNING 02-13 07:30:49 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+INFO 02-13 07:30:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-13 07:30:49 [core.py:455] Waiting for init message from front-end.
+INFO 02-13 07:30:49 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', speculative_config=None, tokenizer='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-13 07:30:50 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fce53ba14b0>
+INFO 02-13 07:30:50 [core.py:455] Waiting for init message from front-end.
+INFO 02-13 07:30:50 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', speculative_config=None, tokenizer='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-13 07:30:50 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f090d2595a0>
+INFO 02-13 07:30:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-13 07:30:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', speculative_config=None, tokenizer='/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-13 07:30:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fd718389570>
+INFO 02-13 07:30:51 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-13 07:30:51 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-13 07:30:51 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2...
+INFO 02-13 07:30:51 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-13 07:30:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-13 07:30:52 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-13 07:30:52 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-13 07:30:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2...
+INFO 02-13 07:30:52 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-13 07:30:53 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-13 07:30:53 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-13 07:30:53 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-13 07:30:53 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2...
+INFO 02-13 07:30:53 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-13 07:30:53 [cuda.py:252] Using Flash Attention backend on V1 engine.
+[36m(Runner pid=11323)[0m {
+[36m(Runner pid=11323)[0m   "data": {
+[36m(Runner pid=11323)[0m     "train_files": "hiyouga/math12k@train",
+[36m(Runner pid=11323)[0m     "val_files": "hiyouga/math12k@test",
+[36m(Runner pid=11323)[0m     "prompt_key": "problem",
+[36m(Runner pid=11323)[0m     "answer_key": "answer",
+[36m(Runner pid=11323)[0m     "image_key": "images",
+[36m(Runner pid=11323)[0m     "max_prompt_length": 2048,
+[36m(Runner pid=11323)[0m     "max_response_length": 4096,
+[36m(Runner pid=11323)[0m     "rollout_batch_size": 512,
+[36m(Runner pid=11323)[0m     "val_batch_size": 1024,
+[36m(Runner pid=11323)[0m     "format_prompt": "/workspace/euclid/darwin/R-Zero-main/examples/format_prompt/questioner.jinja",
+[36m(Runner pid=11323)[0m     "override_chat_template": null,
+[36m(Runner pid=11323)[0m     "shuffle": true,
+[36m(Runner pid=11323)[0m     "seed": 1,
+[36m(Runner pid=11323)[0m     "max_pixels": 4194304,
+[36m(Runner pid=11323)[0m     "min_pixels": 262144,
+[36m(Runner pid=11323)[0m     "filter_overlong_prompts": true
+[36m(Runner pid=11323)[0m   },
+[36m(Runner pid=11323)[0m   "worker": {
+[36m(Runner pid=11323)[0m     "hybrid_engine": true,
+[36m(Runner pid=11323)[0m     "actor": {
+[36m(Runner pid=11323)[0m       "strategy": "fsdp",
+[36m(Runner pid=11323)[0m       "global_batch_size": 16,
+[36m(Runner pid=11323)[0m       "micro_batch_size_per_device_for_update": 2,
+[36m(Runner pid=11323)[0m       "micro_batch_size_per_device_for_experience": 8,
+[36m(Runner pid=11323)[0m       "max_grad_norm": 1.0,
+[36m(Runner pid=11323)[0m       "clip_ratio_low": 0.2,
+[36m(Runner pid=11323)[0m       "clip_ratio_high": 0.3,
+[36m(Runner pid=11323)[0m       "clip_ratio_dual": 3.0,
+[36m(Runner pid=11323)[0m       "ppo_epochs": 1,
+[36m(Runner pid=11323)[0m       "padding_free": true,
+[36m(Runner pid=11323)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=11323)[0m       "use_torch_compile": true,
+[36m(Runner pid=11323)[0m       "model": {
+[36m(Runner pid=11323)[0m         "model_path": "/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2",
+[36m(Runner pid=11323)[0m         "tokenizer_path": "/workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2",
+[36m(Runner pid=11323)[0m         "override_config": {},
+[36m(Runner pid=11323)[0m         "enable_gradient_checkpointing": true,
+[36m(Runner pid=11323)[0m         "trust_remote_code": true,
+[36m(Runner pid=11323)[0m         "freeze_vision_tower": false
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "optim": {
+[36m(Runner pid=11323)[0m         "lr": 1e-06,
+[36m(Runner pid=11323)[0m         "betas": [
+[36m(Runner pid=11323)[0m           0.9,
+[36m(Runner pid=11323)[0m           0.999
+[36m(Runner pid=11323)[0m         ],
+[36m(Runner pid=11323)[0m         "weight_decay": 0.01,
+[36m(Runner pid=11323)[0m         "strategy": "adamw",
+[36m(Runner pid=11323)[0m         "lr_warmup_ratio": 0.0,
+[36m(Runner pid=11323)[0m         "min_lr_ratio": null,
+[36m(Runner pid=11323)[0m         "warmup_style": "constant",
+[36m(Runner pid=11323)[0m         "training_steps": -1
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "fsdp": {
+[36m(Runner pid=11323)[0m         "enable_full_shard": true,
+[36m(Runner pid=11323)[0m         "enable_cpu_offload": false,
+[36m(Runner pid=11323)[0m         "enable_rank0_init": true,
+[36m(Runner pid=11323)[0m         "use_orig_params": false,
+[36m(Runner pid=11323)[0m         "torch_dtype": null,
+[36m(Runner pid=11323)[0m         "fsdp_size": -1,
+[36m(Runner pid=11323)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=11323)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=11323)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "offload": {
+[36m(Runner pid=11323)[0m         "offload_params": false,
+[36m(Runner pid=11323)[0m         "offload_optimizer": false
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "global_batch_size_per_device": -1,
+[36m(Runner pid=11323)[0m       "disable_kl": false,
+[36m(Runner pid=11323)[0m       "use_kl_loss": true,
+[36m(Runner pid=11323)[0m       "kl_penalty": "low_var_kl",
+[36m(Runner pid=11323)[0m       "kl_coef": 0.01
+[36m(Runner pid=11323)[0m     },
+[36m(Runner pid=11323)[0m     "critic": {
+[36m(Runner pid=11323)[0m       "strategy": "fsdp",
+[36m(Runner pid=11323)[0m       "global_batch_size": 256,
+[36m(Runner pid=11323)[0m       "micro_batch_size_per_device_for_update": 4,
+[36m(Runner pid=11323)[0m       "micro_batch_size_per_device_for_experience": 16,
+[36m(Runner pid=11323)[0m       "max_grad_norm": 1.0,
+[36m(Runner pid=11323)[0m       "cliprange_value": 0.5,
+[36m(Runner pid=11323)[0m       "ppo_epochs": 1,
+[36m(Runner pid=11323)[0m       "padding_free": false,
+[36m(Runner pid=11323)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=11323)[0m       "model": {
+[36m(Runner pid=11323)[0m         "model_path": null,
+[36m(Runner pid=11323)[0m         "tokenizer_path": null,
+[36m(Runner pid=11323)[0m         "override_config": {},
+[36m(Runner pid=11323)[0m         "enable_gradient_checkpointing": true,
+[36m(Runner pid=11323)[0m         "trust_remote_code": true,
+[36m(Runner pid=11323)[0m         "freeze_vision_tower": false
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "optim": {
+[36m(Runner pid=11323)[0m         "lr": 1e-06,
+[36m(Runner pid=11323)[0m         "betas": [
+[36m(Runner pid=11323)[0m           0.9,
+[36m(Runner pid=11323)[0m           0.999
+[36m(Runner pid=11323)[0m         ],
+[36m(Runner pid=11323)[0m         "weight_decay": 0.01,
+[36m(Runner pid=11323)[0m         "strategy": "adamw",
+[36m(Runner pid=11323)[0m         "lr_warmup_ratio": 0.0,
+[36m(Runner pid=11323)[0m         "min_lr_ratio": null,
+[36m(Runner pid=11323)[0m         "warmup_style": "constant",
+[36m(Runner pid=11323)[0m         "training_steps": -1
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "fsdp": {
+[36m(Runner pid=11323)[0m         "enable_full_shard": true,
+[36m(Runner pid=11323)[0m         "enable_cpu_offload": false,
+[36m(Runner pid=11323)[0m         "enable_rank0_init": false,
+[36m(Runner pid=11323)[0m         "use_orig_params": false,
+[36m(Runner pid=11323)[0m         "torch_dtype": null,
+[36m(Runner pid=11323)[0m         "fsdp_size": -1,
+[36m(Runner pid=11323)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=11323)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=11323)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "offload": {
+[36m(Runner pid=11323)[0m         "offload_params": false,
+[36m(Runner pid=11323)[0m         "offload_optimizer": false
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "global_batch_size_per_device": -1
+[36m(Runner pid=11323)[0m     },
+[36m(Runner pid=11323)[0m     "ref": {
+[36m(Runner pid=11323)[0m       "strategy": "fsdp",
+[36m(Runner pid=11323)[0m       "fsdp": {
+[36m(Runner pid=11323)[0m         "enable_full_shard": true,
+[36m(Runner pid=11323)[0m         "enable_cpu_offload": true,
+[36m(Runner pid=11323)[0m         "enable_rank0_init": true,
+[36m(Runner pid=11323)[0m         "use_orig_params": false,
+[36m(Runner pid=11323)[0m         "torch_dtype": null,
+[36m(Runner pid=11323)[0m         "fsdp_size": -1,
+[36m(Runner pid=11323)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=11323)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=11323)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "offload": {
+[36m(Runner pid=11323)[0m         "offload_params": true,
+[36m(Runner pid=11323)[0m         "offload_optimizer": false
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "micro_batch_size_per_device_for_experience": 8,
+[36m(Runner pid=11323)[0m       "padding_free": true,
+[36m(Runner pid=11323)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=11323)[0m       "use_torch_compile": true
+[36m(Runner pid=11323)[0m     },
+[36m(Runner pid=11323)[0m     "reward": {
+[36m(Runner pid=11323)[0m       "reward_type": "batch",
+[36m(Runner pid=11323)[0m       "reward_function": "/workspace/euclid/darwin/R-Zero-main/examples/reward_function/caller_rentropy.py",
+[36m(Runner pid=11323)[0m       "reward_function_kwargs": {},
+[36m(Runner pid=11323)[0m       "skip_special_tokens": true,
+[36m(Runner pid=11323)[0m       "num_cpus": 1,
+[36m(Runner pid=11323)[0m       "reward_function_name": "compute_score"
+[36m(Runner pid=11323)[0m     },
+[36m(Runner pid=11323)[0m     "rollout": {
+[36m(Runner pid=11323)[0m       "name": "vllm",
+[36m(Runner pid=11323)[0m       "n": 4,
+[36m(Runner pid=11323)[0m       "temperature": 1.0,
+[36m(Runner pid=11323)[0m       "top_p": 0.99,
+[36m(Runner pid=11323)[0m       "top_k": -1,
+[36m(Runner pid=11323)[0m       "seed": 1,
+[36m(Runner pid=11323)[0m       "limit_images": 0,
+[36m(Runner pid=11323)[0m       "dtype": "bf16",
+[36m(Runner pid=11323)[0m       "gpu_memory_utilization": 0.7,
+[36m(Runner pid=11323)[0m       "ignore_eos": false,
+[36m(Runner pid=11323)[0m       "enforce_eager": false,
+[36m(Runner pid=11323)[0m       "enable_chunked_prefill": false,
+[36m(Runner pid=11323)[0m       "tensor_parallel_size": 2,
+[36m(Runner pid=11323)[0m       "max_model_len": null,
+[36m(Runner pid=11323)[0m       "max_num_batched_tokens": 8192,
+[36m(Runner pid=11323)[0m       "disable_log_stats": true,
+[36m(Runner pid=11323)[0m       "val_override_config": {
+[36m(Runner pid=11323)[0m         "temperature": 1.0,
+[36m(Runner pid=11323)[0m         "n": 1
+[36m(Runner pid=11323)[0m       },
+[36m(Runner pid=11323)[0m       "prompt_length": 2048,
+[36m(Runner pid=11323)[0m       "response_length": 4096,
+[36m(Runner pid=11323)[0m       "trust_remote_code": true
+[36m(Runner pid=11323)[0m     }
+[36m(Runner pid=11323)[0m   },
+[36m(Runner pid=11323)[0m   "algorithm": {
+[36m(Runner pid=11323)[0m     "gamma": 1.0,
+[36m(Runner pid=11323)[0m     "lam": 1.0,
+[36m(Runner pid=11323)[0m     "adv_estimator": "grpo",
+[36m(Runner pid=11323)[0m     "disable_kl": false,
+[36m(Runner pid=11323)[0m     "use_kl_loss": true,
+[36m(Runner pid=11323)[0m     "kl_penalty": "low_var_kl",
+[36m(Runner pid=11323)[0m     "kl_coef": 0.01,
+[36m(Runner pid=11323)[0m     "kl_type": "fixed",
+[36m(Runner pid=11323)[0m     "kl_horizon": 0.0,
+[36m(Runner pid=11323)[0m     "kl_target": 0.0,
+[36m(Runner pid=11323)[0m     "mock_data": "test"
+[36m(Runner pid=11323)[0m   },
+[36m(Runner pid=11323)[0m   "trainer": {
+[36m(Runner pid=11323)[0m     "total_epochs": 6,
+[36m(Runner pid=11323)[0m     "max_steps": 6,
+[36m(Runner pid=11323)[0m     "project_name": "rentropy_rzero_main",
+[36m(Runner pid=11323)[0m     "experiment_name": "darwin_iter2_questioner_questioner_v1",
+[36m(Runner pid=11323)[0m     "logger": [
+[36m(Runner pid=11323)[0m       "console"
+[36m(Runner pid=11323)[0m     ],
+[36m(Runner pid=11323)[0m     "nnodes": 1,
+[36m(Runner pid=11323)[0m     "n_gpus_per_node": 4,
+[36m(Runner pid=11323)[0m     "critic_warmup": 0,
+[36m(Runner pid=11323)[0m     "val_freq": -1,
+[36m(Runner pid=11323)[0m     "val_before_train": false,
+[36m(Runner pid=11323)[0m     "val_only": false,
+[36m(Runner pid=11323)[0m     "val_generations_to_log": 3,
+[36m(Runner pid=11323)[0m     "save_freq": 5,
+[36m(Runner pid=11323)[0m     "save_limit": 3,
+[36m(Runner pid=11323)[0m     "save_checkpoint_path": "/workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1",
+[36m(Runner pid=11323)[0m     "load_checkpoint_path": null
+[36m(Runner pid=11323)[0m   }
+[36m(Runner pid=11323)[0m }
+INFO 02-13 07:30:54 [default_loader.py:272] Loading weights took 1.71 seconds
+INFO 02-13 07:30:54 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.405383 seconds
+INFO 02-13 07:30:55 [default_loader.py:272] Loading weights took 2.06 seconds
+INFO 02-13 07:30:55 [default_loader.py:272] Loading weights took 1.68 seconds
+INFO 02-13 07:30:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.304336 seconds
+INFO 02-13 07:30:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 1.906198 seconds
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Loaded config from /workspace/euclid/darwin/rentropy_config.yaml
+[36m(BatchFunctionRewardManager pid=11941)[0m Using reward function `compute_score` from `/workspace/euclid/darwin/R-Zero-main/examples/reward_function/caller_rentropy.py`.
+INFO 02-13 07:31:03 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-13 07:31:03 [backends.py:472] Dynamo bytecode transform time: 7.90 s
+INFO 02-13 07:31:03 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-13 07:31:03 [backends.py:472] Dynamo bytecode transform time: 7.72 s
+INFO 02-13 07:31:03 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-13 07:31:03 [backends.py:472] Dynamo bytecode transform time: 7.75 s
+[36m(Runner pid=11323)[0m Size of train dataloader: 23
+[36m(Runner pid=11323)[0m Size of val dataloader: 1
+[36m(Runner pid=11323)[0m Total training steps: 6
+[36m(BatchFunctionRewardManager pid=11981)[0m [Rentropy] Loaded config from /workspace/euclid/darwin/rentropy_config.yaml
+[36m(BatchFunctionRewardManager pid=11981)[0m Using reward function `compute_score` from `/workspace/euclid/darwin/R-Zero-main/examples/reward_function/caller_rentropy.py`.
+INFO 02-13 07:31:07 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-13 07:31:07 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-13 07:31:07 [backends.py:161] Cache the graph of shape None for later use
+[36m(pid=13522)[0m WARNING 02-13 07:31:10 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(pid=14586)[0m WARNING 02-13 07:31:18 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(pid=14587)[0m WARNING 02-13 07:31:18 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(WorkerDict pid=13522)[0m actor will use global batch size 64.
+[36m(WorkerDict pid=13522)[0m Model config: Qwen3Config {
+[36m(WorkerDict pid=13522)[0m   "architectures": [
+[36m(WorkerDict pid=13522)[0m     "Qwen3ForCausalLM"
+[36m(WorkerDict pid=13522)[0m   ],
+[36m(WorkerDict pid=13522)[0m   "attention_bias": false,
+[36m(WorkerDict pid=13522)[0m   "attention_dropout": 0.0,
+[36m(WorkerDict pid=13522)[0m   "eos_token_id": 151643,
+[36m(WorkerDict pid=13522)[0m   "head_dim": 128,
+[36m(WorkerDict pid=13522)[0m   "hidden_act": "silu",
+[36m(WorkerDict pid=13522)[0m   "hidden_size": 2560,
+[36m(WorkerDict pid=13522)[0m   "initializer_range": 0.02,
+[36m(WorkerDict pid=13522)[0m   "intermediate_size": 9728,
+[36m(WorkerDict pid=13522)[0m   "max_position_embeddings": 32768,
+[36m(WorkerDict pid=13522)[0m   "max_window_layers": 36,
+[36m(WorkerDict pid=13522)[0m   "model_type": "qwen3",
+[36m(WorkerDict pid=13522)[0m   "num_attention_heads": 32,
+[36m(WorkerDict pid=13522)[0m   "num_hidden_layers": 36,
+[36m(WorkerDict pid=13522)[0m   "num_key_value_heads": 8,
+[36m(WorkerDict pid=13522)[0m   "pad_token_id": 151643,
+[36m(WorkerDict pid=13522)[0m   "rms_norm_eps": 1e-06,
+[36m(WorkerDict pid=13522)[0m   "rope_scaling": null,
+[36m(WorkerDict pid=13522)[0m   "rope_theta": 1000000,
+[36m(WorkerDict pid=13522)[0m   "sliding_window": null,
+[36m(WorkerDict pid=13522)[0m   "tie_word_embeddings": true,
+[36m(WorkerDict pid=13522)[0m   "torch_dtype": "bfloat16",
+[36m(WorkerDict pid=13522)[0m   "transformers_version": "4.52.4",
+[36m(WorkerDict pid=13522)[0m   "use_cache": true,
+[36m(WorkerDict pid=13522)[0m   "use_sliding_window": false,
+[36m(WorkerDict pid=13522)[0m   "vocab_size": 151936
+[36m(WorkerDict pid=13522)[0m }
+[36m(WorkerDict pid=13522)[0m 
+[36m(WorkerDict pid=13522)[0m Ulysses patch applied!
+[36m(WorkerDict pid=13522)[0m NCCL version 2.26.2+cuda12.2
+[36m(WorkerDict pid=13522)[0m Qwen3ForCausalLM contains 4.02B parameters.
+[36m(WorkerDict pid=13522)[0m After huggingface model init: 1.27 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m FSDP wrap policy: functools.partial(<function transformer_auto_wrap_policy at 0x7eecfd9df400>, transformer_layer_cls={<class 'transformers.models.qwen3.modeling_qwen3.Qwen3DecoderLayer'>}).
+[36m(pid=14588)[0m WARNING 02-13 07:31:18 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(WorkerDict pid=13522)[0m After FSDP module init: 3.16 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After offload ref model during init: 1.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m Model config: Qwen3Config {
+[36m(WorkerDict pid=13522)[0m   "architectures": [
+[36m(WorkerDict pid=13522)[0m     "Qwen3ForCausalLM"
+[36m(WorkerDict pid=13522)[0m   ],
+[36m(WorkerDict pid=13522)[0m   "attention_bias": false,
+[36m(WorkerDict pid=13522)[0m   "attention_dropout": 0.0,
+[36m(WorkerDict pid=13522)[0m   "eos_token_id": 151643,
+[36m(WorkerDict pid=13522)[0m   "head_dim": 128,
+[36m(WorkerDict pid=13522)[0m   "hidden_act": "silu",
+[36m(WorkerDict pid=13522)[0m   "hidden_size": 2560,
+[36m(WorkerDict pid=13522)[0m   "initializer_range": 0.02,
+[36m(WorkerDict pid=13522)[0m   "intermediate_size": 9728,
+[36m(WorkerDict pid=13522)[0m   "max_position_embeddings": 32768,
+[36m(WorkerDict pid=13522)[0m   "max_window_layers": 36,
+[36m(WorkerDict pid=13522)[0m   "model_type": "qwen3",
+[36m(WorkerDict pid=13522)[0m   "num_attention_heads": 32,
+[36m(WorkerDict pid=13522)[0m   "num_hidden_layers": 36,
+[36m(WorkerDict pid=13522)[0m   "num_key_value_heads": 8,
+[36m(WorkerDict pid=13522)[0m   "pad_token_id": 151643,
+[36m(WorkerDict pid=13522)[0m   "rms_norm_eps": 1e-06,
+[36m(WorkerDict pid=13522)[0m   "rope_scaling": null,
+[36m(WorkerDict pid=13522)[0m   "rope_theta": 1000000,
+[36m(WorkerDict pid=13522)[0m   "sliding_window": null,
+[36m(WorkerDict pid=13522)[0m   "tie_word_embeddings": true,
+[36m(WorkerDict pid=13522)[0m   "torch_dtype": "bfloat16",
+[36m(WorkerDict pid=13522)[0m   "transformers_version": "4.52.4",
+[36m(WorkerDict pid=13522)[0m   "use_cache": true,
+[36m(WorkerDict pid=13522)[0m   "use_sliding_window": false,
+[36m(WorkerDict pid=13522)[0m   "vocab_size": 151936
+[36m(WorkerDict pid=13522)[0m }
+[36m(WorkerDict pid=13522)[0m 
+[36m(WorkerDict pid=13522)[0m Ulysses patch applied!
+INFO 02-13 07:31:37 [backends.py:173] Compiling a graph for general shape takes 33.16 s
+INFO 02-13 07:31:37 [backends.py:173] Compiling a graph for general shape takes 34.05 s
+INFO 02-13 07:31:37 [backends.py:173] Compiling a graph for general shape takes 33.65 s
+[36m(WorkerDict pid=13522)[0m Qwen3ForCausalLM contains 4.02B parameters.
+[36m(WorkerDict pid=13522)[0m After huggingface model init: 1.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m FSDP wrap policy: functools.partial(<function transformer_auto_wrap_policy at 0x7eecfd9df400>, transformer_layer_cls={<class 'transformers.models.qwen3.modeling_qwen3.Qwen3DecoderLayer'>}).
+[36m(WorkerDict pid=13522)[0m After FSDP module init: 8.48 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After optimizer init: 8.48 GB / 79.25 GB.
+[36m(WorkerDict pid=14586)[0m WARNING 02-13 07:31:54 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f5fc62cfaf0>
+[36m(WorkerDict pid=14587)[0m NCCL version 2.26.2+cuda12.2
+[36m(WorkerDict pid=14587)[0m WARNING 02-13 07:31:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-13 07:31:56 [monitor.py:34] torch.compile takes 40.91 s in total
+INFO 02-13 07:31:56 [monitor.py:34] torch.compile takes 41.95 s in total
+INFO 02-13 07:31:57 [monitor.py:34] torch.compile takes 41.36 s in total
+INFO 02-13 07:31:57 [gpu_worker.py:227] Available KV cache memory: 54.37 GiB
+INFO 02-13 07:31:58 [gpu_worker.py:227] Available KV cache memory: 54.37 GiB
+INFO 02-13 07:31:58 [kv_cache_utils.py:715] GPU KV cache size: 395,872 tokens
+INFO 02-13 07:31:58 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.08x
+INFO 02-13 07:31:58 [gpu_worker.py:227] Available KV cache memory: 54.37 GiB
+INFO 02-13 07:31:58 [kv_cache_utils.py:715] GPU KV cache size: 395,872 tokens
+INFO 02-13 07:31:58 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.08x
+INFO 02-13 07:31:58 [kv_cache_utils.py:715] GPU KV cache size: 395,872 tokens
+INFO 02-13 07:31:58 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.08x
+INFO 02-13 07:32:26 [gpu_model_runner.py:2048] Graph capturing finished in 28 secs, took 0.59 GiB
+INFO 02-13 07:32:26 [core.py:171] init engine (profile, create kv cache, warmup model) took 90.94 seconds
+[idle_worker] GPU idle worker started.
+ * Serving Flask app 'start_vllm_server'
+ * Debug mode: off
+INFO 02-13 07:32:28 [gpu_model_runner.py:2048] Graph capturing finished in 30 secs, took 0.59 GiB
+INFO 02-13 07:32:28 [core.py:171] init engine (profile, create kv cache, warmup model) took 93.68 seconds
+[idle_worker] GPU idle worker started.
+ * Serving Flask app 'start_vllm_server'
+ * Debug mode: off
+INFO 02-13 07:32:29 [gpu_model_runner.py:2048] Graph capturing finished in 31 secs, took 0.59 GiB
+INFO 02-13 07:32:29 [core.py:171] init engine (profile, create kv cache, warmup model) took 94.10 seconds
+[idle_worker] GPU idle worker started.
+ * Serving Flask app 'start_vllm_server'
+ * Debug mode: off
+[36m(WorkerDict pid=14587)[0m Sampling params: {'max_tokens': 4096, 'detokenize': False, 'logit_bias': None, 'n': 4, 'temperature': 1.0, 'top_p': 0.99, 'top_k': -1, 'ignore_eos': False}.
+[36m(WorkerDict pid=13522)[0m WARNING 02-13 07:31:55 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7eeb60302fb0>[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=14586)[0m WARNING 02-13 07:31:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=13522)[0m After vllm init: 7.04 GB / 79.25 GB.
+[36m(Runner pid=11323)[0m Config
+[36m(Runner pid=11323)[0m algorithm:
+[36m(Runner pid=11323)[0m   adv_estimator: grpo
+[36m(Runner pid=11323)[0m   disable_kl: false
+[36m(Runner pid=11323)[0m   gamma: 1.0
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_horizon: 0.0
+[36m(Runner pid=11323)[0m   kl_penalty: low_var_kl
+[36m(Runner pid=11323)[0m   kl_target: 0.0
+[36m(Runner pid=11323)[0m   kl_type: fixed
+[36m(Runner pid=11323)[0m   lam: 1.0
+[36m(Runner pid=11323)[0m   mock_data: test
+[36m(Runner pid=11323)[0m   use_kl_loss: true
+[36m(Runner pid=11323)[0m data:
+[36m(Runner pid=11323)[0m   answer_key: answer
+[36m(Runner pid=11323)[0m   filter_overlong_prompts: true
+[36m(Runner pid=11323)[0m   format_prompt: /workspace/euclid/darwin/R-Zero-main/examples/format_prompt/questioner.jinja
+[36m(Runner pid=11323)[0m   image_key: images
+[36m(Runner pid=11323)[0m   max_pixels: 4194304
+[36m(Runner pid=11323)[0m   max_prompt_length: 2048
+[36m(Runner pid=11323)[0m   max_response_length: 4096
+[36m(Runner pid=11323)[0m   min_pixels: 262144
+[36m(Runner pid=11323)[0m   override_chat_template: null
+[36m(Runner pid=11323)[0m   prompt_key: problem
+[36m(Runner pid=11323)[0m   rollout_batch_size: 512
+[36m(Runner pid=11323)[0m   seed: 1
+[36m(Runner pid=11323)[0m   shuffle: true
+[36m(Runner pid=11323)[0m   train_files: hiyouga/math12k@train
+[36m(Runner pid=11323)[0m   val_batch_size: 1024
+[36m(Runner pid=11323)[0m   val_files: hiyouga/math12k@test
+[36m(Runner pid=11323)[0m trainer:
+[36m(Runner pid=11323)[0m   critic_warmup: 0
+[36m(Runner pid=11323)[0m   experiment_name: darwin_iter2_questioner_questioner_v1
+[36m(Runner pid=11323)[0m   load_checkpoint_path: null
+[36m(Runner pid=11323)[0m   logger:
+[36m(Runner pid=11323)[0m   - console
+[36m(Runner pid=11323)[0m   max_steps: 6
+[36m(Runner pid=11323)[0m   n_gpus_per_node: 4
+[36m(Runner pid=11323)[0m   nnodes: 1
+[36m(Runner pid=11323)[0m   project_name: rentropy_rzero_main
+[36m(Runner pid=11323)[0m   save_checkpoint_path: /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1
+[36m(Runner pid=11323)[0m   save_freq: 5
+[36m(Runner pid=11323)[0m   save_limit: 3
+[36m(Runner pid=11323)[0m   total_epochs: 6
+[36m(Runner pid=11323)[0m   val_before_train: false
+[36m(Runner pid=11323)[0m   val_freq: -1
+[36m(Runner pid=11323)[0m   val_generations_to_log: 3
+[36m(Runner pid=11323)[0m   val_only: false
+[36m(Runner pid=11323)[0m worker:
+[36m(Runner pid=11323)[0m   actor:
+[36m(Runner pid=11323)[0m     clip_ratio_dual: 3.0
+[36m(Runner pid=11323)[0m     clip_ratio_high: 0.3
+[36m(Runner pid=11323)[0m     clip_ratio_low: 0.2
+[36m(Runner pid=11323)[0m     disable_kl: false
+[36m(Runner pid=11323)[0m     fsdp:
+[36m(Runner pid=11323)[0m       enable_cpu_offload: false
+[36m(Runner pid=11323)[0m       enable_full_shard: true
+[36m(Runner pid=11323)[0m       enable_rank0_init: true
+[36m(Runner pid=11323)[0m       fsdp_size: -1
+[36m(Runner pid=11323)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=11323)[0m       mp_param_dtype: bf16
+[36m(Runner pid=11323)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=11323)[0m       torch_dtype: null
+[36m(Runner pid=11323)[0m       use_orig_params: false
+[36m(Runner pid=11323)[0m     global_batch_size: 16
+[36m(Runner pid=11323)[0m     global_batch_size_per_device: -1
+[36m(Runner pid=11323)[0m     kl_coef: 0.01
+[36m(Runner pid=11323)[0m     kl_penalty: low_var_kl
+[36m(Runner pid=11323)[0m     max_grad_norm: 1.0
+[36m(Runner pid=11323)[0m     micro_batch_size_per_device_for_experience: 8
+[36m(Runner pid=11323)[0m     micro_batch_size_per_device_for_update: 2
+[36m(Runner pid=11323)[0m     model:
+[36m(Runner pid=11323)[0m       enable_gradient_checkpointing: true
+[36m(Runner pid=11323)[0m       freeze_vision_tower: false
+[36m(Runner pid=11323)[0m       model_path: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+[36m(Runner pid=11323)[0m       override_config: {}
+[36m(Runner pid=11323)[0m       tokenizer_path: /workspace/euclid/darwin/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant1-feb2-solver-iter2
+[36m(Runner pid=11323)[0m       trust_remote_code: true
+[36m(Runner pid=11323)[0m     offload:
+[36m(Runner pid=11323)[0m       offload_optimizer: false
+[36m(Runner pid=11323)[0m       offload_params: false
+[36m(Runner pid=11323)[0m     optim:
+[36m(Runner pid=11323)[0m       betas:
+[36m(Runner pid=11323)[0m       - 0.9
+[36m(Runner pid=11323)[0m       - 0.999
+[36m(Runner pid=11323)[0m       lr: 1.0e-06
+[36m(Runner pid=11323)[0m       lr_warmup_ratio: 0.0
+[36m(Runner pid=11323)[0m       min_lr_ratio: null
+[36m(Runner pid=11323)[0m       strategy: adamw
+[36m(Runner pid=11323)[0m       training_steps: 6
+[36m(Runner pid=11323)[0m       warmup_style: constant
+[36m(Runner pid=11323)[0m       weight_decay: 0.01
+[36m(Runner pid=11323)[0m     padding_free: true
+[36m(Runner pid=11323)[0m     ppo_epochs: 1
+[36m(Runner pid=11323)[0m     strategy: fsdp
+[36m(Runner pid=11323)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=11323)[0m     use_kl_loss: true
+[36m(Runner pid=11323)[0m     use_torch_compile: true
+[36m(Runner pid=11323)[0m   critic:
+[36m(Runner pid=11323)[0m     cliprange_value: 0.5
+[36m(Runner pid=11323)[0m     fsdp:
+[36m(Runner pid=11323)[0m       enable_cpu_offload: false
+[36m(Runner pid=11323)[0m       enable_full_shard: true
+[36m(Runner pid=11323)[0m       enable_rank0_init: false
+[36m(Runner pid=11323)[0m       fsdp_size: -1
+[36m(Runner pid=11323)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=11323)[0m       mp_param_dtype: bf16
+[36m(Runner pid=11323)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=11323)[0m       torch_dtype: null
+[36m(Runner pid=11323)[0m       use_orig_params: false
+[36m(Runner pid=11323)[0m     global_batch_size: 256
+[36m(Runner pid=11323)[0m     global_batch_size_per_device: -1
+[36m(Runner pid=11323)[0m     max_grad_norm: 1.0
+[36m(Runner pid=11323)[0m     micro_batch_size_per_device_for_experience: 16
+[36m(Runner pid=11323)[0m     micro_batch_size_per_device_for_update: 4
+[36m(Runner pid=11323)[0m     model:
+[36m(Runner pid=11323)[0m       enable_gradient_checkpointing: true
+[36m(Runner pid=11323)[0m       freeze_vision_tower: false
+[36m(Runner pid=11323)[0m       model_path: null
+[36m(Runner pid=11323)[0m       override_config: {}
+[36m(Runner pid=11323)[0m       tokenizer_path: null
+[36m(Runner pid=11323)[0m       trust_remote_code: true
+[36m(Runner pid=11323)[0m     offload:
+[36m(Runner pid=11323)[0m       offload_optimizer: false
+[36m(Runner pid=11323)[0m       offload_params: false
+[36m(Runner pid=11323)[0m     optim:
+[36m(Runner pid=11323)[0m       betas:
+[36m(Runner pid=11323)[0m       - 0.9
+[36m(Runner pid=11323)[0m       - 0.999
+[36m(Runner pid=11323)[0m       lr: 1.0e-06
+[36m(Runner pid=11323)[0m       lr_warmup_ratio: 0.0
+[36m(Runner pid=11323)[0m       min_lr_ratio: null
+[36m(Runner pid=11323)[0m       strategy: adamw
+[36m(Runner pid=11323)[0m       training_steps: 6
+[36m(Runner pid=11323)[0m       warmup_style: constant
+[36m(Runner pid=11323)[0m       weight_decay: 0.01
+[36m(Runner pid=11323)[0m     padding_free: false
+[36m(Runner pid=11323)[0m     ppo_epochs: 1
+[36m(Runner pid=11323)[0m     strategy: fsdp
+[36m(Runner pid=11323)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=11323)[0m   hybrid_engine: true
+[36m(Runner pid=11323)[0m   ref:
+[36m(Runner pid=11323)[0m     fsdp:
+[36m(Runner pid=11323)[0m       enable_cpu_offload: true
+[36m(Runner pid=11323)[0m       enable_full_shard: true
+[36m(Runner pid=11323)[0m       enable_rank0_init: true
+[36m(Runner pid=11323)[0m       fsdp_size: -1
+[36m(Runner pid=11323)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=11323)[0m       mp_param_dtype: bf16
+[36m(Runner pid=11323)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=11323)[0m       torch_dtype: null
+[36m(Runner pid=11323)[0m       use_orig_params: false
+[36m(Runner pid=11323)[0m     micro_batch_size_per_device_for_experience: 8
+[36m(Runner pid=11323)[0m     offload:
+[36m(Runner pid=11323)[0m       offload_optimizer: false
+[36m(Runner pid=11323)[0m       offload_params: true
+[36m(Runner pid=11323)[0m     padding_free: true
+[36m(Runner pid=11323)[0m     strategy: fsdp
+[36m(Runner pid=11323)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=11323)[0m     use_torch_compile: true
+[36m(Runner pid=11323)[0m   reward:
+[36m(Runner pid=11323)[0m     num_cpus: 1
+[36m(Runner pid=11323)[0m     reward_function: /workspace/euclid/darwin/R-Zero-main/examples/reward_function/caller_rentropy.py
+[36m(Runner pid=11323)[0m     reward_function_kwargs: {}
+[36m(Runner pid=11323)[0m     reward_function_name: compute_score
+[36m(Runner pid=11323)[0m     reward_type: batch
+[36m(Runner pid=11323)[0m     skip_special_tokens: true
+[36m(Runner pid=11323)[0m   rollout:
+[36m(Runner pid=11323)[0m     disable_log_stats: true
+[36m(Runner pid=11323)[0m     dtype: bf16
+[36m(Runner pid=11323)[0m     enable_chunked_prefill: false
+[36m(Runner pid=11323)[0m     enforce_eager: false
+[36m(Runner pid=11323)[0m     gpu_memory_utilization: 0.7
+[36m(Runner pid=11323)[0m     ignore_eos: false
+[36m(Runner pid=11323)[0m     limit_images: 0
+[36m(Runner pid=11323)[0m     max_model_len: null
+[36m(Runner pid=11323)[0m     max_num_batched_tokens: 8192
+[36m(Runner pid=11323)[0m     n: 4
+[36m(Runner pid=11323)[0m     name: vllm
+[36m(Runner pid=11323)[0m     prompt_length: 2048
+[36m(Runner pid=11323)[0m     response_length: 4096
+[36m(Runner pid=11323)[0m     seed: 1
+[36m(Runner pid=11323)[0m     temperature: 1.0
+[36m(Runner pid=11323)[0m     tensor_parallel_size: 2
+[36m(Runner pid=11323)[0m     top_k: -1
+[36m(Runner pid=11323)[0m     top_p: 0.99
+[36m(Runner pid=11323)[0m     trust_remote_code: true
+[36m(Runner pid=11323)[0m     val_override_config:
+[36m(Runner pid=11323)[0m       n: 1
+[36m(Runner pid=11323)[0m       temperature: 1.0
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 7.04 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 14.23 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 18.06 GB / 79.25 GB.
+[36m(WorkerDict pid=14586)[0m Sampling params: {'max_tokens': 4096, 'detokenize': False, 'logit_bias': None, 'n': 4, 'temperature': 1.0, 'top_p': 0.99, 'top_k': -1, 'ignore_eos': False}.[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 60.08 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 61.80 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 7.39 GB / 79.25 GB.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770968133349_42694.json
+[idle_worker] Paused.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770968133349_67460.json[idle_worker] Paused.
+
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770968133349_5347.json[server] Valid chat prompts have been prepared.
+
+[server] Valid chat prompts have been prepared.
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Generation completed.
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770968133349_67460.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770968133349_67460_results.json. Resuming idle worker.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[idle_worker] Resumed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770968133349_5347.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770968133349_5347_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770968133349_42694.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770968133349_42694_results.json. Resuming idle worker.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Loaded 128 centroids from /workspace/euclid/darwin/cluster_space/cluster_data/centroids.npy
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Loading embedding model: Qwen/Qwen3-Embedding-0.6B
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] CUDA_VISIBLE_DEVICES=7
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Using device: cuda:0
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Loaded cluster counts from /workspace/euclid/darwin/question_generation_clustering/cluster_frequencies_variant1-iter2_solver_v1.npy
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Stats - min: 0.0000, max: 388.0000, mean: 15.2578, clusters above mean: 27
+[36m(BatchFunctionRewardManager pid=11941)[0m [ClusterAssigner] Total count: 1953.0000
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000001.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 661 (32.3%), reward=-1.0: 518 (25.3%), other: 869 (42.4%)
+[36m(Runner pid=11323)[0m Step 1
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 1.116
+[36m(Runner pid=11323)[0m   grad_norm: 1.915
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.001
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=11323)[0m   pg_loss: 0.011
+[36m(Runner pid=11323)[0m   ppo_kl: 0.0
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.172
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.172
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.25
+[36m(Runner pid=11323)[0m     mean: 0.238
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.25
+[36m(Runner pid=11323)[0m     mean: 0.238
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 310706
+[36m(Runner pid=11323)[0m   balanced_min: 310705
+[36m(Runner pid=11323)[0m   max: 320030
+[36m(Runner pid=11323)[0m   mean: 310705.5
+[36m(Runner pid=11323)[0m   min: 300086
+[36m(Runner pid=11323)[0m   minmax_diff: 19944
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 38.209
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 21.591
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 42.245
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 257.223
+[36m(Runner pid=11323)[0m   time_per_step: 1207.923
+[36m(Runner pid=11323)[0m   total_num_tokens: 1242822
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.032
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 417.847
+[36m(Runner pid=11323)[0m   min: 2.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.152
+[36m(Runner pid=11323)[0m   base_score: 0.162
+[36m(Runner pid=11323)[0m   diversity: 0.152
+[36m(Runner pid=11323)[0m   format: 0.747
+[36m(Runner pid=11323)[0m   overall: 0.238
+[36m(Runner pid=11323)[0m   zpd: 0.191
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 0.673
+[36m(Runner pid=11323)[0m   gen: 0.127
+[36m(Runner pid=11323)[0m   old: 0.023
+[36m(Runner pid=11323)[0m   ref: 0.028
+[36m(Runner pid=11323)[0m   reward: 0.001
+[36m(Runner pid=11323)[0m   update_actor: 0.159
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 836.333
+[36m(Runner pid=11323)[0m   gen: 108.807
+[36m(Runner pid=11323)[0m   old: 28.959
+[36m(Runner pid=11323)[0m   ref: 34.707
+[36m(Runner pid=11323)[0m   reward: 1.171
+[36m(Runner pid=11323)[0m   step: 1207.923
+[36m(Runner pid=11323)[0m   update_actor: 197.659
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[idle_worker] Paused.[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770969353560_88908.json
+
+[idle_worker] Paused.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770969353560_35171.json
+[idle_worker] Paused.[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770969353560_43101.json
+
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770969353560_43101.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770969353560_43101_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770969353560_88908.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770969353560_88908_results.json. Resuming idle worker.
+[server] Generation completed.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770969353560_35171.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770969353560_35171_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000002.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution: reward=1.0: 0, reward=0.0: 661, reward=-1.0: 518, other: 869
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 677 (33.1%), reward=-1.0: 530 (25.9%), other: 841 (41.1%)
+[36m(Runner pid=11323)[0m Step 2
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 1.133
+[36m(Runner pid=11323)[0m   grad_norm: 1.796
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.003
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.009
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 1.3064078359548148e-05
+[36m(Runner pid=11323)[0m   pg_loss: 0.04
+[36m(Runner pid=11323)[0m   ppo_kl: 0.001
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770970550007_4503.json
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770970550007_83536.json
+[idle_worker] Paused.[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770970550007_20302.json
+
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.254
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.254
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.227
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.227
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 324690
+[36m(Runner pid=11323)[0m   balanced_min: 324689
+[36m(Runner pid=11323)[0m   max: 349561
+[36m(Runner pid=11323)[0m   mean: 324689.75
+[36m(Runner pid=11323)[0m   min: 287680
+[36m(Runner pid=11323)[0m   minmax_diff: 61881
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 38.533
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 23.037
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 48.906
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 266.824
+[36m(Runner pid=11323)[0m   time_per_step: 1216.869
+[36m(Runner pid=11323)[0m   total_num_tokens: 1298759
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.037
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 445.16
+[36m(Runner pid=11323)[0m   min: 2.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.148
+[36m(Runner pid=11323)[0m   base_score: 0.149
+[36m(Runner pid=11323)[0m   diversity: 0.148
+[36m(Runner pid=11323)[0m   format: 0.741
+[36m(Runner pid=11323)[0m   overall: 0.227
+[36m(Runner pid=11323)[0m   zpd: 0.187
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 0.631
+[36m(Runner pid=11323)[0m   gen: 0.132
+[36m(Runner pid=11323)[0m   old: 0.023
+[36m(Runner pid=11323)[0m   ref: 0.026
+[36m(Runner pid=11323)[0m   reward: 0.001
+[36m(Runner pid=11323)[0m   update_actor: 0.162
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 819.874
+[36m(Runner pid=11323)[0m   gen: 120.68
+[36m(Runner pid=11323)[0m   old: 29.715
+[36m(Runner pid=11323)[0m   ref: 34.181
+[36m(Runner pid=11323)[0m   reward: 1.346
+[36m(Runner pid=11323)[0m   step: 1216.869
+[36m(Runner pid=11323)[0m   update_actor: 210.799
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770970550007_20302.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770970550007_20302_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770970550007_83536.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770970550007_83536_results.json. Resuming idle worker.[idle_worker] Resumed.
+
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770970550007_4503.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770970550007_4503_results.json. Resuming idle worker.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000003.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution: reward=1.0: 0, reward=0.0: 677, reward=-1.0: 530, other: 841
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 823 (40.2%), reward=-1.0: 177 (8.6%), other: 1048 (51.2%)
+[36m(Runner pid=11323)[0m Step 3
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 0.943
+[36m(Runner pid=11323)[0m   grad_norm: 1.73
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.005
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.006
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 3.414554157643579e-06
+[36m(Runner pid=11323)[0m   pg_loss: 0.018
+[36m(Runner pid=11323)[0m   ppo_kl: 0.001
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.233
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.233
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.54
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.54
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 279392
+[36m(Runner pid=11323)[0m   balanced_min: 279391
+[36m(Runner pid=11323)[0m   max: 297382
+[36m(Runner pid=11323)[0m   mean: 279391.75
+[36m(Runner pid=11323)[0m   min: 263108
+[36m(Runner pid=11323)[0m   minmax_diff: 34274
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 38.479
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 23.454
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 49.901
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 198.987
+[36m(Runner pid=11323)[0m   time_per_step: 1404.072
+[36m(Runner pid=11323)[0m   total_num_tokens: 1117567
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.027
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 356.687
+[36m(Runner pid=11323)[0m   min: 2.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.196
+[36m(Runner pid=11323)[0m   base_score: 0.437
+[36m(Runner pid=11323)[0m   diversity: 0.196
+[36m(Runner pid=11323)[0m   format: 0.914
+[36m(Runner pid=11323)[0m   overall: 0.54
+[36m(Runner pid=11323)[0m   zpd: 0.226
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 0.95
+[36m(Runner pid=11323)[0m   gen: 0.137
+[36m(Runner pid=11323)[0m   old: 0.023
+[36m(Runner pid=11323)[0m   ref: 0.029
+[36m(Runner pid=11323)[0m   reward: 0.002
+[36m(Runner pid=11323)[0m   update_actor: 0.163
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 1062.205
+[36m(Runner pid=11323)[0m   gen: 100.237
+[36m(Runner pid=11323)[0m   old: 25.221
+[36m(Runner pid=11323)[0m   ref: 32.185
+[36m(Runner pid=11323)[0m   reward: 1.245
+[36m(Runner pid=11323)[0m   step: 1404.072
+[36m(Runner pid=11323)[0m   update_actor: 182.674
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770971941675_5369.json
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770971941675_75651.json
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770971941675_88389.json
+[idle_worker] Paused.
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770971941675_75651.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770971941675_75651_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770971941675_88389.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770971941675_88389_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770971941675_5369.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770971941675_5369_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000004.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution: reward=1.0: 0, reward=0.0: 823, reward=-1.0: 177, other: 1048
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 794 (38.8%), reward=-1.0: 87 (4.2%), other: 1167 (57.0%)
+[36m(Runner pid=11323)[0m Step 4
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 0.815
+[36m(Runner pid=11323)[0m   grad_norm: 1.757
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.006
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.007
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=11323)[0m   pg_loss: 0.026
+[36m(Runner pid=11323)[0m   ppo_kl: 0.001
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.188
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.188
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.636
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.636
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 242760
+[36m(Runner pid=11323)[0m   balanced_min: 242759
+[36m(Runner pid=11323)[0m   max: 258638
+[36m(Runner pid=11323)[0m   mean: 242759.75
+[36m(Runner pid=11323)[0m   min: 221791
+[36m(Runner pid=11323)[0m   minmax_diff: 36847
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 38.628
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 24.069
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 49.901
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 173.014
+[36m(Runner pid=11323)[0m   time_per_step: 1403.121
+[36m(Runner pid=11323)[0m   total_num_tokens: 971039
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.021
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 285.14
+[36m(Runner pid=11323)[0m   min: 2.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.196
+[36m(Runner pid=11323)[0m   base_score: 0.518
+[36m(Runner pid=11323)[0m   diversity: 0.196
+[36m(Runner pid=11323)[0m   format: 0.958
+[36m(Runner pid=11323)[0m   overall: 0.636
+[36m(Runner pid=11323)[0m   zpd: 0.24
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 1.124
+[36m(Runner pid=11323)[0m   gen: 0.15
+[36m(Runner pid=11323)[0m   old: 0.024
+[36m(Runner pid=11323)[0m   ref: 0.03
+[36m(Runner pid=11323)[0m   reward: 0.002
+[36m(Runner pid=11323)[0m   update_actor: 0.175
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 1091.727
+[36m(Runner pid=11323)[0m   gen: 87.488
+[36m(Runner pid=11323)[0m   old: 23.481
+[36m(Runner pid=11323)[0m   ref: 29.28
+[36m(Runner pid=11323)[0m   reward: 1.217
+[36m(Runner pid=11323)[0m   step: 1403.121
+[36m(Runner pid=11323)[0m   update_actor: 169.585
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770973352008_21018.json
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770973352008_86003.json
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770973352008_1279.json
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[idle_worker] Paused.[server] Valid chat prompts have been prepared.
+
+[idle_worker] Paused.[server] Valid chat prompts have been prepared.
+
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770973352008_1279.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770973352008_1279_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770973352008_86003.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770973352008_86003_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770973352008_21018.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770973352008_21018_results.json. Resuming idle worker.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000005.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution: reward=1.0: 0, reward=0.0: 794, reward=-1.0: 87, other: 1167
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 816 (39.8%), reward=-1.0: 70 (3.4%), other: 1162 (56.7%)
+[36m(WorkerDict pid=13522)[0m [rank-0]: Saving model to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/model_world_size_4_rank_0.pt.
+[36m(WorkerDict pid=13522)[0m [rank-0]: Saving optimizer to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/optim_world_size_4_rank_0.pt.
+[36m(WorkerDict pid=13522)[0m [rank-0]: Saving extra_state to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/extra_state_world_size_4_rank_0.pt.
+[36m(Runner pid=11323)[0m Step 5
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 0.832
+[36m(Runner pid=11323)[0m   grad_norm: 1.65
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.017
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.006
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 7.025629656709498e-06
+[36m(Runner pid=11323)[0m   pg_loss: 0.002
+[36m(Runner pid=11323)[0m   ppo_kl: 0.001
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.125
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.125
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.244
+[36m(Runner pid=11323)[0m     mean: 0.747
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.244
+[36m(Runner pid=11323)[0m     mean: 0.747
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 259066
+[36m(Runner pid=11323)[0m   balanced_min: 259065
+[36m(Runner pid=11323)[0m   max: 282715
+[36m(Runner pid=11323)[0m   mean: 259065.75
+[36m(Runner pid=11323)[0m   min: 235691
+[36m(Runner pid=11323)[0m   minmax_diff: 47024
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 38.858
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 24.121
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 50.16
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 183.719
+[36m(Runner pid=11323)[0m   time_per_step: 1410.122
+[36m(Runner pid=11323)[0m   total_num_tokens: 1036263
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.022
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 316.988
+[36m(Runner pid=11323)[0m   min: 2.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.228
+[36m(Runner pid=11323)[0m   base_score: 0.535
+[36m(Runner pid=11323)[0m   diversity: 0.228
+[36m(Runner pid=11323)[0m   format: 0.966
+[36m(Runner pid=11323)[0m   overall: 0.747
+[36m(Runner pid=11323)[0m   zpd: 0.239
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 1.025
+[36m(Runner pid=11323)[0m   gen: 0.146
+[36m(Runner pid=11323)[0m   old: 0.024
+[36m(Runner pid=11323)[0m   ref: 0.029
+[36m(Runner pid=11323)[0m   reward: 0.002
+[36m(Runner pid=11323)[0m   update_actor: 0.171
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 1062.663
+[36m(Runner pid=11323)[0m   gen: 94.621
+[36m(Runner pid=11323)[0m   old: 24.611
+[36m(Runner pid=11323)[0m   ref: 29.668
+[36m(Runner pid=11323)[0m   reward: 1.159
+[36m(Runner pid=11323)[0m   save_checkpoint: 19.793
+[36m(Runner pid=11323)[0m   step: 1410.122
+[36m(Runner pid=11323)[0m   update_actor: 177.316
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=14588)[0m [rank-3]: Saving model to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/model_world_size_4_rank_3.pt.[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=14588)[0m [rank-3]: Saving optimizer to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/optim_world_size_4_rank_3.pt.[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=14588)[0m [rank-3]: Saving extra_state to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/extra_state_world_size_4_rank_3.pt.[32m [repeated 3x across cluster][0m
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.29 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770974757662_12309.json[idle_worker] Paused.
+
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770974757662_57165.json
+[idle_worker] Paused.[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770974757662_84325.json
+
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770974757662_84325.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770974757662_84325_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5001] 200
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770974757662_57165.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770974757662_57165_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5000] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770974757662_12309.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770974757662_12309_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11941)[0m [Server 5002] 200
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Logged cluster stats to /workspace/euclid/darwin/R-Zero-main/storage/cluster_logs/cluster_stats_step_000006.json
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution: reward=1.0: 0, reward=0.0: 816, reward=-1.0: 70, other: 1162
+[36m(BatchFunctionRewardManager pid=11941)[0m [Rentropy] Reward Distribution - Batch size: 2048, reward=1.0: 0 (0.0%), reward=0.0: 780 (38.1%), reward=-1.0: 40 (2.0%), other: 1228 (60.0%)
+[36m(Runner pid=11323)[0m Step 6
+[36m(Runner pid=11323)[0m actor:
+[36m(Runner pid=11323)[0m   entropy_loss: 0.743
+[36m(Runner pid=11323)[0m   grad_norm: 1.662
+[36m(Runner pid=11323)[0m   kl_coef: 0.01
+[36m(Runner pid=11323)[0m   kl_loss: 0.021
+[36m(Runner pid=11323)[0m   lr: 1.0e-06
+[36m(Runner pid=11323)[0m   pg_clipfrac_higher: 0.007
+[36m(Runner pid=11323)[0m   pg_clipfrac_lower: 9.238791335519636e-06
+[36m(Runner pid=11323)[0m   pg_loss: 0.009
+[36m(Runner pid=11323)[0m   ppo_kl: 0.001
+[36m(Runner pid=11323)[0m critic:
+[36m(Runner pid=11323)[0m   advantages:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.125
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   returns:
+[36m(Runner pid=11323)[0m     max: 1.5
+[36m(Runner pid=11323)[0m     mean: -0.125
+[36m(Runner pid=11323)[0m     min: -1.5
+[36m(Runner pid=11323)[0m   rewards:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.813
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m   score:
+[36m(Runner pid=11323)[0m     max: 5.247
+[36m(Runner pid=11323)[0m     mean: 0.813
+[36m(Runner pid=11323)[0m     min: -1.0
+[36m(Runner pid=11323)[0m global_seqlen:
+[36m(Runner pid=11323)[0m   balanced_max: 243996
+[36m(Runner pid=11323)[0m   balanced_min: 243995
+[36m(Runner pid=11323)[0m   max: 251732
+[36m(Runner pid=11323)[0m   mean: 243995.75
+[36m(Runner pid=11323)[0m   min: 234060
+[36m(Runner pid=11323)[0m   minmax_diff: 17672
+[36m(Runner pid=11323)[0m perf:
+[36m(Runner pid=11323)[0m   cpu_memory_used_gb: 42.209
+[36m(Runner pid=11323)[0m   max_memory_allocated_gb: 24.142
+[36m(Runner pid=11323)[0m   max_memory_reserved_gb: 52.27
+[36m(Runner pid=11323)[0m   mfu_actor: 0.0
+[36m(Runner pid=11323)[0m   throughput: 177.185
+[36m(Runner pid=11323)[0m   time_per_step: 1377.071
+[36m(Runner pid=11323)[0m   total_num_tokens: 975983
+[36m(Runner pid=11323)[0m prompt_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.0
+[36m(Runner pid=11323)[0m   max: 189.0
+[36m(Runner pid=11323)[0m   mean: 189.0
+[36m(Runner pid=11323)[0m   min: 189.0
+[36m(Runner pid=11323)[0m response_length:
+[36m(Runner pid=11323)[0m   clip_ratio: 0.02
+[36m(Runner pid=11323)[0m   max: 4096.0
+[36m(Runner pid=11323)[0m   mean: 287.554
+[36m(Runner pid=11323)[0m   min: 4.0
+[36m(Runner pid=11323)[0m reward:
+[36m(Runner pid=11323)[0m   accuracy: 0.254
+[36m(Runner pid=11323)[0m   base_score: 0.59
+[36m(Runner pid=11323)[0m   diversity: 0.254
+[36m(Runner pid=11323)[0m   format: 0.98
+[36m(Runner pid=11323)[0m   overall: 0.813
+[36m(Runner pid=11323)[0m   zpd: 0.235
+[36m(Runner pid=11323)[0m timing_per_token_ms:
+[36m(Runner pid=11323)[0m   adv: 1.089
+[36m(Runner pid=11323)[0m   gen: 0.153
+[36m(Runner pid=11323)[0m   old: 0.024
+[36m(Runner pid=11323)[0m   ref: 0.03
+[36m(Runner pid=11323)[0m   reward: 0.002
+[36m(Runner pid=11323)[0m   update_actor: 0.174
+[36m(Runner pid=11323)[0m timing_s:
+[36m(Runner pid=11323)[0m   adv: 1063.316
+[36m(Runner pid=11323)[0m   gen: 89.98
+[36m(Runner pid=11323)[0m   old: 22.985
+[36m(Runner pid=11323)[0m   ref: 29.178
+[36m(Runner pid=11323)[0m   reward: 1.314
+[36m(Runner pid=11323)[0m   step: 1377.071
+[36m(Runner pid=11323)[0m   update_actor: 170.026
+[36m(Runner pid=11323)[0m 
+[36m(WorkerDict pid=13522)[0m Before state_dict() in sharding manager: 14.93 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After state_dict() in sharding manager: 21.81 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After sync model weights in sharding manager: 25.63 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After del state_dict and empty_cache in sharding manager: 67.98 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=13522)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=13522)[0m Before vllm offload in sharding manager: 69.26 GB / 79.25 GB.
+[36m(WorkerDict pid=13522)[0m After vllm offload in sharding manager: 14.93 GB / 79.25 GB.
+[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770976101837_55531.json
+[idle_worker] Paused.[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770976101837_35820.json[server] Received request for task file: /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770976101837_64750.json
+
+
+[idle_worker] Paused.[server] Valid chat prompts have been prepared.
+
+[idle_worker] Paused.
+[server] Valid chat prompts have been prepared.
+[server] Valid chat prompts have been prepared.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770976101837_35820.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_1_1770976101837_35820_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11981)[0m [Server 5001] 200
+[server] Generation completed.
+[server] Generation completed.
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770976101837_64750.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_2_1770976101837_64750_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11981)[0m [Server 5002] 200
+[server] All results have been processed.
+[server] Processed /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770976101837_55531.json, results saved to /workspace/euclid/darwin/R-Zero-main/storage/temp_results/temp_0_1770976101837_55531_results.json. Resuming idle worker.
+[idle_worker] Resumed.
+[36m(BatchFunctionRewardManager pid=11981)[0m [Server 5000] 200
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Loaded 128 centroids from /workspace/euclid/darwin/cluster_space/cluster_data/centroids.npy
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Loading embedding model: Qwen/Qwen3-Embedding-0.6B
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] CUDA_VISIBLE_DEVICES=7
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Using device: cuda:0
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Loaded cluster counts from /workspace/euclid/darwin/question_generation_clustering/cluster_frequencies_variant1-iter2_solver_v1.npy
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Stats - min: 0.0000, max: 388.0000, mean: 15.2578, clusters above mean: 27
+[36m(BatchFunctionRewardManager pid=11981)[0m [ClusterAssigner] Total count: 1953.0000
+Stopping vLLM service (PID: )...
+merging model
+Using checkpoint at: /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor
+Got device mesh tensor([0, 1, 2, 3], dtype=torch.int32), mesh_dim_names ('fsdp',)
+Processing 4 model shards in total.
+Merge completed.
+Saving model to /workspace/euclid/darwin/R-Zero-main/storage/models/darwin_iter2_questioner_questioner_v1/global_step_5/actor/huggingface...
+questioner training finished

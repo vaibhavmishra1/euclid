@@ -1,0 +1,661 @@
+# Rentropy Cluster Statistics Logging
+
+## Overview
+
+The Rentropy training pipeline now automatically logs cluster statistics during training **for all diversity modes (1-4)**, allowing you to analyze:
+- Which clusters were visited most frequently
+- Average majority voting scores per cluster
+- Evolution of cluster probabilities over time
+- Distribution of generated questions across the cluster space
+
+**Note:** Even in **mode 1 (baseline)**, cluster statistics are logged for comparison purposes, but diversity rewards are **not** applied to the training signal. This allows direct comparison of question distribution between baseline and diversity-enhanced modes.
+
+## How It Works
+
+### Automatic Logging During Training
+
+The reward function (`caller_rentropy.py`) automatically logs cluster statistics to:
+```
+$STORAGE_PATH/cluster_logs/cluster_stats_step_XXXXXX.json
+```
+
+Each log file contains:
+- **Step number**: Training step counter
+- **Timestamp**: When the log was created
+- **Cluster counts**: EMA-tracked visit frequencies for all clusters
+- **Cluster probabilities**: Current probability distribution over clusters
+- **Batch distribution**: Number of questions from each cluster in this batch
+- **Batch scores**: Average majority voting score per cluster in this batch
+
+### Configuration
+
+Control logging frequency in `rentropy_config.yaml`:
+```yaml
+# Log cluster stats every N reward computations (default: 1)
+log_cluster_stats_freq: 1
+```
+
+Set higher values (e.g., 10) to reduce logging overhead during long training runs.
+
+## Analyzing Logs After Training
+
+### Quick Analysis
+
+Run the analysis script:
+```bash
+python analyze_cluster_logs.py --log_dir /path/to/storage/cluster_logs
+```
+
+### Save Summary to File
+
+```bash
+python analyze_cluster_logs.py \
+    --log_dir /path/to/storage/cluster_logs \
+    --output summary.json
+```
+
+### Example Output
+
+```
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 100
+Total Clusters: 128
+Clusters Visited: 87
+Clusters Never Visited: 41
+Total Questions Generated: 51200
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+42           2847         5.56         0.612
+17           2341         4.57         0.581
+89           1923         3.76         0.544
+...
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+12           0.782        891          1.74
+56           0.769        1245         2.43
+...
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 400.00
+Std dev: 234.52
+Min: 0
+Max: 2847
+Median: 312.50
+```
+
+## Log File Structure
+
+Each `cluster_stats_step_XXXXXX.json` file contains:
+
+```json
+{
+  "step": 42,
+  "timestamp": 1706745600.123,
+  "num_questions": 512,
+  "cluster_stats": {
+    "cluster_counts": [1.2, 0.8, 1.5, ...],
+    "cluster_probabilities": [0.012, 0.008, 0.015, ...],
+    "total_count": 100.0,
+    "num_clusters": 128
+  },
+  "batch_cluster_distribution": {
+    "0": 12,
+    "5": 23,
+    "17": 45,
+    ...
+  },
+  "batch_cluster_avg_scores": {
+    "0": 0.612,
+    "5": 0.581,
+    "17": 0.544,
+    ...
+  }
+}
+```
+
+## Use Cases
+
+### 1. Verify Diversity Training
+
+Check if the model is exploring diverse clusters:
+```bash
+python analyze_cluster_logs.py --log_dir storage/cluster_logs
+# Look at "Clusters Visited" vs "Total Clusters"
+```
+
+### 2. Identify Difficult Clusters
+
+Find clusters with low majority voting scores:
+```python
+import json
+with open('summary.json') as f:
+    data = json.load(f)
+
+low_score_clusters = [
+    (cid, stats['avg_majority_vote_score']) 
+    for cid, stats in data['per_cluster_stats'].items()
+    if stats['total_questions'] > 10 and stats['avg_majority_vote_score'] < 0.4
+]
+```
+
+### 3. Compare Different Modes (Mode 1 vs Mode 4)
+
+**Important:** Mode 1 tracks cluster statistics but doesn't use them for rewards, allowing direct comparison.
+
+Train with different diversity modes and compare:
+```bash
+# Mode 1 (baseline - no diversity reward, only tracking)
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base baseline 1
+python analyze_cluster_logs.py --log_dir storage/cluster_logs --output mode1.json
+
+# Mode 4 (full Rentropy - diversity rewards active)
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base rentropy 4
+python analyze_cluster_logs.py --log_dir storage/cluster_logs --output mode4.json
+
+# Compare results
+python3 << 'EOF'
+import json
+
+with open('mode1.json') as f:
+    m1 = json.load(f)
+with open('mode4.json') as f:
+    m4 = json.load(f)
+
+print(f"Mode 1 - Clusters visited: {m1['clusters_visited']}/{m1['num_clusters']}")
+print(f"Mode 4 - Clusters visited: {m4['clusters_visited']}/{m4['num_clusters']}")
+
+print(f"\nMode 1 - Std dev of visits: {m1['cluster_visit_std']:.2f}")
+print(f"Mode 4 - Std dev of visits: {m4['cluster_visit_std']:.2f}")
+
+print("\nMode 1 collapsed to fewer clusters!" if m1['clusters_visited'] < m4['clusters_visited'] else "\nMode 4 achieved better diversity!")
+EOF
+```
+
+### 4. Track Evolution Over Time
+
+The summary includes time-series data in `evolution`:
+```python
+import matplotlib.pyplot as plt
+import json
+
+with open('summary.json') as f:
+    data = json.load(f)
+
+steps = data['evolution']['steps']
+cluster_counts = data['evolution']['cluster_counts']
+
+# Plot evolution of top 5 clusters
+for cid in range(5):
+    counts = [cc[cid] for cc in cluster_counts]
+    plt.plot(steps, counts, label=f'Cluster {cid}')
+
+plt.xlabel('Training Step')
+plt.ylabel('Cluster Count (EMA)')
+plt.legend()
+plt.savefig('cluster_evolution.png')
+```
+
+## Performance Impact
+
+- Logging happens **after** reward computation, not during
+- Each log file is ~10-50 KB depending on number of clusters
+- With `log_cluster_stats_freq=1` and 1000 steps: ~10-50 MB total
+- Negligible runtime overhead (<0.1% per step)
+
+## Files Created
+
+```
+$STORAGE_PATH/
+└── cluster_logs/
+    ├── cluster_stats_step_000001.json
+    ├── cluster_stats_step_000002.json
+    ├── cluster_stats_step_000003.json
+    └── ...
+```
+
+## Troubleshooting
+
+**No logs created:**
+- Verify `$STORAGE_PATH` is set correctly
+- Check that centroids file exists and is loaded (required for all modes)
+- Ensure `rentropy_config.yaml` has correct `centroids_path`
+
+**Too many log files:**
+- Increase `log_cluster_stats_freq` in `rentropy_config.yaml`
+
+**Out of disk space:**
+- Set higher `log_cluster_stats_freq`
+- Delete old logs after analysis
+
+## Example Workflow
+
+```bash
+# 1. Train with diversity mode
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b 4
+
+# 2. After training, analyze logs
+python analyze_cluster_logs.py \
+    --log_dir storage/cluster_logs \
+    --output results_mode4.json
+
+# 3. Compare with baseline (mode 1)
+bash scripts/main_rentropy.sh Qwen/Qwen3-4B-Base qwen3-4b-baseline 1
+python analyze_cluster_logs.py \
+    --log_dir storage_baseline/cluster_logs \
+    --output results_mode1.json
+
+# 4. Compare summaries
+diff results_mode1.json results_mode4.json
+```
+
+## Integration with Experiments
+
+The logging is automatic - no changes needed to training scripts. Just run:
+```bash
+bash scripts/main_rentropy.sh <model> <name> <mode>
+```
+
+Logs will appear in `$STORAGE_PATH/cluster_logs/` automatically.
+
+
+
+iant4clusters
+Loading logs from: /workspace/euclid/rentropy/variant4clusters
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 566
+Clusters Never Visited: 458
+Total Questions Generated: 6928
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+238          356          5.14         0.502       
+713          177          2.55         0.551       
+348          156          2.25         0.613       
+9            149          2.15         0.468       
+994          136          1.96         0.473       
+722          117          1.69         0.421       
+29           115          1.66         0.462       
+672          99           1.43         0.567       
+1013         99           1.43         0.447       
+316          94           1.36         0.538       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+309          1.000        1            0.01        
+154          0.900        1            0.01        
+834          0.900        1            0.01        
+280          0.900        2            0.03        
+824          0.900        1            0.01        
+178          0.833        3            0.04        
+504          0.800        2            0.03        
+904          0.800        1            0.01        
+76           0.800        1            0.01        
+639          0.800        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 6.77
+Std dev: 20.28
+Min: 0
+Max: 356
+Median: 1.00
+
+
+
+Loading logs from: /workspace/euclid/rentropy/variant1clusters/cluster_logs
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 545
+Clusters Never Visited: 479
+Total Questions Generated: 7128
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+238          335          4.70         0.497       
+29           181          2.54         0.430       
+9            150          2.10         0.493       
+1013         142          1.99         0.506       
+411          125          1.75         0.544       
+303          120          1.68         0.514       
+527          116          1.63         0.541       
+713          116          1.63         0.618       
+434          114          1.60         0.499       
+994          113          1.59         0.438       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+189          1.000        1            0.01        
+24           1.000        1            0.01        
+388          1.000        1            0.01        
+326          1.000        1            0.01        
+541          1.000        1            0.01        
+776          0.900        1            0.01        
+905          0.900        1            0.01        
+220          0.900        1            0.01        
+718          0.900        1            0.01        
+495          0.900        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 6.96
+Std dev: 20.64
+Min: 0
+Max: 335
+Median: 1.00
+
+
+
+Loading logs from: /Users/vaibhav/Desktop/brahma/tree/euclid/rentropy/cluster_space/cluster_logs/cluster-logs-variant4-iter2
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 512
+Clusters Never Visited: 512
+Total Questions Generated: 7991
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+238          432          5.41         0.585       
+434          191          2.39         0.573       
+29           153          1.91         0.566       
+527          151          1.89         0.634       
+994          151          1.89         0.536       
+9            151          1.89         0.599       
+0            150          1.88         0.582       
+1013         142          1.78         0.554       
+722          139          1.74         0.547       
+577          127          1.59         0.598       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+1012         1.000        1            0.01        
+957          1.000        1            0.01        
+771          1.000        1            0.01        
+714          1.000        1            0.01        
+940          1.000        2            0.03        
+805          1.000        2            0.03        
+833          1.000        1            0.01        
+105          1.000        1            0.01        
+185          1.000        1            0.01        
+181          1.000        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 7.80
+Std dev: 24.43
+Min: 0
+Max: 432
+Median: 0.50
+
+================================================================================
+
+
+
+
+
+Loading logs from: /Users/vaibhav/Desktop/brahma/tree/euclid/rentropy/cluster_space/cluster_logs/cluster-logs-variant1-iter2
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 482
+Clusters Never Visited: 542
+Total Questions Generated: 7985
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+238          474          5.94         0.586       
+1013         231          2.89         0.569       
+994          224          2.81         0.546       
+9            216          2.71         0.574       
+29           205          2.57         0.552       
+722          159          1.99         0.533       
+500          147          1.84         0.563       
+490          135          1.69         0.545       
+303          132          1.65         0.568       
+868          121          1.52         0.530       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+353          1.000        2            0.03        
+740          1.000        1            0.01        
+115          1.000        1            0.01        
+427          1.000        1            0.01        
+380          1.000        1            0.01        
+718          1.000        1            0.01        
+35           1.000        1            0.01        
+764          1.000        1            0.01        
+824          1.000        1            0.01        
+628          1.000        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 7.80
+Std dev: 26.68
+Min: 0
+Max: 474
+Median: 0.00
+
+================================================================================
+
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 508
+Clusters Never Visited: 516
+Total Questions Generated: 9323
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+1013         740          7.94         0.623       
+238          557          5.97         0.633       
+0            235          2.52         0.593       
+500          193          2.07         0.670       
+698          190          2.04         0.673       
+908          177          1.90         0.608       
+9            176          1.89         0.616       
+672          173          1.86         0.684       
+434          162          1.74         0.565       
+29           128          1.37         0.603       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+545          1.000        1            0.01        
+216          1.000        1            0.01        
+457          1.000        3            0.03        
+23           1.000        1            0.01        
+71           1.000        1            0.01        
+525          1.000        1            0.01        
+647          1.000        2            0.02        
+993          1.000        1            0.01        
+152          1.000        1            0.01        
+687          1.000        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 9.10
+Std dev: 36.46
+Min: 0
+Max: 740
+Median: 0.00
+
+
+Loading logs from: /Users/vaibhav/Desktop/brahma/tree/euclid/rentropy/cluster_space/cluster_logs/cluster-logs-variant2-iter5
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 721
+Clusters Never Visited: 303
+Total Questions Generated: 9661
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+586          125          1.29         0.654       
+56           123          1.27         0.641       
+547          122          1.26         0.670       
+954          122          1.26         0.675       
+214          106          1.10         0.709       
+918          99           1.02         0.624       
+190          96           0.99         0.684       
+943          93           0.96         0.673       
+542          93           0.96         0.644       
+279          89           0.92         0.653       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+852          1.000        1            0.01        
+358          1.000        3            0.03        
+607          1.000        1            0.01        
+947          1.000        1            0.01        
+196          1.000        5            0.05        
+871          1.000        3            0.03        
+909          1.000        1            0.01        
+612          1.000        1            0.01        
+517          1.000        2            0.02        
+55           1.000        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 9.43
+Std dev: 16.71
+Min: 0
+Max: 125
+Median: 2.00
+
+
+(base) vaibhav@vaibhavs-MacBook-Pro rentropy % python analyze_cluster_logs.py --log_dir /Users/vaibhav/Desktop/brahma/tree/euclid/rentropy/cluster_space/cluster_logs/cluster-logs-variant1-iter3
+Loading logs from: /Users/vaibhav/Desktop/brahma/tree/euclid/rentropy/cluster_space/cluster_logs/cluster-logs-variant1-iter3
+Found 6 log files
+
+================================================================================
+RENTROPY CLUSTER STATISTICS SUMMARY
+================================================================================
+
+Training Steps: 6
+Total Clusters: 1024
+Clusters Visited: 423
+Clusters Never Visited: 601
+Total Questions Generated: 9156
+
+--------------------------------------------------------------------------------
+TOP 10 MOST VISITED CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Questions    % of Total   Avg Score   
+--------------------------------------------------------------------------------
+500          736          8.04         0.596       
+238          629          6.87         0.613       
+1013         475          5.19         0.587       
+29           371          4.05         0.581       
+9            292          3.19         0.618       
+994          258          2.82         0.567       
+1023         228          2.49         0.584       
+868          209          2.28         0.532       
+722          205          2.24         0.540       
+411          146          1.59         0.616       
+
+--------------------------------------------------------------------------------
+TOP 10 HIGHEST SCORING CLUSTERS
+--------------------------------------------------------------------------------
+Cluster ID   Avg Score    Questions    % of Total  
+--------------------------------------------------------------------------------
+382          1.000        1            0.01        
+262          1.000        1            0.01        
+617          1.000        1            0.01        
+598          1.000        1            0.01        
+676          1.000        1            0.01        
+191          1.000        1            0.01        
+400          1.000        1            0.01        
+109          1.000        1            0.01        
+740          1.000        1            0.01        
+668          1.000        1            0.01        
+
+--------------------------------------------------------------------------------
+CLUSTER VISIT DISTRIBUTION
+--------------------------------------------------------------------------------
+Mean questions per cluster: 8.94
+Std dev: 42.41
+Min: 0
+Max: 736
+Median: 0.00

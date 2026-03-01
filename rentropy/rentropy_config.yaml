@@ -1,0 +1,110 @@
+# Rentropy Configuration
+# This file controls the diversity reward settings for the Rentropy experiment.
+
+# Diversity reward mode (1-5):
+#   1: Vanilla majority voting reward only (R-Zero baseline)
+#   2: Mode 1 + reward for choosing a rare cluster
+#   3: Mode 2 + reward for uniqueness from other n-1 questions in batch  
+#   4: Mode 3 + within-cluster uniqueness reward
+#   5: MARA mode - Equal reward for ALL questions above quality+diversity thresholds
+#      (prevents mode collapse by design - based on arXiv:2510.20817)
+#      RECOMMENDED: Use this mode to break through accuracy plateaus
+diversity_mode: 5
+
+# Path to cluster centroids (built by cluster_space/build_clusters.py)
+centroids_path: "cluster_space/cluster_data/centroids.npy"
+
+# Embedding model for cluster assignment
+embedding_model: "Qwen/Qwen3-Embedding-0.6B"
+
+# ============================================================================
+# Warm Start: Initialize cluster counts from previous iteration
+# ============================================================================
+# Path to previous iteration's cluster log JSON file.
+# If set, cluster counts will be loaded from this file instead of uniform init.
+# This enables "warm start" where the rarity signal is informed by previous runs.
+#
+# Example paths:
+#   - "cluster_space/cluster_logs/cluster_stats_step_000006.json"
+#   - null (or omit) for fresh uniform initialization
+#
+# The JSON file should have structure: {"cluster_stats": {"cluster_counts": [...]}}
+init_cluster_counts_path: "/workspace/euclid/rentropy/R-Zero-main/storage/cluster_logs/cluster_stats_step_000010.json"
+
+# Reward weights (only applied when majority vote passes threshold)
+# Increased weights (5-10x) to make diversity signal stronger relative to base reward
+weights:
+  # Weight for rarity reward (mode 2+)
+  # Increased from 0.1 to 0.5 for stronger signal
+  rarity: 1.0
+  # Weight for batch uniqueness reward (mode 3+)
+  # Increased from 0.05 to 0.2 for stronger signal
+  batch_uniqueness: 0.0
+  # Weight for within-cluster uniqueness (mode 4)
+  # Increased from 0.05 to 0.2 for stronger signal
+  within_cluster_uniqueness: 0.0
+
+# Majority voting threshold - diversity reward only applied if score >= this
+majority_vote_threshold: 0.5
+
+# Scale diversity reward by ZPD score (Zone of Proximal Development)
+# When true: diversity_reward *= (min(score, 1-score) / 0.5)
+# This prevents reward hacking via "easy but rare" questions:
+#   - Easy questions (score=0.9): zpd=0.1, scale=0.2 → small bonus
+#   - Medium questions (score=0.5): zpd=0.5, scale=1.0 → full bonus
+#   - Hard questions (score=0.3): zpd=0.3, scale=0.6 → medium bonus
+# 
+# NOTE: Default changed to false to avoid double scaling. Diversity rewards are now
+# scaled by lambda_weight instead. Set to true if you want ZPD-based scaling.
+scale_diversity_by_zpd: false
+
+# Lambda weight for diversity reward (controls overall strength of diversity signal)
+# Final reward = zpd * (1 + lambda_weight * diversity_reward)
+# Based on analysis:
+#   λ=1.0: Popular clusters win (current problem: 29.3% top-10 concentration)
+#   λ=2.0: Crossover point (rare clusters barely win)
+#   λ=3.0: Safe choice (rare clusters +0.15 advantage, ~24-26% concentration)
+#   λ=5.0: RECOMMENDED (rare clusters +0.42 advantage, ~20-22% concentration)
+#   λ=7.0: Aggressive (rare clusters +0.69 advantage, <20% concentration)
+# Setting λ=5.0 for strong diversity signal while maintaining quality
+lambda_weight: 5.0
+
+# Use ZPD transformation for base score
+# When true: base_reward = min(base_score, 1 - base_score)  (peaks at 0.5)
+# When false: base_reward = base_score  (full range 0-1)
+# Default: false (use raw base_score for better scale matching)
+use_zpd_base_score: true
+
+# EMA decay for cluster count tracking
+ema_decay: 0.99
+
+# Smoothing constant for log-inverse-frequency
+smoothing_alpha: 1.0
+
+# Logging frequency for cluster statistics (log every N reward computations)
+# Set to 1 to log every step, higher values reduce logging overhead
+log_cluster_stats_freq: 1
+
+# ============================================================================
+# MARA Configuration (Mode 5)
+# ============================================================================
+# MARA (Mode-Aware Reward Adjustment) prevents mode collapse by giving
+# EQUAL reward to ALL questions that pass quality and diversity thresholds.
+# 
+# Key insight from arXiv:2510.20817: Instead of optimizing for the HIGHEST
+# reward (which converges to single mode), optimize for COVERAGE of all modes
+# above threshold (which preserves multimodality).
+#
+# The optimal policy under MARA puts equal probability mass over ALL 
+# high-quality, diverse questions rather than concentrating on a few.
+
+# Minimum solver success rate (questions must be challenging)
+# Lower = harder questions allowed
+# Recommended: 0.35 (35% solver success)
+mara_quality_min: 0.49
+
+# Maximum solver success rate (questions must not be too easy)
+# Higher = easier questions allowed
+# Recommended: 0.65 (65% solver success) - prevents reward hacking
+mara_quality_max: 0.99
+mara_diversity_min: 0.15

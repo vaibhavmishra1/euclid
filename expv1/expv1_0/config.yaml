@@ -1,0 +1,122 @@
+# expv1_0: Method 1 (offline) experiment config
+
+experiment:
+  name: "expv1_0"
+  seed: 42
+
+io:
+  output_dir: "euclid/expv1/expv1_0/output"
+  # Pipeline A artifacts (concepts + KCRG). Pipeline B reads from here.
+  # Use cleaned canonical concepts for generation
+  concepts_dir: "euclid/expv1/expv1_0/output/concepts/cleaned"
+
+seed_data:
+  source: "hf"  # hf | jsonl
+  dataset_config: "number_theory"  # initial exp: number_theory only
+  split: "train"
+  # Start with a small seed set for iteration; scale up later (GRIP used 7.5K).
+  max_seeds: -1
+
+concept_extraction:
+  backend: "llm"         # heuristic | llm
+  # If backend=llm, configure an LLM client below and a prompt template.
+  prompt_path: "euclid/expv1/expv1_0/prompts/concept_extract.md"
+  concept_extractor_backend: "vllm"   # mock | hf | vllm | api
+  concept_extractor_model: "Qwen/Qwen2.5-32B-Instruct"  # GRIP uses this model
+  vllm:
+    gpu_memory_utilization: 0.90
+    tensor_parallel_size: 1
+  max_tokens: 4096
+  temperature: 0.0
+  top_p: 1.0
+
+concept_graph:
+  # implicit edges are derived from explicit graph neighborhoods (2-hop/3-hop)
+  min_cooccurrence: 1
+
+concept_cleaning:
+  # Pass 1: Rule-based normalization (always runs, fast)
+  # Pass 2: Embedding-based clustering
+  run_pass2: true
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  embedding_threshold: 0.85
+  # Pass 3: LLM verification (optional, uses concept_extractor LLM)
+  run_pass3: false
+
+explorator:
+  policy: "grip_stage0"  # grip_stage0 | grip_stage1
+  bundle_size: 4
+  allow_swap_one_neighbor: true
+  hop_mode: "mixed"   # explicit | implicit_2hop | implicit_3hop | mixed
+  # For mixed mode, specify ratios (will be normalized to sum to 1.0)
+  explicit_ratio: 0.5      # Probability of explicit edge (direct co-occurrence)
+  implicit_2hop_ratio: 0.3  # Probability of 2-hop implicit edge
+  implicit_3hop_ratio: 0.2  # Probability of 3-hop implicit edge
+  min_concept_count: 2   # Ignore concepts with count < this (filters rare/noisy concepts)
+
+generation:
+  generator_backend: "hf"   # mock | hf | vllm | api
+  generator_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+  vllm:
+    gpu_memory_utilization: 0.95
+    tensor_parallel_size: 1
+  max_tokens: 2048
+  temperature: 0.8
+  top_p: 0.95
+  num_candidates: 20
+  prompt_path: "euclid/expv1/expv1_0/prompts/problem_generate.md"
+
+# teacher:
+#   teacher_backend: "vllm"     # mock | hf | vllm | api
+#   teacher_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+#   vllm:
+#     gpu_memory_utilization: 0.35
+#     tensor_parallel_size: 1
+#   max_tokens: 1024
+#   temperature: 0.0
+#   prompt_path: "euclid/expv1/expv1_0/prompts/teacher_verify.md"
+#   equivalence_prompt_path: "euclid/expv1/expv1_0/prompts/teacher_equivalence.md"
+
+dedup:
+  lexical: true
+  embedding: false
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  max_nn: 10
+  cosine_threshold: 0.92
+
+zpd:
+  enabled: true
+  solver_backend: "vllm"      # mock | hf | vllm | api
+  solver_model: "Qwen/Qwen2.5-Math-7B-Instruct"
+  vllm:
+    # When generation.generator_backend=hf, the HF model already occupies GPU memory.
+    # vLLM reserves gpu_memory_utilization *total* GPU memory, so 0.95 can fail.
+    gpu_memory_utilization: 0.75
+    tensor_parallel_size: 1
+  prompt_path: "euclid/expv1/expv1_0/prompts/solver_prompt.md"
+  rollouts: 8  # Increased for better verification + ZPD
+  temperature: 0.7
+  top_p: 0.95
+  max_tokens: 2048
+  p_min: 0.1
+  p_max: 1.0
+
+sft:
+  enabled: true
+  base_model: "Qwen/Qwen3-1.7B-Base"  # Defaults to zpd.solver_model if empty
+  output_dir: "euclid/expv1/expv1_0/output/sft_model_accepted"
+  # Training hyperparameters (can be overridden via CLI)
+  batch_size: 32           # Per-device batch size (use 64-128 for H200/A100)
+  gradient_accumulation_steps: 1
+  learning_rate: 2e-5
+  max_steps: -1            # -1 = use num_epochs instead
+  num_epochs: 3
+  max_seq_length: 2048
+
+eval:
+  enabled: true
+  # See tree/euclid/evaluate_math/evaluate_hf.py for available MATH subsets
+  dataset_config: "number_theory"
+  split: "test"
+  limit: 5000
+

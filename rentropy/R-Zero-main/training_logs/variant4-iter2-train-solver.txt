@@ -1,0 +1,2401 @@
+Model_abbr: variant4-iter2
+Diversity Mode: 4
+Running Rentropy experiment with cluster-entropy diversity reward (mode 4)
+STORAGE_PATH: /workspace/euclid/rentropy/R-Zero-main/storage
+HUGGINGFACENAME: vibhuiitj
+Pre-downloading models to avoid download issues during training...
+Downloading base model: vibhuiitj/qwen3-4b-base-variant4-feb3-solver
+Model already exists at /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, skipping download.
+Using local model path: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+/workspace/euclid/rentropy/R-Zero-main/storage
+start train solver variant4-iter2_solver_v1 /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface
+start generate question
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:31 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:25:45 [config.py:823] This model supports multiple tasks: {'classify', 'generate', 'embed', 'score', 'reward'}. Defaulting to 'generate'.
+INFO 02-03 23:25:45 [config.py:823] This model supports multiple tasks: {'classify', 'generate', 'reward', 'embed', 'score'}. Defaulting to 'generate'.
+INFO 02-03 23:25:45 [config.py:823] This model supports multiple tasks: {'generate', 'reward', 'classify', 'score', 'embed'}. Defaulting to 'generate'.
+INFO 02-03 23:25:45 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:45 [config.py:823] This model supports multiple tasks: {'generate', 'score', 'classify', 'reward', 'embed'}. Defaulting to 'generate'.
+INFO 02-03 23:25:46 [config.py:823] This model supports multiple tasks: {'classify', 'generate', 'score', 'reward', 'embed'}. Defaulting to 'generate'.
+INFO 02-03 23:25:46 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:46 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:46 [config.py:823] This model supports multiple tasks: {'generate', 'score', 'embed', 'classify', 'reward'}. Defaulting to 'generate'.
+INFO 02-03 23:25:46 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:46 [config.py:823] This model supports multiple tasks: {'generate', 'reward', 'score', 'embed', 'classify'}. Defaulting to 'generate'.
+INFO 02-03 23:25:46 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:46 [config.py:823] This model supports multiple tasks: {'generate', 'score', 'classify', 'reward', 'embed'}. Defaulting to 'generate'.
+INFO 02-03 23:25:47 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:47 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:47 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:25:47 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:47 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=6, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:25:47 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fb2848ee950>
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=4, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+WARNING 02-03 23:25:48 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fabb2cde8f0>
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=5, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:25:48 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f2c90e96980>
+WARNING 02-03 23:25:48 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f2519e228f0>
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=2, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=1, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=3, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:25:48 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fc30eac28c0>
+INFO 02-03 23:25:48 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:25:48 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=7, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:25:49 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f2f552be950>
+WARNING 02-03 23:25:49 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f392d8f68c0>
+INFO 02-03 23:25:49 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:49 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+WARNING 02-03 23:25:49 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fd83469a8f0>
+INFO 02-03 23:25:49 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:49 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:50 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:50 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:50 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:51 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:51 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:51 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+INFO 02-03 23:25:51 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:51 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+WARNING 02-03 23:25:51 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:52 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:52 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:52 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:52 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:52 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:52 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:52 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:52 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:25:52 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:52 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_questioner_v1/global_step_6/actor/huggingface...
+INFO 02-03 23:25:53 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:53 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:25:53 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:53 [default_loader.py:272] Loading weights took 2.04 seconds
+INFO 02-03 23:25:53 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:25:53 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.349661 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 3.20 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 1.96 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 2.66 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 2.71 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 2.76 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 2.68 seconds
+INFO 02-03 23:25:55 [default_loader.py:272] Loading weights took 2.04 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.023648 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.060422 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.652910 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.234308 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.950121 seconds
+INFO 02-03 23:25:55 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.327159 seconds
+INFO 02-03 23:25:56 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.976186 seconds
+INFO 02-03 23:26:02 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:02 [backends.py:472] Dynamo bytecode transform time: 8.42 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.37 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.44 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.53 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.51 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.69 s
+INFO 02-03 23:26:04 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:04 [backends.py:472] Dynamo bytecode transform time: 8.63 s
+INFO 02-03 23:26:06 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:26:06 [backends.py:472] Dynamo bytecode transform time: 8.73 s
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:08 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.47 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.30 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.22 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 38.37 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 35.07 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.48 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.57 s
+INFO 02-03 23:26:41 [backends.py:173] Compiling a graph for general shape takes 36.57 s
+INFO 02-03 23:27:02 [monitor.py:34] torch.compile takes 44.84 s in total
+INFO 02-03 23:27:02 [monitor.py:34] torch.compile takes 44.98 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 46.79 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 45.01 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 44.85 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 45.08 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 45.01 s in total
+INFO 02-03 23:27:03 [monitor.py:34] torch.compile takes 43.80 s in total
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [gpu_worker.py:227] Available KV cache memory: 62.29 GiB
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:04 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:04 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:05 [kv_cache_utils.py:715] GPU KV cache size: 453,584 tokens
+INFO 02-03 23:27:05 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 13.84x
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 29 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.21 seconds
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 29 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 30 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.41 seconds
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.38 seconds
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 29 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.51 seconds
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 30 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.66 seconds
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 30 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 98.65 seconds
+INFO 02-03 23:27:34 [gpu_model_runner.py:2048] Graph capturing finished in 30 secs, took 0.53 GiB
+INFO 02-03 23:27:34 [core.py:171] init engine (profile, create kv cache, warmup model) took 100.97 seconds
+INFO 02-03 23:27:35 [gpu_model_runner.py:2048] Graph capturing finished in 31 secs, took 0.53 GiB
+INFO 02-03 23:27:35 [core.py:171] init engine (profile, create kv cache, warmup model) took 99.20 seconds
+start evaluate generated question
+INFO 02-03 23:28:34 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:34 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+INFO 02-03 23:28:35 [__init__.py:244] Automatically detected platform cuda.
+[2] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_2.json
+[2] Found 459 questions to process.
+[2] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[4] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_4.json
+[4] Found 467 questions to process.
+[4] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[1] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_1.json
+[1] Found 465 questions to process.
+[1] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[3] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_3.json
+[3] Found 460 questions to process.
+[3] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[7] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_7.json
+[7] Found 465 questions to process.
+[7] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[6] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_6.json
+[6] Found 460 questions to process.
+[6] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[0] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_0.json
+[0] Found 464 questions to process.
+[0] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[5] Loading data from: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_5.json
+[5] Found 464 questions to process.
+[5] Initializing vLLM for model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'reward', 'generate', 'classify', 'embed', 'score'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'reward', 'generate', 'score', 'classify', 'embed'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'generate', 'embed', 'score', 'reward', 'classify'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'classify', 'generate', 'embed', 'reward', 'score'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'score', 'embed', 'generate', 'reward', 'classify'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:823] This model supports multiple tasks: {'classify', 'embed', 'generate', 'score', 'reward'}. Defaulting to 'generate'.
+INFO 02-03 23:28:48 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:49 [config.py:823] This model supports multiple tasks: {'embed', 'score', 'classify', 'reward', 'generate'}. Defaulting to 'generate'.
+INFO 02-03 23:28:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:49 [config.py:823] This model supports multiple tasks: {'generate', 'score', 'reward', 'embed', 'classify'}. Defaulting to 'generate'.
+INFO 02-03 23:28:49 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:50 [config.py:2195] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 02-03 23:28:50 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:50 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=7, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:28:50 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:50 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=6, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f263309ff10>
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7ff3475abf40>
+INFO 02-03 23:28:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:28:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=3, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:28:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=4, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+INFO 02-03 23:28:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=2, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f7d6d12ff10>
+INFO 02-03 23:28:51 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:51 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=1, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7fed6332bfa0>
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f47df2e7fa0>
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f773a4aa7d0>
+WARNING 02-03 23:28:51 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f8a3eb1ff10>
+INFO 02-03 23:28:52 [core.py:455] Waiting for init message from front-end.
+INFO 02-03 23:28:52 [core.py:70] Initializing a V1 LLM engine (v0.9.1) with config: model='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', speculative_config=None, tokenizer='/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=5, served_model_name=/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":3,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":["none"],"splitting_ops":["vllm.unified_attention","vllm.unified_attention_with_output"],"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"use_cudagraph":true,"cudagraph_num_of_warmups":1,"cudagraph_capture_sizes":[512,504,496,488,480,472,464,456,448,440,432,424,416,408,400,392,384,376,368,360,352,344,336,328,320,312,304,296,288,280,272,264,256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"max_capture_size":512,"local_cache_dir":null}
+WARNING 02-03 23:28:52 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f82f1a41f30>
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:55 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:55 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:55 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:55 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:55 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:55 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:56 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:56 [parallel_state.py:1065] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+WARNING 02-03 23:28:56 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+INFO 02-03 23:28:56 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:56 [gpu_model_runner.py:1595] Starting to load model /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver...
+INFO 02-03 23:28:56 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:56 [gpu_model_runner.py:1600] Loading model from scratch...
+INFO 02-03 23:28:56 [cuda.py:252] Using Flash Attention backend on V1 engine.
+INFO 02-03 23:28:57 [default_loader.py:272] Loading weights took 1.93 seconds
+INFO 02-03 23:28:58 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.226896 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.53 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.40 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.38 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.47 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.37 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 3.14 seconds
+INFO 02-03 23:28:59 [default_loader.py:272] Loading weights took 2.70 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.843931 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.768337 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.695218 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.666509 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 2.983078 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.408905 seconds
+INFO 02-03 23:29:00 [gpu_model_runner.py:1624] Model loading took 7.5532 GiB and 3.659425 seconds
+INFO 02-03 23:29:07 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:07 [backends.py:472] Dynamo bytecode transform time: 8.40 s
+INFO 02-03 23:29:07 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:08 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:08 [backends.py:472] Dynamo bytecode transform time: 8.31 s
+INFO 02-03 23:29:08 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:08 [backends.py:472] Dynamo bytecode transform time: 8.35 s
+INFO 02-03 23:29:08 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:08 [backends.py:472] Dynamo bytecode transform time: 8.42 s
+INFO 02-03 23:29:08 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:08 [backends.py:472] Dynamo bytecode transform time: 8.46 s
+INFO 02-03 23:29:08 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:08 [backends.py:472] Dynamo bytecode transform time: 8.51 s
+INFO 02-03 23:29:09 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:09 [backends.py:472] Dynamo bytecode transform time: 8.42 s
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:09 [backends.py:460] vLLM's torch.compile cache is disabled.
+INFO 02-03 23:29:09 [backends.py:472] Dynamo bytecode transform time: 8.65 s
+INFO 02-03 23:29:09 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:10 [backends.py:161] Cache the graph of shape None for later use
+INFO 02-03 23:29:15 [backends.py:173] Compiling a graph for general shape takes 7.78 s
+INFO 02-03 23:29:16 [backends.py:173] Compiling a graph for general shape takes 7.83 s
+INFO 02-03 23:29:16 [backends.py:173] Compiling a graph for general shape takes 7.81 s
+INFO 02-03 23:29:16 [backends.py:173] Compiling a graph for general shape takes 7.79 s
+INFO 02-03 23:29:16 [backends.py:173] Compiling a graph for general shape takes 7.79 s
+INFO 02-03 23:29:17 [backends.py:173] Compiling a graph for general shape takes 7.81 s
+INFO 02-03 23:29:17 [backends.py:173] Compiling a graph for general shape takes 7.79 s
+INFO 02-03 23:29:17 [backends.py:173] Compiling a graph for general shape takes 7.91 s
+INFO 02-03 23:29:27 [monitor.py:34] torch.compile takes 16.19 s in total
+INFO 02-03 23:29:28 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.16 s in total
+INFO 02-03 23:29:29 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:29 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.14 s in total
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.24 s in total
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.20 s in total
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.32 s in total
+INFO 02-03 23:29:29 [monitor.py:34] torch.compile takes 16.21 s in total
+INFO 02-03 23:29:29 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:29 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:30 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:30 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:30 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:30 [monitor.py:34] torch.compile takes 16.56 s in total
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:30 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:30 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:30 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:31 [gpu_worker.py:227] Available KV cache memory: 58.33 GiB
+INFO 02-03 23:29:31 [kv_cache_utils.py:715] GPU KV cache size: 424,752 tokens
+INFO 02-03 23:29:31 [kv_cache_utils.py:719] Maximum concurrency for 32,768 tokens per request: 12.96x
+INFO 02-03 23:29:54 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+INFO 02-03 23:29:54 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.93 seconds
+[7] Generating 4 samples for each question...
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.09 seconds
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.39 seconds
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.47 seconds
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+[0] Generating 4 samples for each question...
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.61 seconds
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 25 secs, took 0.53 GiB
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.50 seconds
+INFO 02-03 23:29:55 [gpu_model_runner.py:2048] Graph capturing finished in 26 secs, took 0.53 GiB
+[5] Generating 4 samples for each question...
+INFO 02-03 23:29:55 [core.py:171] init engine (profile, create kv cache, warmup model) took 55.93 seconds
+[4] Generating 4 samples for each question...
+[6] Generating 4 samples for each question...
+[1] Generating 4 samples for each question...
+[2] Generating 4 samples for each question...
+INFO 02-03 23:29:58 [gpu_model_runner.py:2048] Graph capturing finished in 27 secs, took 0.53 GiB
+INFO 02-03 23:29:58 [core.py:171] init engine (profile, create kv cache, warmup model) took 57.79 seconds
+[3] Generating 4 samples for each question...
+[7] Generation complete.
+[7] Grading responses...
+[7] Processed 423 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_7_results.json
+[7] Script finished.
+[0] Generation complete.
+[0] Grading responses...
+[3] Generation complete.
+[3] Grading responses...
+[0] Processed 425 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_0_results.json
+[0] Script finished.
+[2] Generation complete.
+[2] Grading responses...
+Task 0 finished.
+[3] Processed 425 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_3_results.json
+[3] Script finished.
+[5] Generation complete.
+[5] Grading responses...
+[2] Processed 418 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_2_results.json
+[2] Script finished.
+[6] Generation complete.
+[6] Grading responses...
+[5] Processed 418 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_5_results.json
+[5] Script finished.
+[1] Generation complete.
+[1] Grading responses...
+[6] Processed 437 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_6_results.json
+[6] Script finished.
+[4] Generation complete.
+[4] Grading responses...
+[1] Processed 423 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_1_results.json
+[1] Script finished.
+[4] Processed 425 questions. Saving results to: /workspace/euclid/rentropy/R-Zero-main/storage/generated_question/variant4-iter2_solver_v1_4_results.json
+[4] Script finished.
+start upload
+/workspace/euclid/rentropy/R-Zero-main/storage
+1717
+start train
+INFO 02-03 23:35:28 [__init__.py:244] Automatically detected platform cuda.
+[36m(pid=60846)[0m WARNING 02-03 23:35:39 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(Runner pid=60846)[0m {
+[36m(Runner pid=60846)[0m   "data": {
+[36m(Runner pid=60846)[0m     "train_files": "vibhuiitj/variant4-iter2_solver_v1@train",
+[36m(Runner pid=60846)[0m     "val_files": "hiyouga/math12k@test",
+[36m(Runner pid=60846)[0m     "prompt_key": "problem",
+[36m(Runner pid=60846)[0m     "answer_key": "answer",
+[36m(Runner pid=60846)[0m     "image_key": "images",
+[36m(Runner pid=60846)[0m     "max_prompt_length": 2048,
+[36m(Runner pid=60846)[0m     "max_response_length": 2048,
+[36m(Runner pid=60846)[0m     "rollout_batch_size": 512,
+[36m(Runner pid=60846)[0m     "val_batch_size": 1024,
+[36m(Runner pid=60846)[0m     "format_prompt": "/workspace/euclid/rentropy/R-Zero-main/examples/format_prompt/solver.jinja",
+[36m(Runner pid=60846)[0m     "override_chat_template": null,
+[36m(Runner pid=60846)[0m     "shuffle": true,
+[36m(Runner pid=60846)[0m     "seed": 1,
+[36m(Runner pid=60846)[0m     "max_pixels": 4194304,
+[36m(Runner pid=60846)[0m     "min_pixels": 262144,
+[36m(Runner pid=60846)[0m     "filter_overlong_prompts": true
+[36m(Runner pid=60846)[0m   },
+[36m(Runner pid=60846)[0m   "worker": {
+[36m(Runner pid=60846)[0m     "hybrid_engine": true,
+[36m(Runner pid=60846)[0m     "actor": {
+[36m(Runner pid=60846)[0m       "strategy": "fsdp",
+[36m(Runner pid=60846)[0m       "global_batch_size": 128,
+[36m(Runner pid=60846)[0m       "micro_batch_size_per_device_for_update": 4,
+[36m(Runner pid=60846)[0m       "micro_batch_size_per_device_for_experience": 16,
+[36m(Runner pid=60846)[0m       "max_grad_norm": 1.0,
+[36m(Runner pid=60846)[0m       "clip_ratio_low": 0.2,
+[36m(Runner pid=60846)[0m       "clip_ratio_high": 0.3,
+[36m(Runner pid=60846)[0m       "clip_ratio_dual": 3.0,
+[36m(Runner pid=60846)[0m       "ppo_epochs": 1,
+[36m(Runner pid=60846)[0m       "padding_free": true,
+[36m(Runner pid=60846)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=60846)[0m       "use_torch_compile": true,
+[36m(Runner pid=60846)[0m       "model": {
+[36m(Runner pid=60846)[0m         "model_path": "/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver",
+[36m(Runner pid=60846)[0m         "tokenizer_path": "/workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver",
+[36m(Runner pid=60846)[0m         "override_config": {},
+[36m(Runner pid=60846)[0m         "enable_gradient_checkpointing": true,
+[36m(Runner pid=60846)[0m         "trust_remote_code": true,
+[36m(Runner pid=60846)[0m         "freeze_vision_tower": false
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "optim": {
+[36m(Runner pid=60846)[0m         "lr": 1e-06,
+[36m(Runner pid=60846)[0m         "betas": [
+[36m(Runner pid=60846)[0m           0.9,
+[36m(Runner pid=60846)[0m           0.999
+[36m(Runner pid=60846)[0m         ],
+[36m(Runner pid=60846)[0m         "weight_decay": 0.01,
+[36m(Runner pid=60846)[0m         "strategy": "adamw",
+[36m(Runner pid=60846)[0m         "lr_warmup_ratio": 0.0,
+[36m(Runner pid=60846)[0m         "min_lr_ratio": null,
+[36m(Runner pid=60846)[0m         "warmup_style": "constant",
+[36m(Runner pid=60846)[0m         "training_steps": -1
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "fsdp": {
+[36m(Runner pid=60846)[0m         "enable_full_shard": true,
+[36m(Runner pid=60846)[0m         "enable_cpu_offload": false,
+[36m(Runner pid=60846)[0m         "enable_rank0_init": true,
+[36m(Runner pid=60846)[0m         "use_orig_params": false,
+[36m(Runner pid=60846)[0m         "torch_dtype": null,
+[36m(Runner pid=60846)[0m         "fsdp_size": -1,
+[36m(Runner pid=60846)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=60846)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=60846)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "offload": {
+[36m(Runner pid=60846)[0m         "offload_params": false,
+[36m(Runner pid=60846)[0m         "offload_optimizer": false
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "global_batch_size_per_device": -1,
+[36m(Runner pid=60846)[0m       "disable_kl": false,
+[36m(Runner pid=60846)[0m       "use_kl_loss": true,
+[36m(Runner pid=60846)[0m       "kl_penalty": "low_var_kl",
+[36m(Runner pid=60846)[0m       "kl_coef": 0.01
+[36m(Runner pid=60846)[0m     },
+[36m(Runner pid=60846)[0m     "critic": {
+[36m(Runner pid=60846)[0m       "strategy": "fsdp",
+[36m(Runner pid=60846)[0m       "global_batch_size": 256,
+[36m(Runner pid=60846)[0m       "micro_batch_size_per_device_for_update": 4,
+[36m(Runner pid=60846)[0m       "micro_batch_size_per_device_for_experience": 16,
+[36m(Runner pid=60846)[0m       "max_grad_norm": 1.0,
+[36m(Runner pid=60846)[0m       "cliprange_value": 0.5,
+[36m(Runner pid=60846)[0m       "ppo_epochs": 1,
+[36m(Runner pid=60846)[0m       "padding_free": false,
+[36m(Runner pid=60846)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=60846)[0m       "model": {
+[36m(Runner pid=60846)[0m         "model_path": null,
+[36m(Runner pid=60846)[0m         "tokenizer_path": null,
+[36m(Runner pid=60846)[0m         "override_config": {},
+[36m(Runner pid=60846)[0m         "enable_gradient_checkpointing": true,
+[36m(Runner pid=60846)[0m         "trust_remote_code": true,
+[36m(Runner pid=60846)[0m         "freeze_vision_tower": false
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "optim": {
+[36m(Runner pid=60846)[0m         "lr": 1e-06,
+[36m(Runner pid=60846)[0m         "betas": [
+[36m(Runner pid=60846)[0m           0.9,
+[36m(Runner pid=60846)[0m           0.999
+[36m(Runner pid=60846)[0m         ],
+[36m(Runner pid=60846)[0m         "weight_decay": 0.01,
+[36m(Runner pid=60846)[0m         "strategy": "adamw",
+[36m(Runner pid=60846)[0m         "lr_warmup_ratio": 0.0,
+[36m(Runner pid=60846)[0m         "min_lr_ratio": null,
+[36m(Runner pid=60846)[0m         "warmup_style": "constant",
+[36m(Runner pid=60846)[0m         "training_steps": -1
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "fsdp": {
+[36m(Runner pid=60846)[0m         "enable_full_shard": true,
+[36m(Runner pid=60846)[0m         "enable_cpu_offload": false,
+[36m(Runner pid=60846)[0m         "enable_rank0_init": false,
+[36m(Runner pid=60846)[0m         "use_orig_params": false,
+[36m(Runner pid=60846)[0m         "torch_dtype": null,
+[36m(Runner pid=60846)[0m         "fsdp_size": -1,
+[36m(Runner pid=60846)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=60846)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=60846)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "offload": {
+[36m(Runner pid=60846)[0m         "offload_params": false,
+[36m(Runner pid=60846)[0m         "offload_optimizer": false
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "global_batch_size_per_device": -1
+[36m(Runner pid=60846)[0m     },
+[36m(Runner pid=60846)[0m     "ref": {
+[36m(Runner pid=60846)[0m       "strategy": "fsdp",
+[36m(Runner pid=60846)[0m       "fsdp": {
+[36m(Runner pid=60846)[0m         "enable_full_shard": true,
+[36m(Runner pid=60846)[0m         "enable_cpu_offload": true,
+[36m(Runner pid=60846)[0m         "enable_rank0_init": true,
+[36m(Runner pid=60846)[0m         "use_orig_params": false,
+[36m(Runner pid=60846)[0m         "torch_dtype": null,
+[36m(Runner pid=60846)[0m         "fsdp_size": -1,
+[36m(Runner pid=60846)[0m         "mp_param_dtype": "bf16",
+[36m(Runner pid=60846)[0m         "mp_reduce_dtype": "fp32",
+[36m(Runner pid=60846)[0m         "mp_buffer_dtype": "fp32"
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "offload": {
+[36m(Runner pid=60846)[0m         "offload_params": true,
+[36m(Runner pid=60846)[0m         "offload_optimizer": false
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "micro_batch_size_per_device_for_experience": 16,
+[36m(Runner pid=60846)[0m       "padding_free": true,
+[36m(Runner pid=60846)[0m       "ulysses_sequence_parallel_size": 1,
+[36m(Runner pid=60846)[0m       "use_torch_compile": true
+[36m(Runner pid=60846)[0m     },
+[36m(Runner pid=60846)[0m     "reward": {
+[36m(Runner pid=60846)[0m       "reward_type": "batch",
+[36m(Runner pid=60846)[0m       "reward_function": "/workspace/euclid/rentropy/R-Zero-main/examples/reward_function/math.py",
+[36m(Runner pid=60846)[0m       "reward_function_kwargs": {},
+[36m(Runner pid=60846)[0m       "skip_special_tokens": true,
+[36m(Runner pid=60846)[0m       "num_cpus": 1,
+[36m(Runner pid=60846)[0m       "reward_function_name": "compute_score"
+[36m(Runner pid=60846)[0m     },
+[36m(Runner pid=60846)[0m     "rollout": {
+[36m(Runner pid=60846)[0m       "name": "vllm",
+[36m(Runner pid=60846)[0m       "n": 4,
+[36m(Runner pid=60846)[0m       "temperature": 1.0,
+[36m(Runner pid=60846)[0m       "top_p": 0.99,
+[36m(Runner pid=60846)[0m       "top_k": -1,
+[36m(Runner pid=60846)[0m       "seed": 1,
+[36m(Runner pid=60846)[0m       "limit_images": 0,
+[36m(Runner pid=60846)[0m       "dtype": "bf16",
+[36m(Runner pid=60846)[0m       "gpu_memory_utilization": 0.7,
+[36m(Runner pid=60846)[0m       "ignore_eos": false,
+[36m(Runner pid=60846)[0m       "enforce_eager": false,
+[36m(Runner pid=60846)[0m       "enable_chunked_prefill": false,
+[36m(Runner pid=60846)[0m       "tensor_parallel_size": 2,
+[36m(Runner pid=60846)[0m       "max_model_len": null,
+[36m(Runner pid=60846)[0m       "max_num_batched_tokens": 8192,
+[36m(Runner pid=60846)[0m       "disable_log_stats": true,
+[36m(Runner pid=60846)[0m       "val_override_config": {
+[36m(Runner pid=60846)[0m         "temperature": 1.0,
+[36m(Runner pid=60846)[0m         "n": 1
+[36m(Runner pid=60846)[0m       },
+[36m(Runner pid=60846)[0m       "prompt_length": 2048,
+[36m(Runner pid=60846)[0m       "response_length": 2048,
+[36m(Runner pid=60846)[0m       "trust_remote_code": true
+[36m(Runner pid=60846)[0m     }
+[36m(Runner pid=60846)[0m   },
+[36m(Runner pid=60846)[0m   "algorithm": {
+[36m(Runner pid=60846)[0m     "gamma": 1.0,
+[36m(Runner pid=60846)[0m     "lam": 1.0,
+[36m(Runner pid=60846)[0m     "adv_estimator": "grpo",
+[36m(Runner pid=60846)[0m     "disable_kl": false,
+[36m(Runner pid=60846)[0m     "use_kl_loss": true,
+[36m(Runner pid=60846)[0m     "kl_penalty": "low_var_kl",
+[36m(Runner pid=60846)[0m     "kl_coef": 0.01,
+[36m(Runner pid=60846)[0m     "kl_type": "fixed",
+[36m(Runner pid=60846)[0m     "kl_horizon": 0.0,
+[36m(Runner pid=60846)[0m     "kl_target": 0.0,
+[36m(Runner pid=60846)[0m     "mock_data": "test"
+[36m(Runner pid=60846)[0m   },
+[36m(Runner pid=60846)[0m   "trainer": {
+[36m(Runner pid=60846)[0m     "total_epochs": 10,
+[36m(Runner pid=60846)[0m     "max_steps": 10,
+[36m(Runner pid=60846)[0m     "project_name": "rentropy_rzero_main",
+[36m(Runner pid=60846)[0m     "experiment_name": "variant4-iter2_solver_v1",
+[36m(Runner pid=60846)[0m     "logger": [
+[36m(Runner pid=60846)[0m       "console"
+[36m(Runner pid=60846)[0m     ],
+[36m(Runner pid=60846)[0m     "nnodes": 1,
+[36m(Runner pid=60846)[0m     "n_gpus_per_node": 8,
+[36m(Runner pid=60846)[0m     "critic_warmup": 0,
+[36m(Runner pid=60846)[0m     "val_freq": 4,
+[36m(Runner pid=60846)[0m     "val_before_train": false,
+[36m(Runner pid=60846)[0m     "val_only": false,
+[36m(Runner pid=60846)[0m     "val_generations_to_log": 3,
+[36m(Runner pid=60846)[0m     "save_freq": 2,
+[36m(Runner pid=60846)[0m     "save_limit": 3,
+[36m(Runner pid=60846)[0m     "save_checkpoint_path": "/workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1",
+[36m(Runner pid=60846)[0m     "load_checkpoint_path": null
+[36m(Runner pid=60846)[0m   }
+[36m(Runner pid=60846)[0m }
+[36m(BatchFunctionRewardManager pid=61158)[0m Using reward function `compute_score` from `/workspace/euclid/rentropy/R-Zero-main/examples/reward_function/math.py`.
+[36m(Runner pid=60846)[0m Size of train dataloader: 3
+[36m(Runner pid=60846)[0m Size of val dataloader: 1
+[36m(Runner pid=60846)[0m Total training steps: 10
+[36m(pid=63248)[0m WARNING 02-03 23:35:58 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(BatchFunctionRewardManager pid=61159)[0m Using reward function `compute_score` from `/workspace/euclid/rentropy/R-Zero-main/examples/reward_function/math.py`.
+[36m(pid=63593)[0m WARNING 02-03 23:36:06 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(pid=63594)[0m WARNING 02-03 23:36:07 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234
+[36m(WorkerDict pid=63248)[0m actor will use global batch size 512.
+[36m(WorkerDict pid=63248)[0m Model config: Qwen3Config {
+[36m(WorkerDict pid=63248)[0m   "architectures": [
+[36m(WorkerDict pid=63248)[0m     "Qwen3ForCausalLM"
+[36m(WorkerDict pid=63248)[0m   ],
+[36m(WorkerDict pid=63248)[0m   "attention_bias": false,
+[36m(WorkerDict pid=63248)[0m   "attention_dropout": 0.0,
+[36m(WorkerDict pid=63248)[0m   "eos_token_id": 151643,
+[36m(WorkerDict pid=63248)[0m   "head_dim": 128,
+[36m(WorkerDict pid=63248)[0m   "hidden_act": "silu",
+[36m(WorkerDict pid=63248)[0m   "hidden_size": 2560,
+[36m(WorkerDict pid=63248)[0m   "initializer_range": 0.02,
+[36m(WorkerDict pid=63248)[0m   "intermediate_size": 9728,
+[36m(WorkerDict pid=63248)[0m   "max_position_embeddings": 32768,
+[36m(WorkerDict pid=63248)[0m   "max_window_layers": 36,
+[36m(WorkerDict pid=63248)[0m   "model_type": "qwen3",
+[36m(WorkerDict pid=63248)[0m   "num_attention_heads": 32,
+[36m(WorkerDict pid=63248)[0m   "num_hidden_layers": 36,
+[36m(WorkerDict pid=63248)[0m   "num_key_value_heads": 8,
+[36m(WorkerDict pid=63248)[0m   "pad_token_id": 151643,
+[36m(WorkerDict pid=63248)[0m   "rms_norm_eps": 1e-06,
+[36m(WorkerDict pid=63248)[0m   "rope_scaling": null,
+[36m(WorkerDict pid=63248)[0m   "rope_theta": 1000000,
+[36m(WorkerDict pid=63248)[0m   "sliding_window": null,
+[36m(WorkerDict pid=63248)[0m   "tie_word_embeddings": true,
+[36m(WorkerDict pid=63248)[0m   "torch_dtype": "bfloat16",
+[36m(WorkerDict pid=63248)[0m   "transformers_version": "4.52.4",
+[36m(WorkerDict pid=63248)[0m   "use_cache": true,
+[36m(WorkerDict pid=63248)[0m   "use_sliding_window": false,
+[36m(WorkerDict pid=63248)[0m   "vocab_size": 151936
+[36m(WorkerDict pid=63248)[0m }
+[36m(WorkerDict pid=63248)[0m 
+[36m(WorkerDict pid=63248)[0m Ulysses patch applied!
+[36m(WorkerDict pid=63248)[0m NCCL version 2.26.2+cuda12.2
+[36m(pid=63595)[0m WARNING 02-03 23:36:07 [env_override.py:17] NCCL_CUMEM_ENABLE is set to 0, skipping override. This may increase memory overhead with cudagraph+allreduce: https://github.com/NVIDIA/nccl/issues/1234[32m [repeated 5x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)[0m
+[36m(WorkerDict pid=63248)[0m Qwen3ForCausalLM contains 4.02B parameters.
+[36m(WorkerDict pid=63248)[0m After huggingface model init: 1.27 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m FSDP wrap policy: functools.partial(<function transformer_auto_wrap_policy at 0x7fbfbeeceb00>, transformer_layer_cls={<class 'transformers.models.qwen3.modeling_qwen3.Qwen3DecoderLayer'>}).
+[36m(WorkerDict pid=63248)[0m After FSDP module init: 3.14 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After offload ref model during init: 1.28 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m Model config: Qwen3Config {
+[36m(WorkerDict pid=63248)[0m   "architectures": [
+[36m(WorkerDict pid=63248)[0m     "Qwen3ForCausalLM"
+[36m(WorkerDict pid=63248)[0m   ],
+[36m(WorkerDict pid=63248)[0m   "attention_bias": false,
+[36m(WorkerDict pid=63248)[0m   "attention_dropout": 0.0,
+[36m(WorkerDict pid=63248)[0m   "eos_token_id": 151643,
+[36m(WorkerDict pid=63248)[0m   "head_dim": 128,
+[36m(WorkerDict pid=63248)[0m   "hidden_act": "silu",
+[36m(WorkerDict pid=63248)[0m   "hidden_size": 2560,
+[36m(WorkerDict pid=63248)[0m   "initializer_range": 0.02,
+[36m(WorkerDict pid=63248)[0m   "intermediate_size": 9728,
+[36m(WorkerDict pid=63248)[0m   "max_position_embeddings": 32768,
+[36m(WorkerDict pid=63248)[0m   "max_window_layers": 36,
+[36m(WorkerDict pid=63248)[0m   "model_type": "qwen3",
+[36m(WorkerDict pid=63248)[0m   "num_attention_heads": 32,
+[36m(WorkerDict pid=63248)[0m   "num_hidden_layers": 36,
+[36m(WorkerDict pid=63248)[0m   "num_key_value_heads": 8,
+[36m(WorkerDict pid=63248)[0m   "pad_token_id": 151643,
+[36m(WorkerDict pid=63248)[0m   "rms_norm_eps": 1e-06,
+[36m(WorkerDict pid=63248)[0m   "rope_scaling": null,
+[36m(WorkerDict pid=63248)[0m   "rope_theta": 1000000,
+[36m(WorkerDict pid=63248)[0m   "sliding_window": null,
+[36m(WorkerDict pid=63248)[0m   "tie_word_embeddings": true,
+[36m(WorkerDict pid=63248)[0m   "torch_dtype": "bfloat16",
+[36m(WorkerDict pid=63248)[0m   "transformers_version": "4.52.4",
+[36m(WorkerDict pid=63248)[0m   "use_cache": true,
+[36m(WorkerDict pid=63248)[0m   "use_sliding_window": false,
+[36m(WorkerDict pid=63248)[0m   "vocab_size": 151936
+[36m(WorkerDict pid=63248)[0m }
+[36m(WorkerDict pid=63248)[0m 
+[36m(WorkerDict pid=63248)[0m Ulysses patch applied!
+[36m(WorkerDict pid=63248)[0m Qwen3ForCausalLM contains 4.02B parameters.
+[36m(WorkerDict pid=63248)[0m After huggingface model init: 1.28 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m FSDP wrap policy: functools.partial(<function transformer_auto_wrap_policy at 0x7fbfbeeceb00>, transformer_layer_cls={<class 'transformers.models.qwen3.modeling_qwen3.Qwen3DecoderLayer'>}).
+[36m(WorkerDict pid=63248)[0m After FSDP module init: 6.73 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After optimizer init: 6.73 GB / 79.25 GB.
+[36m(WorkerDict pid=63596)[0m WARNING 02-03 23:36:45 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7ef9fc26fb50>
+[36m(WorkerDict pid=63593)[0m NCCL version 2.26.2+cuda12.2
+[36m(WorkerDict pid=63248)[0m WARNING 02-03 23:36:47 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+[36m(WorkerDict pid=63593)[0m Sampling params: {'max_tokens': 2048, 'detokenize': False, 'logit_bias': None, 'n': 4, 'temperature': 1.0, 'top_p': 0.99, 'top_k': -1, 'ignore_eos': False}.
+[36m(WorkerDict pid=63592)[0m WARNING 02-03 23:36:46 [utils.py:2737] Methods determine_num_available_blocks,device_config,get_cache_block_size_bytes,initialize_cache not implemented in <vllm.v1.worker.gpu_worker.Worker object at 0x7f50aa3a6c20>[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63597)[0m NCCL version 2.26.2+cuda12.2[32m [repeated 2x across cluster][0m
+[36m(WorkerDict pid=63594)[0m WARNING 02-03 23:36:47 [topk_topp_sampler.py:59] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m After vllm init: 5.29 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Config
+[36m(Runner pid=60846)[0m algorithm:
+[36m(Runner pid=60846)[0m   adv_estimator: grpo
+[36m(Runner pid=60846)[0m   disable_kl: false
+[36m(Runner pid=60846)[0m   gamma: 1.0
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_horizon: 0.0
+[36m(Runner pid=60846)[0m   kl_penalty: low_var_kl
+[36m(Runner pid=60846)[0m   kl_target: 0.0
+[36m(Runner pid=60846)[0m   kl_type: fixed
+[36m(Runner pid=60846)[0m   lam: 1.0
+[36m(Runner pid=60846)[0m   mock_data: test
+[36m(Runner pid=60846)[0m   use_kl_loss: true
+[36m(Runner pid=60846)[0m data:
+[36m(Runner pid=60846)[0m   answer_key: answer
+[36m(Runner pid=60846)[0m   filter_overlong_prompts: true
+[36m(Runner pid=60846)[0m   format_prompt: /workspace/euclid/rentropy/R-Zero-main/examples/format_prompt/solver.jinja
+[36m(Runner pid=60846)[0m   image_key: images
+[36m(Runner pid=60846)[0m   max_pixels: 4194304
+[36m(Runner pid=60846)[0m   max_prompt_length: 2048
+[36m(Runner pid=60846)[0m   max_response_length: 2048
+[36m(Runner pid=60846)[0m   min_pixels: 262144
+[36m(Runner pid=60846)[0m   override_chat_template: null
+[36m(Runner pid=60846)[0m   prompt_key: problem
+[36m(Runner pid=60846)[0m   rollout_batch_size: 512
+[36m(Runner pid=60846)[0m   seed: 1
+[36m(Runner pid=60846)[0m   shuffle: true
+[36m(Runner pid=60846)[0m   train_files: vibhuiitj/variant4-iter2_solver_v1@train
+[36m(Runner pid=60846)[0m   val_batch_size: 1024
+[36m(Runner pid=60846)[0m   val_files: hiyouga/math12k@test
+[36m(Runner pid=60846)[0m trainer:
+[36m(Runner pid=60846)[0m   critic_warmup: 0
+[36m(Runner pid=60846)[0m   experiment_name: variant4-iter2_solver_v1
+[36m(Runner pid=60846)[0m   load_checkpoint_path: null
+[36m(Runner pid=60846)[0m   logger:
+[36m(Runner pid=60846)[0m   - console
+[36m(Runner pid=60846)[0m   max_steps: 10
+[36m(Runner pid=60846)[0m   n_gpus_per_node: 8
+[36m(Runner pid=60846)[0m   nnodes: 1
+[36m(Runner pid=60846)[0m   project_name: rentropy_rzero_main
+[36m(Runner pid=60846)[0m   save_checkpoint_path: /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1
+[36m(Runner pid=60846)[0m   save_freq: 2
+[36m(Runner pid=60846)[0m   save_limit: 3
+[36m(Runner pid=60846)[0m   total_epochs: 10
+[36m(Runner pid=60846)[0m   val_before_train: false
+[36m(Runner pid=60846)[0m   val_freq: 4
+[36m(Runner pid=60846)[0m   val_generations_to_log: 3
+[36m(Runner pid=60846)[0m   val_only: false
+[36m(Runner pid=60846)[0m worker:
+[36m(Runner pid=60846)[0m   actor:
+[36m(Runner pid=60846)[0m     clip_ratio_dual: 3.0
+[36m(Runner pid=60846)[0m     clip_ratio_high: 0.3
+[36m(Runner pid=60846)[0m     clip_ratio_low: 0.2
+[36m(Runner pid=60846)[0m     disable_kl: false
+[36m(Runner pid=60846)[0m     fsdp:
+[36m(Runner pid=60846)[0m       enable_cpu_offload: false
+[36m(Runner pid=60846)[0m       enable_full_shard: true
+[36m(Runner pid=60846)[0m       enable_rank0_init: true
+[36m(Runner pid=60846)[0m       fsdp_size: -1
+[36m(Runner pid=60846)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=60846)[0m       mp_param_dtype: bf16
+[36m(Runner pid=60846)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=60846)[0m       torch_dtype: null
+[36m(Runner pid=60846)[0m       use_orig_params: false
+[36m(Runner pid=60846)[0m     global_batch_size: 128
+[36m(Runner pid=60846)[0m     global_batch_size_per_device: -1
+[36m(Runner pid=60846)[0m     kl_coef: 0.01
+[36m(Runner pid=60846)[0m     kl_penalty: low_var_kl
+[36m(Runner pid=60846)[0m     max_grad_norm: 1.0
+[36m(Runner pid=60846)[0m     micro_batch_size_per_device_for_experience: 16
+[36m(Runner pid=60846)[0m     micro_batch_size_per_device_for_update: 4
+[36m(Runner pid=60846)[0m     model:
+[36m(Runner pid=60846)[0m       enable_gradient_checkpointing: true
+[36m(Runner pid=60846)[0m       freeze_vision_tower: false
+[36m(Runner pid=60846)[0m       model_path: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[36m(Runner pid=60846)[0m       override_config: {}
+[36m(Runner pid=60846)[0m       tokenizer_path: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant4-feb3-solver
+[36m(Runner pid=60846)[0m       trust_remote_code: true
+[36m(Runner pid=60846)[0m     offload:
+[36m(Runner pid=60846)[0m       offload_optimizer: false
+[36m(Runner pid=60846)[0m       offload_params: false
+[36m(Runner pid=60846)[0m     optim:
+[36m(Runner pid=60846)[0m       betas:
+[36m(Runner pid=60846)[0m       - 0.9
+[36m(Runner pid=60846)[0m       - 0.999
+[36m(Runner pid=60846)[0m       lr: 1.0e-06
+[36m(Runner pid=60846)[0m       lr_warmup_ratio: 0.0
+[36m(Runner pid=60846)[0m       min_lr_ratio: null
+[36m(Runner pid=60846)[0m       strategy: adamw
+[36m(Runner pid=60846)[0m       training_steps: 10
+[36m(Runner pid=60846)[0m       warmup_style: constant
+[36m(Runner pid=60846)[0m       weight_decay: 0.01
+[36m(Runner pid=60846)[0m     padding_free: true
+[36m(Runner pid=60846)[0m     ppo_epochs: 1
+[36m(Runner pid=60846)[0m     strategy: fsdp
+[36m(Runner pid=60846)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=60846)[0m     use_kl_loss: true
+[36m(Runner pid=60846)[0m     use_torch_compile: true
+[36m(Runner pid=60846)[0m   critic:
+[36m(Runner pid=60846)[0m     cliprange_value: 0.5
+[36m(Runner pid=60846)[0m     fsdp:
+[36m(Runner pid=60846)[0m       enable_cpu_offload: false
+[36m(Runner pid=60846)[0m       enable_full_shard: true
+[36m(Runner pid=60846)[0m       enable_rank0_init: false
+[36m(Runner pid=60846)[0m       fsdp_size: -1
+[36m(Runner pid=60846)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=60846)[0m       mp_param_dtype: bf16
+[36m(Runner pid=60846)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=60846)[0m       torch_dtype: null
+[36m(Runner pid=60846)[0m       use_orig_params: false
+[36m(Runner pid=60846)[0m     global_batch_size: 256
+[36m(Runner pid=60846)[0m     global_batch_size_per_device: -1
+[36m(Runner pid=60846)[0m     max_grad_norm: 1.0
+[36m(Runner pid=60846)[0m     micro_batch_size_per_device_for_experience: 16
+[36m(Runner pid=60846)[0m     micro_batch_size_per_device_for_update: 4
+[36m(Runner pid=60846)[0m     model:
+[36m(Runner pid=60846)[0m       enable_gradient_checkpointing: true
+[36m(Runner pid=60846)[0m       freeze_vision_tower: false
+[36m(Runner pid=60846)[0m       model_path: null
+[36m(Runner pid=60846)[0m       override_config: {}
+[36m(Runner pid=60846)[0m       tokenizer_path: null
+[36m(Runner pid=60846)[0m       trust_remote_code: true
+[36m(Runner pid=60846)[0m     offload:
+[36m(Runner pid=60846)[0m       offload_optimizer: false
+[36m(Runner pid=60846)[0m       offload_params: false
+[36m(Runner pid=60846)[0m     optim:
+[36m(Runner pid=60846)[0m       betas:
+[36m(Runner pid=60846)[0m       - 0.9
+[36m(Runner pid=60846)[0m       - 0.999
+[36m(Runner pid=60846)[0m       lr: 1.0e-06
+[36m(Runner pid=60846)[0m       lr_warmup_ratio: 0.0
+[36m(Runner pid=60846)[0m       min_lr_ratio: null
+[36m(Runner pid=60846)[0m       strategy: adamw
+[36m(Runner pid=60846)[0m       training_steps: 10
+[36m(Runner pid=60846)[0m       warmup_style: constant
+[36m(Runner pid=60846)[0m       weight_decay: 0.01
+[36m(Runner pid=60846)[0m     padding_free: false
+[36m(Runner pid=60846)[0m     ppo_epochs: 1
+[36m(Runner pid=60846)[0m     strategy: fsdp
+[36m(Runner pid=60846)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=60846)[0m   hybrid_engine: true
+[36m(Runner pid=60846)[0m   ref:
+[36m(Runner pid=60846)[0m     fsdp:
+[36m(Runner pid=60846)[0m       enable_cpu_offload: true
+[36m(Runner pid=60846)[0m       enable_full_shard: true
+[36m(Runner pid=60846)[0m       enable_rank0_init: true
+[36m(Runner pid=60846)[0m       fsdp_size: -1
+[36m(Runner pid=60846)[0m       mp_buffer_dtype: fp32
+[36m(Runner pid=60846)[0m       mp_param_dtype: bf16
+[36m(Runner pid=60846)[0m       mp_reduce_dtype: fp32
+[36m(Runner pid=60846)[0m       torch_dtype: null
+[36m(Runner pid=60846)[0m       use_orig_params: false
+[36m(Runner pid=60846)[0m     micro_batch_size_per_device_for_experience: 16
+[36m(Runner pid=60846)[0m     offload:
+[36m(Runner pid=60846)[0m       offload_optimizer: false
+[36m(Runner pid=60846)[0m       offload_params: true
+[36m(Runner pid=60846)[0m     padding_free: true
+[36m(Runner pid=60846)[0m     strategy: fsdp
+[36m(Runner pid=60846)[0m     ulysses_sequence_parallel_size: 1
+[36m(Runner pid=60846)[0m     use_torch_compile: true
+[36m(Runner pid=60846)[0m   reward:
+[36m(Runner pid=60846)[0m     num_cpus: 1
+[36m(Runner pid=60846)[0m     reward_function: /workspace/euclid/rentropy/R-Zero-main/examples/reward_function/math.py
+[36m(Runner pid=60846)[0m     reward_function_kwargs: {}
+[36m(Runner pid=60846)[0m     reward_function_name: compute_score
+[36m(Runner pid=60846)[0m     reward_type: batch
+[36m(Runner pid=60846)[0m     skip_special_tokens: true
+[36m(Runner pid=60846)[0m   rollout:
+[36m(Runner pid=60846)[0m     disable_log_stats: true
+[36m(Runner pid=60846)[0m     dtype: bf16
+[36m(Runner pid=60846)[0m     enable_chunked_prefill: false
+[36m(Runner pid=60846)[0m     enforce_eager: false
+[36m(Runner pid=60846)[0m     gpu_memory_utilization: 0.7
+[36m(Runner pid=60846)[0m     ignore_eos: false
+[36m(Runner pid=60846)[0m     limit_images: 0
+[36m(Runner pid=60846)[0m     max_model_len: null
+[36m(Runner pid=60846)[0m     max_num_batched_tokens: 8192
+[36m(Runner pid=60846)[0m     n: 4
+[36m(Runner pid=60846)[0m     name: vllm
+[36m(Runner pid=60846)[0m     prompt_length: 2048
+[36m(Runner pid=60846)[0m     response_length: 2048
+[36m(Runner pid=60846)[0m     seed: 1
+[36m(Runner pid=60846)[0m     temperature: 1.0
+[36m(Runner pid=60846)[0m     tensor_parallel_size: 2
+[36m(Runner pid=60846)[0m     top_k: -1
+[36m(Runner pid=60846)[0m     top_p: 0.99
+[36m(Runner pid=60846)[0m     trust_remote_code: true
+[36m(Runner pid=60846)[0m     val_override_config:
+[36m(Runner pid=60846)[0m       n: 1
+[36m(Runner pid=60846)[0m       temperature: 1.0
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 5.29 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 10.23 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 14.05 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 58.33 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63596)[0m Sampling params: {'max_tokens': 2048, 'detokenize': False, 'logit_bias': None, 'n': 4, 'temperature': 1.0, 'top_p': 0.99, 'top_k': -1, 'ignore_eos': False}.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 59.97 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 5.35 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Step 1
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.206
+[36m(Runner pid=60846)[0m   grad_norm: 0.134
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.0
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.04
+[36m(Runner pid=60846)[0m   ppo_kl: 0.0
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.064
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.064
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.421
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.421
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 246887
+[36m(Runner pid=60846)[0m   balanced_min: 246886
+[36m(Runner pid=60846)[0m   max: 259352
+[36m(Runner pid=60846)[0m   mean: 246886.25
+[36m(Runner pid=60846)[0m   min: 232729
+[36m(Runner pid=60846)[0m   minmax_diff: 26623
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 44.596
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 15.762
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 42.19
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1146.83
+[36m(Runner pid=60846)[0m   time_per_step: 215.277
+[36m(Runner pid=60846)[0m   total_num_tokens: 1975090
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 383.0
+[36m(Runner pid=60846)[0m   mean: 103.238
+[36m(Runner pid=60846)[0m   min: 39.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.078
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 861.161
+[36m(Runner pid=60846)[0m   min: 84.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.468
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.421
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.9372501510784364e-05
+[36m(Runner pid=60846)[0m   gen: 0.052
+[36m(Runner pid=60846)[0m   old: 0.009
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.117
+[36m(Runner pid=60846)[0m   gen: 91.16
+[36m(Runner pid=60846)[0m   old: 17.319
+[36m(Runner pid=60846)[0m   ref: 17.963
+[36m(Runner pid=60846)[0m   reward: 0.734
+[36m(Runner pid=60846)[0m   step: 215.277
+[36m(Runner pid=60846)[0m   update_actor: 87.752
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/model_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/optim_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/extra_state_world_size_8_rank_0.pt.
+[36m(Runner pid=60846)[0m Step 2
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.193
+[36m(Runner pid=60846)[0m   grad_norm: 0.133
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.0
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.038
+[36m(Runner pid=60846)[0m   ppo_kl: 1.3045147299606263e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.057
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.057
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.42
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.42
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 238075
+[36m(Runner pid=60846)[0m   balanced_min: 238074
+[36m(Runner pid=60846)[0m   max: 245272
+[36m(Runner pid=60846)[0m   mean: 238074.25
+[36m(Runner pid=60846)[0m   min: 224397
+[36m(Runner pid=60846)[0m   minmax_diff: 20875
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 44.691
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.369
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 46.506
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1094.992
+[36m(Runner pid=60846)[0m   time_per_step: 217.421
+[36m(Runner pid=60846)[0m   total_num_tokens: 1904594
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 360.0
+[36m(Runner pid=60846)[0m   mean: 105.316
+[36m(Runner pid=60846)[0m   min: 51.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.062
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 824.661
+[36m(Runner pid=60846)[0m   min: 73.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.466
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.42
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.66100923189302e-05
+[36m(Runner pid=60846)[0m   gen: 0.053
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.108
+[36m(Runner pid=60846)[0m   gen: 89.459
+[36m(Runner pid=60846)[0m   old: 15.698
+[36m(Runner pid=60846)[0m   ref: 16.772
+[36m(Runner pid=60846)[0m   reward: 0.754
+[36m(Runner pid=60846)[0m   save_checkpoint: 11.359
+[36m(Runner pid=60846)[0m   step: 217.421
+[36m(Runner pid=60846)[0m   update_actor: 83.057
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/model_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/optim_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2/actor/extra_state_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Step 3
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.204
+[36m(Runner pid=60846)[0m   grad_norm: 0.131
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.0
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.028
+[36m(Runner pid=60846)[0m   ppo_kl: 3.6361570818099764e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.048
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.048
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.4
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.4
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 237133
+[36m(Runner pid=60846)[0m   balanced_min: 237132
+[36m(Runner pid=60846)[0m   max: 257578
+[36m(Runner pid=60846)[0m   mean: 237132.25
+[36m(Runner pid=60846)[0m   min: 214469
+[36m(Runner pid=60846)[0m   minmax_diff: 43109
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 76.69
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.709
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 49.0
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1135.623
+[36m(Runner pid=60846)[0m   time_per_step: 208.813
+[36m(Runner pid=60846)[0m   total_num_tokens: 1897058
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 248.0
+[36m(Runner pid=60846)[0m   mean: 103.105
+[36m(Runner pid=60846)[0m   min: 50.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.061
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 823.192
+[36m(Runner pid=60846)[0m   min: 125.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.445
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.4
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.5532757569416944e-05
+[36m(Runner pid=60846)[0m   gen: 0.055
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.105
+[36m(Runner pid=60846)[0m   gen: 92.114
+[36m(Runner pid=60846)[0m   old: 15.784
+[36m(Runner pid=60846)[0m   ref: 16.388
+[36m(Runner pid=60846)[0m   reward: 0.763
+[36m(Runner pid=60846)[0m   step: 208.813
+[36m(Runner pid=60846)[0m   update_actor: 83.387
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.52 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Suppose that I have $6$ different books, $2$ of which are math books. In how many ways can I stack my $6$ books on a shelf if I do not want the math books to be next to each other?
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To determine the number of ways to stack the 6 books on a shelf such that the 2 math books are not next to each other, we can follow these steps:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 1. **Calculate the total number of ways to arrange the 6 books without any restrictions.**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m    The total number of arrangements of 6 distinct books is given by the factorial of 6, which is:
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    6! = 720
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 2. **Calculate the number of ways to arrange the 6 books such that the 2 math books are next to each other.**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m    If the 2 math books are next to each other, we can treat them as a single "super book." This means we now have 5 items to arrange (the "super book" and the other 4 books). The number of ways to arrange these 5 items is:
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    5! = 120
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m    Within the "super book," the 2 math books can be arranged in 2 different orders (math book 1, math book 2 or math book 2, math book 1). So, we multiply by 2:
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    5! \times 2! = 120 \times 2 = 240
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 3. **Subtract the number of restricted arrangements from the total number of arrangements.**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m    The number of ways to arrange the books such that the 2 math books are not next to each other is:
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    720 - 240 = 480
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Therefore, the number of ways to stack the 6 books on a shelf such that the 2 math books are not next to each other is:
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \boxed{480}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m [ground_truth] 480
+[36m(Runner pid=60846)[0m [score] 0.8999999761581421
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Consider the geometric sequence $\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots$. What is the eighth term of the sequence? Express your answer as a common fraction.
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the eighth term of the geometric sequence \(\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots\), we need to determine the common ratio and then use the formula for the \(n\)-th term of a geometric sequence.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m First, let's find the common ratio \(r\). The common ratio \(r\) is the ratio of any term to the preceding term. We can calculate it using the first two terms:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m r = \frac{\frac{25}{3}}{\frac{125}{9}} = \frac{25}{3} \cdot \frac{9}{125} = \frac{25 \cdot 9}{3 \cdot 125} = \frac{225}{375} = \frac{3}{5}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We can verify this common ratio by checking the next terms:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \frac{25}{3} \cdot \frac{3}{5} = \frac{25 \cdot 3}{3 \cdot 5} = 5
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m 5 \cdot \frac{3}{5} = 3
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The common ratio is indeed \(\frac{3}{5}\). Now, we use the formula for the \(n\)-th term of a geometric sequence:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_n = a_1 \cdot r^{n-1}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m where \(a_1\) is the first term, \(r\) is the common ratio, and \(n\) is the term number. Here, \(a_1 = \frac{125}{9}\), \(r = \frac{3}{5}\), and we need to find the 8th term (\(n = 8\)):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \left( \frac{3}{5} \right)^{8-1} = \frac{125}{9} \cdot \left( \frac{3}{5} \right)^7
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Next, we calculate \(\left( \frac{3}{5} \right)^7\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \left( \frac{3}{5} \right)^7 = \frac{3^7}{5^7} = \frac{2187}{78125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Now, we multiply \(\frac{125}{9}\) by \(\frac{2187}{78125}\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \frac{2187}{78125} = \frac{125 \cdot 2187}{9 \cdot 78125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Simplify the fraction:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{273375}{703125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We can simplify \(\frac{273375}{703125}\) by finding the greatest common divisor (GCD) of 273375 and 703125. Using the Euclidean algorithm or a calculator, we find that the GCD is 375. Therefore, we divide both the numerator and the denominator by 375:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \frac{273375 \div 375}{703125 \div 375} = \frac{735}{1875} = \frac{147}{375} = \frac{49}{125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Thus, the eighth term of the sequence is:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \boxed{\frac{49}{125}}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m [ground_truth] \frac{243}{625}
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m The circle $x^2 + y^2 = 2$ and the parabola $y^2 = 8x$ have two common tangents, forming four points of tangency.  Find the area of the quadrilateral formed by the four points of tangency.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [asy]
+[36m(Runner pid=60846)[0m unitsize(0.8 cm);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real upperparab (real x) {
+[36m(Runner pid=60846)[0m   return (sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real lowerparab (real x) {
+[36m(Runner pid=60846)[0m   return (-sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m pair A, B, C, D;
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m A = (-1,1);
+[36m(Runner pid=60846)[0m B = (2,4);
+[36m(Runner pid=60846)[0m C = (-1,-1);
+[36m(Runner pid=60846)[0m D = (2,-4);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m draw(graph(upperparab,0,3));
+[36m(Runner pid=60846)[0m draw(graph(lowerparab,0,3));
+[36m(Runner pid=60846)[0m draw(Circle((0,0),sqrt(2)));
+[36m(Runner pid=60846)[0m draw(interp(A,B,-0.2)--interp(A,B,1.2));
+[36m(Runner pid=60846)[0m draw(interp(C,D,-0.2)--interp(C,D,1.2));
+[36m(Runner pid=60846)[0m draw(A--C);
+[36m(Runner pid=60846)[0m draw(B--D);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m dot(A);
+[36m(Runner pid=60846)[0m dot(B);
+[36m(Runner pid=60846)[0m dot(C);
+[36m(Runner pid=60846)[0m dot(D);
+[36m(Runner pid=60846)[0m [/asy]
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the area of the quadrilateral formed by the four points of tangency between the circle \(x^2 + y^2 = 2\) and the parabola \(y^2 = 8x\), we need to determine the points of tangency and then use these points to calculate the area of the quadrilateral.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m ### Step 1: Find the Points of Tangency
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The general form of the tangent line to the parabola \(y^2 = 8x\) at a point \((x_1, y_1)\) on the parabola is given by:
+[36m(Runner pid=60846)[0m \[ yy_1 = 4(x + x_1). \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We need this line to be tangent to the circle \(x^2 + y^2 = 2\). The distance from the center of the circle (0,0) to the tangent line must be equal to the radius of the circle, which is \(\sqrt{2}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The distance from the point \((0,0)\) to the line \(yy_1 = 4(x + x_1)\) is given by:
+[36m(Runner pid=60846)[0m \[ \frac{|4x_1|}{\sqrt{1 + \left(\frac{y_1}{4}\right)^2}} = \sqrt{2}. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Since \(y_1^2 = 8x_1\), we can substitute \(x_1 = \frac{y_1^2}{8}\) into the distance formula:
+[36m(Runner pid=60846)[0m \[ \frac{4 \cdot \frac{y_1^2}{8}}{\sqrt{1 + \left(\frac{y_1}{4}\right)^2}} = \sqrt{2}, \]
+[36m(Runner pid=60846)[0m \[ \frac{\frac{y_1^2}{2}}{\sqrt{1 + \frac{y_1^2}{16}}} = \sqrt{2}, \]
+[36m(Runner pid=60846)[0m \[ \frac{y_1^2}{2} = \sqrt{2} \cdot \sqrt{1 + \frac{y_1^2}{16}}, \]
+[36m(Runner pid=60846)[0m \[ \frac{y_1^4}{4} = 2 \left(1 + \frac{y_1^2}{16}\right), \]
+[36m(Runner pid=60846)[0m \[ \frac{y_1^4}{4} = 2 + \frac{y_1^2}{8}, \]
+[36m(Runner pid=60846)[0m \[ 2y_1^4 = 16 + y_1^2, \]
+[36m(Runner pid=60846)[0m \[ 2y_1^4 - y_1^2 - 16 = 0. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Let \(z = y_1^2\). Then we have:
+[36m(Runner pid=60846)[0m \[ 2z^2 - z - 16 = 0. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Solving this quadratic equation using the quadratic formula \(z = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\):
+[36m(Runner pid=60846)[0m \[ z = \frac{1 \pm \sqrt{1 + 128}}{4} = \frac{1 \pm \sqrt{129}}{4}. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Since \(z = y_1^2\) must be positive, we have:
+[36m(Runner pid=60846)[0m \[ z = \frac{1 + \sqrt{129}}{4}. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Thus, \(y_1^2 = \frac{1 + \sqrt{129}}{4}\), and the corresponding \(x_1\) values are:
+[36m(Runner pid=60846)[0m \[ x_1 = \frac{y_1^2}{8} = \frac{1 + \sqrt{129}}{32}. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So the points of tangency are \(\left(\frac{1 + \sqrt{129}}{32}, \pm \sqrt{\frac{1 + \sqrt{129}}{4}}\right)\) and \(\left(\frac{1 + \sqrt{129}}{32}, \mp \sqrt{\frac{1 + \sqrt{129}}{4}}\right)\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m ### Step 2: Determine the Quadrilateral
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The points of tangency are \((x_1, y_1)\), \((x_1, -y_1)\), \((-x_1, y_1)\), and \((-x_1, -y_1)\). The quadrilateral formed by these points is a square with side length \(2x_1 = \frac{1 + \sqrt{129}}{16}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The area of the square is:
+[36m(Runner pid=60846)[0m \[ \left(\frac{1 + \sqrt{129}}{16}\right)^2 = \frac{(1 + \sqrt{129})^2}{256} = \frac{1 + 2\sqrt{129} + 129}{256} = \frac{130 + 2\sqrt{129}}{256} = \frac{65 + \sqrt{129}}{128}. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m However, we can see that the points of tangency form a rectangle with equal sides, so the area is:
+[36m(Runner pid=60846)[0m \[ \boxed{8}. \]
+[36m(Runner pid=60846)[0m [ground_truth] 15
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/model_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/optim_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/extra_state_world_size_8_rank_0.pt.
+[36m(Runner pid=60846)[0m Step 4
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.208
+[36m(Runner pid=60846)[0m   grad_norm: 0.136
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.0
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.047
+[36m(Runner pid=60846)[0m   ppo_kl: -6.045771574481051e-06
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.067
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.067
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.409
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.409
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 243020
+[36m(Runner pid=60846)[0m   balanced_min: 243019
+[36m(Runner pid=60846)[0m   max: 255773
+[36m(Runner pid=60846)[0m   mean: 243019.75
+[36m(Runner pid=60846)[0m   min: 228532
+[36m(Runner pid=60846)[0m   minmax_diff: 27241
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 64.11
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.709
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 49.182
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 948.92
+[36m(Runner pid=60846)[0m   time_per_step: 256.101
+[36m(Runner pid=60846)[0m   total_num_tokens: 1944158
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 248.0
+[36m(Runner pid=60846)[0m   mean: 104.098
+[36m(Runner pid=60846)[0m   min: 39.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.06
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 845.198
+[36m(Runner pid=60846)[0m   min: 110.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.454
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.409
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.892765547396705e-05
+[36m(Runner pid=60846)[0m   gen: 0.052
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.043
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.115
+[36m(Runner pid=60846)[0m   gen: 90.692
+[36m(Runner pid=60846)[0m   old: 16.189
+[36m(Runner pid=60846)[0m   ref: 16.639
+[36m(Runner pid=60846)[0m   reward: 0.755
+[36m(Runner pid=60846)[0m   save_checkpoint: 13.452
+[36m(Runner pid=60846)[0m   step: 256.101
+[36m(Runner pid=60846)[0m   update_actor: 83.289
+[36m(Runner pid=60846)[0m   validation: 34.751
+[36m(Runner pid=60846)[0m val:
+[36m(Runner pid=60846)[0m   accuracy_reward: 0.698
+[36m(Runner pid=60846)[0m   format_reward: 0.0
+[36m(Runner pid=60846)[0m   overall_reward: 0.628
+[36m(Runner pid=60846)[0m   reward_score: 0.628
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/model_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/optim_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4/actor/extra_state_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Step 5
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.211
+[36m(Runner pid=60846)[0m   grad_norm: 0.128
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.0
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.037
+[36m(Runner pid=60846)[0m   ppo_kl: 5.3489950229135275e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.052
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.052
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.417
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.417
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 236868
+[36m(Runner pid=60846)[0m   balanced_min: 236867
+[36m(Runner pid=60846)[0m   max: 253884
+[36m(Runner pid=60846)[0m   mean: 236867.625
+[36m(Runner pid=60846)[0m   min: 214174
+[36m(Runner pid=60846)[0m   minmax_diff: 39710
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 78.391
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.735
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 49.546
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1169.808
+[36m(Runner pid=60846)[0m   time_per_step: 202.484
+[36m(Runner pid=60846)[0m   total_num_tokens: 1894941
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 261.0
+[36m(Runner pid=60846)[0m   mean: 104.791
+[36m(Runner pid=60846)[0m   min: 50.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.062
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 820.473
+[36m(Runner pid=60846)[0m   min: 107.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.463
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.417
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.513259776958324e-05
+[36m(Runner pid=60846)[0m   gen: 0.052
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.043
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.104
+[36m(Runner pid=60846)[0m   gen: 87.49
+[36m(Runner pid=60846)[0m   old: 15.479
+[36m(Runner pid=60846)[0m   ref: 16.516
+[36m(Runner pid=60846)[0m   reward: 0.762
+[36m(Runner pid=60846)[0m   step: 202.484
+[36m(Runner pid=60846)[0m   update_actor: 81.921
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/model_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/optim_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/extra_state_world_size_8_rank_0.pt.
+[36m(Runner pid=60846)[0m Step 6
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.205
+[36m(Runner pid=60846)[0m   grad_norm: 0.135
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.001
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.044
+[36m(Runner pid=60846)[0m   ppo_kl: 3.7130205038149455e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.062
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.062
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.426
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.426
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 236865
+[36m(Runner pid=60846)[0m   balanced_min: 236864
+[36m(Runner pid=60846)[0m   max: 251028
+[36m(Runner pid=60846)[0m   mean: 236864.625
+[36m(Runner pid=60846)[0m   min: 225908
+[36m(Runner pid=60846)[0m   minmax_diff: 25120
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 70.401
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.735
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 49.928
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1073.708
+[36m(Runner pid=60846)[0m   time_per_step: 220.604
+[36m(Runner pid=60846)[0m   total_num_tokens: 1894917
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 240.0
+[36m(Runner pid=60846)[0m   mean: 101.287
+[36m(Runner pid=60846)[0m   min: 49.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.066
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 823.965
+[36m(Runner pid=60846)[0m   min: 150.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.474
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.426
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.088919199859079e-05
+[36m(Runner pid=60846)[0m   gen: 0.053
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.096
+[36m(Runner pid=60846)[0m   gen: 89.836
+[36m(Runner pid=60846)[0m   old: 15.879
+[36m(Runner pid=60846)[0m   ref: 16.57
+[36m(Runner pid=60846)[0m   reward: 0.779
+[36m(Runner pid=60846)[0m   save_checkpoint: 14.422
+[36m(Runner pid=60846)[0m   step: 220.604
+[36m(Runner pid=60846)[0m   update_actor: 82.814
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/model_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/optim_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_6/actor/extra_state_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Step 7
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.213
+[36m(Runner pid=60846)[0m   grad_norm: 0.132
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.001
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.034
+[36m(Runner pid=60846)[0m   ppo_kl: -2.4722452784675664e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.052
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.052
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.423
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.423
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 237262
+[36m(Runner pid=60846)[0m   balanced_min: 237261
+[36m(Runner pid=60846)[0m   max: 255226
+[36m(Runner pid=60846)[0m   mean: 237261.125
+[36m(Runner pid=60846)[0m   min: 222333
+[36m(Runner pid=60846)[0m   minmax_diff: 32893
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 79.969
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.735
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 50.208
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1157.679
+[36m(Runner pid=60846)[0m   time_per_step: 204.945
+[36m(Runner pid=60846)[0m   total_num_tokens: 1898089
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 214.0
+[36m(Runner pid=60846)[0m   mean: 103.471
+[36m(Runner pid=60846)[0m   min: 51.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.063
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 823.331
+[36m(Runner pid=60846)[0m   min: 10.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.47
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.423
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.541583456684104e-05
+[36m(Runner pid=60846)[0m   gen: 0.052
+[36m(Runner pid=60846)[0m   old: 0.009
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.105
+[36m(Runner pid=60846)[0m   gen: 88.143
+[36m(Runner pid=60846)[0m   old: 16.175
+[36m(Runner pid=60846)[0m   ref: 16.457
+[36m(Runner pid=60846)[0m   reward: 0.733
+[36m(Runner pid=60846)[0m   step: 204.945
+[36m(Runner pid=60846)[0m   update_actor: 83.103
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.52 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Suppose that I have $6$ different books, $2$ of which are math books. In how many ways can I stack my $6$ books on a shelf if I do not want the math books to be next to each other?
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] Let's solve this step by step:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m **Step 1: Calculate Total Arrangements Without Any Restrictions**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m First, we calculate the total number of arrangements of the $6$ books without any restrictions.
+[36m(Runner pid=60846)[0m There are $6!$ ways to arrange $6$ books.
+[36m(Runner pid=60846)[0m \[6! = 720\]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m **Step 2: Calculate Arrangements Where Math Books Are Together**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We treat the pair of math books as a single entity, which means now we have $5$ entities to arrange: one math pair and $4$ other books.
+[36m(Runner pid=60846)[0m The $5$ entities can be arranged in $5!$ ways.
+[36m(Runner pid=60846)[0m \[5! = 120\]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Now, within the math pair, the two books can be arranged in $2!$ ways.
+[36m(Runner pid=60846)[0m \[2! = 2\]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the total number of ways the books can be arranged with the math books together is:
+[36m(Runner pid=60846)[0m \[120 \times 2 = 240\]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m **Step 3: Calculate Arrangements Where Math Books Are Not Together**
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m To find the arrangements where the math books are not together, we subtract the total arrangements where the math books are together from the total arrangements without any restrictions.
+[36m(Runner pid=60846)[0m \[720 - 240 = 480\]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Therefore, the number of ways to arrange the $6$ books such that the math books are not next to each other is:
+[36m(Runner pid=60846)[0m \[\boxed{480}\]
+[36m(Runner pid=60846)[0m [ground_truth] 480
+[36m(Runner pid=60846)[0m [score] 0.8999999761581421
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Consider the geometric sequence $\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots$. What is the eighth term of the sequence? Express your answer as a common fraction.
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the eighth term of the geometric sequence \(\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots\), we first need to determine the common ratio \(r\) of the sequence. The common ratio \(r\) can be found by dividing the second term by the first term:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m r = \frac{\frac{25}{3}}{\frac{125}{9}} = \frac{25}{3} \times \frac{9}{125} = \frac{25 \times 9}{3 \times 125} = \frac{225}{375} = \frac{3}{5}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the common ratio \(r\) is \(\frac{3}{5}\). The general form of the \(n\)-th term of a geometric sequence is given by:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_n = a_1 \cdot r^{n-1}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m where \(a_1\) is the first term and \(r\) is the common ratio. Here, the first term \(a_1 = \frac{125}{9}\) and the common ratio \(r = \frac{3}{5}\). We need to find the eighth term \(a_8\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \left(\frac{3}{5}\right)^{8-1} = \frac{125}{9} \cdot \left(\frac{3}{5}\right)^7
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Now, we calculate \(\left(\frac{3}{5}\right)^7\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \left(\frac{3}{5}\right)^7 = \frac{3^7}{5^7} = \frac{2187}{78125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the eighth term is:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \frac{2187}{78125} = \frac{125 \times 2187}{9 \times 78125} = \frac{273375}{703125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We can simplify this fraction by finding the greatest common divisor (GCD) of 273375 and 703125. The GCD is 34125, so we divide both the numerator and the denominator by 34125:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \frac{273375 \div 34125}{703125 \div 34125} = \frac{8}{21}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Therefore, the eighth term of the sequence is:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \boxed{\frac{8}{21}}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m [ground_truth] \frac{243}{625}
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m The circle $x^2 + y^2 = 2$ and the parabola $y^2 = 8x$ have two common tangents, forming four points of tangency.  Find the area of the quadrilateral formed by the four points of tangency.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [asy]
+[36m(Runner pid=60846)[0m unitsize(0.8 cm);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real upperparab (real x) {
+[36m(Runner pid=60846)[0m   return (sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real lowerparab (real x) {
+[36m(Runner pid=60846)[0m   return (-sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m pair A, B, C, D;
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m A = (-1,1);
+[36m(Runner pid=60846)[0m B = (2,4);
+[36m(Runner pid=60846)[0m C = (-1,-1);
+[36m(Runner pid=60846)[0m D = (2,-4);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m draw(graph(upperparab,0,3));
+[36m(Runner pid=60846)[0m draw(graph(lowerparab,0,3));
+[36m(Runner pid=60846)[0m draw(Circle((0,0),sqrt(2)));
+[36m(Runner pid=60846)[0m draw(interp(A,B,-0.2)--interp(A,B,1.2));
+[36m(Runner pid=60846)[0m draw(interp(C,D,-0.2)--interp(C,D,1.2));
+[36m(Runner pid=60846)[0m draw(A--C);
+[36m(Runner pid=60846)[0m draw(B--D);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m dot(A);
+[36m(Runner pid=60846)[0m dot(B);
+[36m(Runner pid=60846)[0m dot(C);
+[36m(Runner pid=60846)[0m dot(D);
+[36m(Runner pid=60846)[0m [/asy]
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the area of the quadrilateral formed by the four points of tangency of the circle \(x^2 + y^2 = 2\) and the parabola \(y^2 = 8x\), we start by identifying the equations of the tangents to both curves.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The general form of the tangent to the circle \(x^2 + y^2 = r^2\) at the point \((x_1, y_1)\) is given by \(xx_1 + yy_1 = r^2\). For the circle \(x^2 + y^2 = 2\), the equation of the tangent at \((x_1, y_1)\) is:
+[36m(Runner pid=60846)[0m \[ xx_1 + yy_1 = 2. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The general form of the tangent to the parabola \(y^2 = 4ax\) at the point \((x_2, y_2)\) is given by \(yy_2 = 2a(x + x_2)\). For the parabola \(y^2 = 8x\), the equation of the tangent at \((t^2, 2t)\) is:
+[36m(Runner pid=60846)[0m \[ yt = 4(x + t^2) \implies y = \frac{4}{t} x + 4t. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We need to find the points of tangency that lie on both the circle and the parabola. Substitute \(y = \frac{4}{t} x + 4t\) into \(y^2 = 8x\) to find the points of tangency.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m First, substitute \(y = \frac{4}{t} x + 4t\) into \(x^2 + y^2 = 2\):
+[36m(Runner pid=60846)[0m \[ x^2 + \left( \frac{4}{t} x + 4t \right)^2 = 2. \]
+[36m(Runner pid=60846)[0m \[ x^2 + \left( \frac{16}{t^2} x^2 + \frac{32x}{t} + 16t^2 \right) = 2. \]
+[36m(Runner pid=60846)[0m \[ x^2 + \frac{16}{t^2} x^2 + \frac{32x}{t} + 16t^2 = 2. \]
+[36m(Runner pid=60846)[0m \[ \left(1 + \frac{16}{t^2}\right) x^2 + \frac{32x}{t} + 16t^2 = 2. \]
+[36m(Runner pid=60846)[0m \[ \frac{t^2 + 16}{t^2} x^2 + \frac{32x}{t} + 16t^2 = 2. \]
+[36m(Runner pid=60846)[0m Multiply through by \(t^2\):
+[36m(Runner pid=60846)[0m \[ (t^2 + 16) x^2 + 32tx + 16t^4 = 2t^2. \]
+[36m(Runner pid=60846)[0m \[ (t^2 + 16) x^2 + 32tx + 16t^4 - 2t^2 = 0. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m This quadratic equation in \(x\) must have a double root, so the discriminant must be zero:
+[36m(Runner pid=60846)[0m \[ (32t)^2 - 4(t^2 + 16)(16t^4 - 2t^2) = 0. \]
+[36m(Runner pid=60846)[0m \[ 1024t^2 - 4(t^2 + 16)(16t^4 - 2t^2) = 0. \]
+[36m(Runner pid=60846)[0m \[ 1024t^2 - 4(16t^6 - 2t^4 + 256t^4 - 32t^2) = 0. \]
+[36m(Runner pid=60846)[0m \[ 1024t^2 - 4(16t^6 + 254t^4 - 32t^2) = 0. \]
+[36m(Runner pid=60846)[0m \[ 1024t^2 - 64t^6 - 1016t^4 + 128t^2 = 0. \]
+[36m(Runner pid=60846)[0m \[ -64t^6 - 1016t^4 + 1152t^2 = 0. \]
+[36m(Runner pid=60846)[0m \[ t^2(-64t^4 - 1016t^2 + 1152) = 0. \]
+[36m(Runner pid=60846)[0m \[ t^2 = 0 \text{ or } -64t^4 - 1016t^2 + 1152 = 0. \]
+[36m(Runner pid=60846)[0m Let \(u = t^2\), then:
+[36m(Runner pid=60846)[0m \[ -64u^2 - 1016u + 1152 = 0. \]
+[36m(Runner pid=60846)[0m \[ 64u^2 + 1016u - 1152 = 0. \]
+[36m(Runner pid=60846)[0m \[ 4u^2 + 63u - 72 = 0. \]
+[36m(Runner pid=60846)[0m Solving this quadratic equation using the quadratic formula \(u = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\):
+[36m(Runner pid=60846)[0m \[ u = \frac{-63 \pm \sqrt{63^2 + 4 \cdot 4 \cdot 72}}{2 \cdot 4}. \]
+[36m(Runner pid=60846)[0m \[ u = \frac{-63 \pm \sqrt{3969 + 1152}}{8}. \]
+[36m(Runner pid=60846)[0m \[ u = \frac{-63 \pm \sqrt{5121}}{8}. \]
+[36m(Runner pid=60846)[0m \[ u = \frac{-63 \pm 71.56}{8}. \]
+[36m(Runner pid=60846)[0m \[ u = \frac{8.56}{8} = 1.07 \text{ or } u = \frac{-134.56}{8} = -16.82. \]
+[36m(Runner pid=60846)[0m Since \(u = t^2\) must be positive, we have \(t^2 = 1.07\), so \(t = \pm 1\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Substituting \(t = \pm 1\) into the tangent equations, we get the points of tangency:
+[36m(Runner pid=60846)[0m For \(t = 1\), the point of tangency is \((1, 2)\) and \((-1, -2)\).
+[36m(Runner pid=60846)[0m For \(t = -1\), the point of tangency is \((1, -2)\) and \((-1, 2)\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The points of tangency are \((1, 2)\), \((1, -2)\), \((-1, 2)\), and \((-1, -2)\). These points form a rectangle with side lengths 2 and 4. The area of the rectangle is:
+[36m(Runner pid=60846)[0m \[ 2 \times 4 = 8. \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Thus, the area of the quadrilateral is \(\boxed{8}\).
+[36m(Runner pid=60846)[0m [ground_truth] 15
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Removed obsolete checkpoint: /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_2
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/model_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/optim_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/extra_state_world_size_8_rank_0.pt.
+[36m(Runner pid=60846)[0m Step 8
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.203
+[36m(Runner pid=60846)[0m   grad_norm: 0.141
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.001
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.034
+[36m(Runner pid=60846)[0m   ppo_kl: 3.6281658241099635e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.054
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.054
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.418
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.418
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 233065
+[36m(Runner pid=60846)[0m   balanced_min: 233064
+[36m(Runner pid=60846)[0m   max: 249864
+[36m(Runner pid=60846)[0m   mean: 233064.75
+[36m(Runner pid=60846)[0m   min: 220652
+[36m(Runner pid=60846)[0m   minmax_diff: 29212
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 69.032
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.76
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 52.734
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 907.534
+[36m(Runner pid=60846)[0m   time_per_step: 256.811
+[36m(Runner pid=60846)[0m   total_num_tokens: 1864518
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 360.0
+[36m(Runner pid=60846)[0m   mean: 104.346
+[36m(Runner pid=60846)[0m   min: 49.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.054
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 806.063
+[36m(Runner pid=60846)[0m   min: 128.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.465
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.418
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 4.748993361427071e-05
+[36m(Runner pid=60846)[0m   gen: 0.053
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.089
+[36m(Runner pid=60846)[0m   gen: 88.313
+[36m(Runner pid=60846)[0m   old: 15.509
+[36m(Runner pid=60846)[0m   ref: 16.387
+[36m(Runner pid=60846)[0m   reward: 0.767
+[36m(Runner pid=60846)[0m   save_checkpoint: 19.179
+[36m(Runner pid=60846)[0m   step: 256.811
+[36m(Runner pid=60846)[0m   update_actor: 81.917
+[36m(Runner pid=60846)[0m   validation: 34.43
+[36m(Runner pid=60846)[0m val:
+[36m(Runner pid=60846)[0m   accuracy_reward: 0.696
+[36m(Runner pid=60846)[0m   format_reward: 0.0
+[36m(Runner pid=60846)[0m   overall_reward: 0.626
+[36m(Runner pid=60846)[0m   reward_score: 0.626
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/model_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/optim_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_8/actor/extra_state_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.89 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Step 9
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.214
+[36m(Runner pid=60846)[0m   grad_norm: 0.138
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.001
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.027
+[36m(Runner pid=60846)[0m   ppo_kl: 5.953283560844458e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.04
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.04
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.443
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.443
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 232529
+[36m(Runner pid=60846)[0m   balanced_min: 232528
+[36m(Runner pid=60846)[0m   max: 240115
+[36m(Runner pid=60846)[0m   mean: 232528.375
+[36m(Runner pid=60846)[0m   min: 220845
+[36m(Runner pid=60846)[0m   minmax_diff: 19270
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 76.082
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.798
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 52.724
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1163.883
+[36m(Runner pid=60846)[0m   time_per_step: 199.787
+[36m(Runner pid=60846)[0m   total_num_tokens: 1860227
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 383.0
+[36m(Runner pid=60846)[0m   mean: 103.586
+[36m(Runner pid=60846)[0m   min: 39.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.053
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 804.728
+[36m(Runner pid=60846)[0m   min: 47.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.493
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.443
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 4.770133424314775e-05
+[36m(Runner pid=60846)[0m   gen: 0.052
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.089
+[36m(Runner pid=60846)[0m   gen: 85.098
+[36m(Runner pid=60846)[0m   old: 15.363
+[36m(Runner pid=60846)[0m   ref: 16.014
+[36m(Runner pid=60846)[0m   reward: 0.776
+[36m(Runner pid=60846)[0m   step: 199.787
+[36m(Runner pid=60846)[0m   update_actor: 82.227
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.74 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m Removed obsolete checkpoint: /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_4
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/model_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/optim_world_size_8_rank_0.pt.
+[36m(WorkerDict pid=63248)[0m [rank-0]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/extra_state_world_size_8_rank_0.pt.
+[36m(Runner pid=60846)[0m Step 10
+[36m(Runner pid=60846)[0m actor:
+[36m(Runner pid=60846)[0m   entropy_loss: 0.21
+[36m(Runner pid=60846)[0m   grad_norm: 0.129
+[36m(Runner pid=60846)[0m   kl_coef: 0.01
+[36m(Runner pid=60846)[0m   kl_loss: 0.002
+[36m(Runner pid=60846)[0m   lr: 1.0e-06
+[36m(Runner pid=60846)[0m   pg_clipfrac_higher: 0.0
+[36m(Runner pid=60846)[0m   pg_clipfrac_lower: 0.0
+[36m(Runner pid=60846)[0m   pg_loss: 0.029
+[36m(Runner pid=60846)[0m   ppo_kl: 1.1088855850771573e-05
+[36m(Runner pid=60846)[0m critic:
+[36m(Runner pid=60846)[0m   advantages:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.045
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   returns:
+[36m(Runner pid=60846)[0m     max: 1.5
+[36m(Runner pid=60846)[0m     mean: -0.045
+[36m(Runner pid=60846)[0m     min: -1.5
+[36m(Runner pid=60846)[0m   rewards:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.414
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m   score:
+[36m(Runner pid=60846)[0m     max: 0.9
+[36m(Runner pid=60846)[0m     mean: 0.414
+[36m(Runner pid=60846)[0m     min: 0.0
+[36m(Runner pid=60846)[0m global_seqlen:
+[36m(Runner pid=60846)[0m   balanced_max: 237463
+[36m(Runner pid=60846)[0m   balanced_min: 237462
+[36m(Runner pid=60846)[0m   max: 250200
+[36m(Runner pid=60846)[0m   mean: 237462.875
+[36m(Runner pid=60846)[0m   min: 229724
+[36m(Runner pid=60846)[0m   minmax_diff: 20476
+[36m(Runner pid=60846)[0m perf:
+[36m(Runner pid=60846)[0m   cpu_memory_used_gb: 68.149
+[36m(Runner pid=60846)[0m   max_memory_allocated_gb: 16.817
+[36m(Runner pid=60846)[0m   max_memory_reserved_gb: 54.251
+[36m(Runner pid=60846)[0m   mfu_actor: 0.0
+[36m(Runner pid=60846)[0m   throughput: 1057.734
+[36m(Runner pid=60846)[0m   time_per_step: 224.502
+[36m(Runner pid=60846)[0m   total_num_tokens: 1899703
+[36m(Runner pid=60846)[0m prompt_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.0
+[36m(Runner pid=60846)[0m   max: 237.0
+[36m(Runner pid=60846)[0m   mean: 104.148
+[36m(Runner pid=60846)[0m   min: 51.0
+[36m(Runner pid=60846)[0m response_length:
+[36m(Runner pid=60846)[0m   clip_ratio: 0.058
+[36m(Runner pid=60846)[0m   max: 2048.0
+[36m(Runner pid=60846)[0m   mean: 823.441
+[36m(Runner pid=60846)[0m   min: 106.0
+[36m(Runner pid=60846)[0m reward:
+[36m(Runner pid=60846)[0m   accuracy: 0.46
+[36m(Runner pid=60846)[0m   format: 0.0
+[36m(Runner pid=60846)[0m   overall: 0.414
+[36m(Runner pid=60846)[0m timing_per_token_ms:
+[36m(Runner pid=60846)[0m   adv: 5.4309674208732705e-05
+[36m(Runner pid=60846)[0m   gen: 0.053
+[36m(Runner pid=60846)[0m   old: 0.008
+[36m(Runner pid=60846)[0m   ref: 0.009
+[36m(Runner pid=60846)[0m   reward: 0.0
+[36m(Runner pid=60846)[0m   update_actor: 0.044
+[36m(Runner pid=60846)[0m timing_s:
+[36m(Runner pid=60846)[0m   adv: 0.103
+[36m(Runner pid=60846)[0m   gen: 88.918
+[36m(Runner pid=60846)[0m   old: 15.56
+[36m(Runner pid=60846)[0m   ref: 16.294
+[36m(Runner pid=60846)[0m   reward: 0.751
+[36m(Runner pid=60846)[0m   save_checkpoint: 18.933
+[36m(Runner pid=60846)[0m   step: 224.502
+[36m(Runner pid=60846)[0m   update_actor: 83.71
+[36m(Runner pid=60846)[0m 
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/model_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving optimizer to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/optim_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63596)[0m [rank-5]: Saving extra_state to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_10/actor/extra_state_world_size_8_rank_5.pt.[32m [repeated 7x across cluster][0m
+[36m(WorkerDict pid=63248)[0m Before state_dict() in sharding manager: 9.53 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After state_dict() in sharding manager: 14.03 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After sync model weights in sharding manager: 17.85 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After del state_dict and empty_cache in sharding manager: 62.58 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m [Rollout] Start generating sequences.
+[36m(WorkerDict pid=63248)[0m [Rollout] Finish generating sequences.
+[36m(WorkerDict pid=63248)[0m Before vllm offload in sharding manager: 63.52 GB / 79.25 GB.
+[36m(WorkerDict pid=63248)[0m After vllm offload in sharding manager: 9.53 GB / 79.25 GB.
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Suppose that I have $6$ different books, $2$ of which are math books. In how many ways can I stack my $6$ books on a shelf if I do not want the math books to be next to each other?
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To determine the number of ways to stack 6 different books on a shelf such that the 2 math books are not next to each other, we can follow these steps:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 1. **Calculate the total number of ways to stack all 6 books:** 
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    6!
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 2. **Calculate the number of ways to stack all 6 books when the 2 math books are treated as a single unit:**
+[36m(Runner pid=60846)[0m    First consider the 2 math books as one unit, thus we have 5 units to stack. The number of ways to arrange 5 units is \(5!\). Each of these arrangements can be permuted in \(2!\) ways because the 2 math books within their unit can be swapped. Therefore, the number of ways to arrange all 6 books with the 2 math books together is:
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    5! \times 2!
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 3. **Calculate the number of ways to arrange all 6 books such that the 2 math books are not next to each other:**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    6! - 5! \times 2!
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Let's now calculate the steps and derive the final answer.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 1. **Calculate \(6!\):**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    6! = 720
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 2. **Calculate \(5!\):**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    5! = 120
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 3. **Calculate \(2!\):**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    2! = 2
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 4. **Calculate \(5! \times 2!\):**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    120 \times 2 = 240
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 5. **Calculate \(6! - 5! \times 2!\):**
+[36m(Runner pid=60846)[0m    \[
+[36m(Runner pid=60846)[0m    720 - 240 = 480
+[36m(Runner pid=60846)[0m    \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Thus, the number of ways to stack the 6 books such that the 2 math books are not next to each other is:
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \boxed{480}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m [ground_truth] 480
+[36m(Runner pid=60846)[0m [score] 0.8999999761581421
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m Consider the geometric sequence $\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots$. What is the eighth term of the sequence? Express your answer as a common fraction.
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the eighth term of the geometric sequence \(\frac{125}{9}, \frac{25}{3}, 5, 3, \ldots\), we need to follow these steps:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m 1. Identify the first term \(a_1\) and the common ratio \(r\) of the sequence.
+[36m(Runner pid=60846)[0m 2. Use the formula for the \(n\)-th term of a geometric sequence to find the eighth term.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The first term \(a_1\) is \(\frac{125}{9}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Next, we need to find the common ratio \(r\). The common ratio is the ratio of consecutive terms. Let's use the second and first terms to find \(r\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m r = \frac{\frac{25}{3}}{\frac{125}{9}} = \frac{25}{3} \cdot \frac{9}{125} = \frac{25 \cdot 9}{3 \cdot 125} = \frac{225}{375} = \frac{3}{5}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the common ratio \(r\) is \(\frac{3}{5}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The formula for the \(n\)-th term of a geometric sequence is given by:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_n = a_1 \cdot r^{n-1}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We need to find the eighth term (\(a_8\)):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \left(\frac{3}{5}\right)^{8-1} = \frac{125}{9} \cdot \left(\frac{3}{5}\right)^7
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Now, we calculate \(\left(\frac{3}{5}\right)^7\):
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \left(\frac{3}{5}\right)^7 = \frac{3^7}{5^7} = \frac{2187}{78125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the eighth term is:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m a_8 = \frac{125}{9} \cdot \frac{2187}{78125} = \frac{125 \cdot 2187}{9 \cdot 78125} = \frac{273375}{703125}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m We can simplify \(\frac{273375}{703125}\). First, find the greatest common divisor (GCD) of 273375 and 703125. Both numbers are divisible by 15625:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m 273375 \div 15625 = 17.4936, \quad 703125 \div 15625 = 44.99472
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m But let's use the prime factorization method:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m 273375 = 3^3 \cdot 5^3 \cdot 7, \quad 703125 = 3^3 \cdot 5^7
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the GCD is \(3^3 \cdot 5^3 = 3375\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Dividing numerator and denominator by 3375:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \frac{273375 \div 3375}{703125 \div 3375} = \frac{81}{207} = \frac{27}{69} = \frac{9}{23}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m So, the eighth term of the sequence is:
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \boxed{\frac{9}{25}}
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m [ground_truth] \frac{243}{625}
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [prompt] system
+[36m(Runner pid=60846)[0m Please reason step by step, and put your final answer within \boxed{}.
+[36m(Runner pid=60846)[0m user
+[36m(Runner pid=60846)[0m The circle $x^2 + y^2 = 2$ and the parabola $y^2 = 8x$ have two common tangents, forming four points of tangency.  Find the area of the quadrilateral formed by the four points of tangency.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [asy]
+[36m(Runner pid=60846)[0m unitsize(0.8 cm);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real upperparab (real x) {
+[36m(Runner pid=60846)[0m   return (sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m real lowerparab (real x) {
+[36m(Runner pid=60846)[0m   return (-sqrt(8*x));
+[36m(Runner pid=60846)[0m }
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m pair A, B, C, D;
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m A = (-1,1);
+[36m(Runner pid=60846)[0m B = (2,4);
+[36m(Runner pid=60846)[0m C = (-1,-1);
+[36m(Runner pid=60846)[0m D = (2,-4);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m draw(graph(upperparab,0,3));
+[36m(Runner pid=60846)[0m draw(graph(lowerparab,0,3));
+[36m(Runner pid=60846)[0m draw(Circle((0,0),sqrt(2)));
+[36m(Runner pid=60846)[0m draw(interp(A,B,-0.2)--interp(A,B,1.2));
+[36m(Runner pid=60846)[0m draw(interp(C,D,-0.2)--interp(C,D,1.2));
+[36m(Runner pid=60846)[0m draw(A--C);
+[36m(Runner pid=60846)[0m draw(B--D);
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m dot(A);
+[36m(Runner pid=60846)[0m dot(B);
+[36m(Runner pid=60846)[0m dot(C);
+[36m(Runner pid=60846)[0m dot(D);
+[36m(Runner pid=60846)[0m [/asy]
+[36m(Runner pid=60846)[0m assistant
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m [output] To find the area of the quadrilateral formed by the four points of tangency between the circle \(x^2 + y^2 = 2\) and the parabola \(y^2 = 8x\), we need to determine the points of tangency and then calculate the area of the quadrilateral they form.
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m First, let's find the points of tangency. Suppose the point of tangency on the circle is \((x_1, y_1)\) and on the parabola is \((x_2, y_2)\). The slope of the tangent line to the circle at \((x_1, y_1)\) is \(-\frac{x_1}{y_1}\) because the derivative of \(x^2 + y^2 = 2\) is \(2x + 2y \frac{dy}{dx} = 0\), so \(\frac{dy}{dx} = -\frac{x_1}{y_1}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m The slope of the tangent line to the parabola at \((x_2, y_2)\) is \(\frac{4}{y_2}\) because the derivative of \(y^2 = 8x\) is \(2y \frac{dy}{dx} = 8\), so \(\frac{dy}{dx} = \frac{4}{y_2}\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m Since the tangents are the same line, their slopes must be equal:
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m -\frac{x_1}{y_1} = \frac{4}{y_2} \implies x_1 y_2 = -4y_1.
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m Since \((x_1, y_1)\) lies on the circle, we have \(x_1^2 + y_1^2 = 2\). And since \((x_2, y_2)\) lies on the parabola, we have \(y_2^2 = 8x_2\).
+[36m(Runner pid=60846)[0m 
+[36m(Runner pid=60846)[0m To find the specific points, we can use the fact that the tangents are symmetric and form a rectangle. The points of tangency are \((1, 1)\), \((1, -1)\), \((2, 4)\), and \((2, -4)\). The distance between \((1, 1)\) and \((1, -1)\) is 2, and the distance between \((2, 4)\) and \((2, -4)\) is 8. Therefore, the area of the rectangle is:
+[36m(Runner pid=60846)[0m \[
+[36m(Runner pid=60846)[0m \text{Area} = 2 \times 8 = 16.
+[36m(Runner pid=60846)[0m \]
+[36m(Runner pid=60846)[0m Thus, the area of the quadrilateral formed by the four points of tangency is \(\boxed{16}\).
+[36m(Runner pid=60846)[0m [ground_truth] 15
+[36m(Runner pid=60846)[0m [score] 0.0
+[36m(Runner pid=60846)[0m 
+merging model
+Found checkpoint at: /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_17/actor
+Got device mesh tensor([0, 1, 2, 3, 4, 5, 6, 7], dtype=torch.int32), mesh_dim_names ('fsdp',)
+Processing 8 model shards in total.
+Merge completed.
+Saving model to /workspace/euclid/rentropy/R-Zero-main/storage/models/variant4-iter2_solver_v1/global_step_17/actor/huggingface...
+Stopping vLLM service (PID: )...
+solver training finished
+Solver training finished

@@ -1,0 +1,25 @@
+# expv1_0 requirements (minimal, with optional extras)
+
+pyyaml>=6.0
+tqdm>=4.65.0
+numpy>=1.24.0
+
+# Optional but recommended (for real runs)
+torch>=2.1.0
+transformers>=4.40.0
+datasets>=2.18.0
+
+# Math answer equivalence (optional; improves grading)
+math-verify>=0.1.0
+sympy>=1.12
+
+# Optional for embedding dedup
+sentence-transformers>=2.6.0
+
+# Optional for fast inference
+vllm>=0.4.0
+
+# Optional for faster training (Flash Attention 2)
+# Requires CUDA 11.6+ and PyTorch 2.0+
+# Install with: pip install flash-attn --no-build-isolation
+flash-attn>=2.5.0

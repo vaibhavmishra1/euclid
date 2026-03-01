@@ -1,0 +1,30 @@
+**/rzero_storage/
+
+# Python bytecode
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+
+# Logs / artifacts
+wandb/
+**/wandb/
+*.log
+**/*.log
+*.json
+**/*.json
+*/.venv
+*.png
+*.DS_STORE
+
+# Experiment outputs
+**/output/
+**/output_*/
+**/generator_io/
+**/*_accepted/
+**/*_questions/
+**/sft_model/
+**/sft_dataset*.jsonl
+**/*.jsonl

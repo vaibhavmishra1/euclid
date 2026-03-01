@@ -1,0 +1,18 @@
+Model_abbr: variant5-iter2
+Diversity Mode: 5
+Questioner Base Model: vibhuiitj/qwen3-4b-base-variant5-feb7-questioner-iter1
+Solver Base Model: vibhuiitj/qwen3-4b-base-variant5-feb7-solver-iter1
+Running Rentropy experiment with cluster-entropy diversity reward (mode 5)
+STORAGE_PATH: /workspace/euclid/rentropy/R-Zero-main/storage
+HUGGINGFACENAME: vibhuiitj
+Pre-downloading models to avoid download issues during training...
+Both models downloaded successfully.
+Questioner model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant5-feb7-questioner-iter1
+Solver model: /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant5-feb7-solver-iter1
+/workspace/euclid/rentropy/R-Zero-main/storage
+start train solver variant5-iter2_solver_v1 /workspace/euclid/rentropy/R-Zero-main/storage/models/vibhuiitj_qwen3-4b-base-variant5-feb7-solver-iter1 /workspace/euclid/rentropy/R-Zero-main/storage/models/variant5-iter2_questioner_v1/global_step_10/actor/huggingface
+start upload
+/workspace/euclid/rentropy/R-Zero-main/storage
+File variant5-iter2_solver_v1_7_results.json not found
+File variant5-iter2_solver_v1_7_results.json not found
+Filtered 3292 questions (score: [0.49, 0.81], diversity >= 0.1)

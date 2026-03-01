@@ -1,0 +1,4 @@
+/workspace/euclid/darwin/R-Zero-main/storage
+start train solver  vibhuiitj/qwen3-4b-base-variant1-feb2-solver-iter2 vibhuiitj/darwin_iter2_questioner
+start train
+INFO 02-14 18:50:50 [__init__.py:244] Automatically detected platform cuda.

@@ -1,0 +1,53 @@
+# exp0_0: Zero-Shot Baseline Configuration
+# =========================================
+
+experiment:
+  name: "exp0_0_baseline"
+  type: "inference_only"
+  description: "Baseline evaluation of CAQG pipeline without training"
+  seed: 42
+
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  gpu_memory_utilization: 0.85
+  tensor_parallel_size: 1  # Single GPU
+
+dataset:
+  name: "math"
+  source: "MATH-500"
+  num_seeds: 50  # Number of seed questions to process
+  shuffle: true
+
+generation:
+  K: 4                    # Questions to generate per seed per iteration
+  M: 8                    # Solution attempts per question
+  max_iterations: 5       # Maximum iteration depth per seed
+  temperature: 1.0        # Sampling temperature
+  top_p: 0.95            # Nucleus sampling
+  top_k: 40              # Top-k sampling
+  max_tokens: 4096       # Max tokens per generation
+
+thresholds:
+  # Termination thresholds (chain stops if below these)
+  solvability_t: 0.5      # r_m threshold for "solvable"
+  validity_t: 0.5         # r2 threshold for "valid question"
+  novelty_t: 0.4          # r3 threshold for "novel"
+  valid_ratio_t: 0.5      # Fraction of K that must be valid to continue
+  
+  # Selection thresholds (stricter - for picking next best question)
+  # Questions must meet these to be candidates for selection
+  selection_solvability_t: 0.6   # Prefer questions with higher r_m
+  selection_validity_t: 0.7      # Prefer well-posed questions
+
+output:
+  save_dir: "results"
+  save_raw: true
+  save_traces: true
+  save_solutions: true    # Save all M solutions (large files)
+  verbose: true           # Print progress
+
+prompts:
+  generator: "prompts/p1_generator.txt"
+  solver: "prompts/p2_solver.txt"
+  verifier: "prompts/p3_verifier.txt"
+  novelty: "prompts/p4_novelty.txt"
